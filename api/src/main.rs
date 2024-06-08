@@ -1,10 +1,10 @@
+mod blog;
 mod constants;
-mod content;
 mod database;
 mod model;
 
 use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer};
-use content::api::{delete_blog, get_blog, publish_blog, update_blog};
+use blog::api::{delete_blog, get_blog, publish_blog, update_blog};
 use database::db;
 use model::index::Index;
 use serde_json;
