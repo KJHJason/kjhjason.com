@@ -1,4 +1,6 @@
-use crate::constants::constants::TITLE_MAX_LENGTH;
+use crate::constants::constants::{
+    MAX_FILES_ALLOWED, MAX_TAGS, MAX_THUMBNAIL_FILE_SIZE, TITLE_MAX_LENGTH,
+};
 use crate::model::base_error::Error;
 use actix_web::{HttpResponse, ResponseError};
 use bson::oid::ObjectId;
@@ -21,23 +23,30 @@ impl BlogIdentifier {
 pub struct Blog {
     _id: ObjectId,
     title: String,
+    tags: Vec<String>,
     content: String,
     is_public: bool,
     unix_timestamp: i64,
     last_modified: Option<i64>,
+    thumbnail_url: Option<String>,
 }
 
 // blog struct setter
 impl Blog {
-    pub fn new(title: String, content: String, is_public: bool) -> Blog {
+    pub fn new(title: String, content: String, tags: &Vec<String>, is_public: bool) -> Blog {
         Blog {
             _id: ObjectId::new(),
             title: title,
+            tags: tags.clone(),
             content: content,
             is_public: is_public,
             unix_timestamp: Utc::now().timestamp(),
             last_modified: None,
+            thumbnail_url: None,
         }
+    }
+    pub fn get_tags(&self) -> &Vec<String> {
+        &self.tags
     }
     pub fn get_is_public(&self) -> bool {
         self.is_public
@@ -51,6 +60,7 @@ pub struct BlogResponse {
     content: String,
     unix_timestamp: i64,
     last_modified: Option<i64>,
+    thumbnail_url: Option<String>,
 }
 
 impl From<Blog> for BlogResponse {
@@ -61,6 +71,7 @@ impl From<Blog> for BlogResponse {
             content: blog.content,
             unix_timestamp: blog.unix_timestamp,
             last_modified: blog.last_modified,
+            thumbnail_url: blog.thumbnail_url,
         }
     }
 }
@@ -68,6 +79,7 @@ impl From<Blog> for BlogResponse {
 #[derive(Deserialize)]
 pub struct BlogPublishOperation {
     title: String,
+    tags: Vec<String>,
     content: String,
     is_public: bool,
 }
@@ -75,6 +87,9 @@ pub struct BlogPublishOperation {
 impl BlogPublishOperation {
     pub fn get_title(&self) -> &str {
         &self.title
+    }
+    pub fn get_tags(&self) -> &Vec<String> {
+        &self.tags
     }
     pub fn get_content(&self) -> &str {
         &self.content
@@ -88,6 +103,7 @@ impl BlogPublishOperation {
 pub struct BlogUpdateOperation {
     id: String,
     title: String,
+    tags: Vec<String>,
     content: String,
     is_public: Option<bool>,
 }
@@ -98,6 +114,9 @@ impl BlogUpdateOperation {
     }
     pub fn get_title(&self) -> &str {
         &self.title
+    }
+    pub fn get_tags(&self) -> &Vec<String> {
+        &self.tags
     }
     pub fn get_content(&self) -> &str {
         &self.content
@@ -116,6 +135,11 @@ pub enum BlogError {
     TitleTooLong,
     EmptyContent,
     UpdateBlogError,
+    TooManyTags,
+    ImageIsEmpty,
+    ImageTooLarge,
+    TooManyImages,
+    ImageUploadError,
     InternalServerError,
 }
 
@@ -142,6 +166,28 @@ impl ResponseError for BlogError {
             }
             BlogError::UpdateBlogError => HttpResponse::InternalServerError()
                 .json(Error::new("Failed to update blog".to_string())),
+            BlogError::TooManyTags => HttpResponse::BadRequest().json(Error::new(
+                format!("Too many tags, must be less than {} tags", MAX_TAGS).to_string(),
+            )),
+            BlogError::ImageIsEmpty => {
+                HttpResponse::BadRequest().json(Error::new("Image cannot be empty".to_string()))
+            }
+            BlogError::ImageTooLarge => HttpResponse::BadRequest().json(Error::new(
+                format!(
+                    "Image size must be less than {} bytes",
+                    MAX_THUMBNAIL_FILE_SIZE
+                )
+                .to_string(),
+            )),
+            BlogError::TooManyImages => HttpResponse::BadRequest().json(Error::new(
+                format!(
+                    "Too many images, must be less than or equal to {} images",
+                    MAX_FILES_ALLOWED
+                )
+                .to_string(),
+            )),
+            BlogError::ImageUploadError => HttpResponse::InternalServerError()
+                .json(Error::new("Failed to upload image".to_string())),
             BlogError::InternalServerError => HttpResponse::InternalServerError()
                 .json(Error::new("Internal server error".to_string())),
         }

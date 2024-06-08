@@ -1,4 +1,6 @@
-use crate::constants::constants::{BLOG_COLLECTION, DATABASE, LOCAL_URI, MONGO_CLIENT_APP_NAME};
+use crate::constants::constants::{
+    BLOG_COLLECTION, DATABASE, DEBUG_MODE, LOCAL_URI, MONGO_CLIENT_APP_NAME,
+};
 use crate::model::blog::Blog;
 use mongodb::options::{ClientOptions, Credential};
 use mongodb::{Client, Collection};
@@ -13,7 +15,10 @@ pub async fn init_db() -> Result<DbClient, mongodb::error::Error> {
 
     let mut client_options = ClientOptions::parse(uri.clone()).await?;
     client_options.app_name = Some(MONGO_CLIENT_APP_NAME.to_string());
-    if uri != LOCAL_URI {
+    if !DEBUG_MODE {
+        if uri == LOCAL_URI {
+            panic!("Cannot use local URI in production mode");
+        }
         let username = std::env::var("MONGODB_USERNAME").unwrap();
         let password = std::env::var("MONGODB_PASSWORD").unwrap();
         client_options.credential = Some(
