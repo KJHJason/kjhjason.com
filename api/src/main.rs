@@ -26,20 +26,25 @@ async fn hello() -> HttpResponse {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
+    log::info!("Initialising API...");
 
     dotenv().ok();
-    let db_client = db::init_db()
-        .await
-        .unwrap_or_else(|_| panic!("Failed to connect to database"));
+    let db_future = async {
+        db::init_db()
+            .await
+            .unwrap_or_else(|_| panic!("Failed to connect to database"))
+    };
+    let aws_future = async {
+        let api_endpoint = std::env::var(constants::constants::AWS_ENDPOINT_URL).unwrap();
+        let mut config = aws_config::defaults(BehaviorVersion::latest());
+        config = config.endpoint_url(api_endpoint);
+        config = config
+            .app_name(aws_config::AppName::new("blog".to_string()).expect("Invalid app name"));
+        config.load().await
+    };
+    let (db_client, aws_config) = tokio::join!(db_future, aws_future);
 
-    let api_endpoint = std::env::var(constants::constants::AWS_ENDPOINT_URL).unwrap();
-    let mut config = aws_config::defaults(BehaviorVersion::latest());
-    config = config.endpoint_url(api_endpoint);
-    config =
-        config.app_name(aws_config::AppName::new("blog".to_string()).expect("Invalid app name"));
-    let config = config.load().await;
-
-    let client = s3::Client::new(&config);
+    let client = s3::Client::new(&aws_config);
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_client.clone()))

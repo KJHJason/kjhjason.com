@@ -4,7 +4,7 @@ use crate::model::blog::{Blog, BlogError};
 use crate::security::pw_hasher;
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
-use mongodb::options::{ClientOptions, Credential};
+use mongodb::options::{ClientOptions, Credential, IndexOptions};
 use mongodb::{Client, Collection, IndexModel};
 
 #[derive(Clone)]
@@ -24,7 +24,11 @@ async fn init_user_collection(client: &Client) {
     }
 
     // although there will only be one account, just do this for future-proofing
-    let index = IndexModel::builder().keys(doc! {"username": 1}).build();
+    let opts = IndexOptions::builder().unique(true).build();
+    let index = IndexModel::builder()
+        .keys(doc! {"username": 1})
+        .options(opts)
+        .build();
     collection
         .create_index(index, None)
         .await
@@ -34,14 +38,18 @@ async fn init_user_collection(client: &Client) {
         std::env::var(constants::BLOG_ADMIN_USERNAME).expect("admin username not set");
     let admin_password =
         std::env::var(constants::BLOG_ADMIN_PASSWORD).expect("admin password not set");
-    let hashed_admin_password =
-        pw_hasher::hash_password(&admin_password).expect("Failed to hash password");
+    let hashed_admin_password = tokio::task::spawn_blocking(move || {
+        pw_hasher::hash_password(&admin_password).expect("Failed to hash password")
+    })
+    .await
+    .expect("Failed to hash password");
 
     let user = User::new(admin_username, hashed_admin_password);
     match collection.insert_one(user, None).await {
         Ok(_) => log::info!("Admin account created"),
         Err(e) => panic!("Failed to create admin account: {}", e),
     }
+    log::info!("User collection initialised");
 }
 
 async fn init_blog_collection(client: &Client) {
@@ -55,17 +63,33 @@ async fn init_blog_collection(client: &Client) {
         _ => {}
     }
 
-    let index = IndexModel::builder().keys(doc! { "title": 1 }).build();
-    collection
-        .create_index(index, None)
-        .await
-        .expect("Failed to create title index for blog collection");
+    let title_idx = IndexModel::builder().keys(doc! { "title": 1 }).build();
+    let title_idx_future = collection.create_index(title_idx, None);
 
-    let index = IndexModel::builder().keys(doc! { "tags": 1 }).build();
-    collection
-        .create_index(index, None)
-        .await
-        .expect("Failed to create tags index for blog collection");
+    let tag_idx = IndexModel::builder().keys(doc! { "tags": 1 }).build();
+    let tag_idx_future = collection.create_index(tag_idx, None);
+
+    let (title_result, tag_result) = tokio::join!(title_idx_future, tag_idx_future);
+    let mut has_error = false;
+    match title_result {
+        Ok(_) => {}
+        Err(e) => {
+            has_error = true;
+            log::error!("Failed to create title index: {}", e)
+        }
+    }
+    match tag_result {
+        Ok(_) => {}
+        Err(e) => {
+            has_error = true;
+            log::error!("Failed to create tag index: {}", e)
+        }
+    }
+    if has_error {
+        panic!("Failed to create indexes for blog collection");
+    } else {
+        log::info!("Blog collection initialised");
+    }
 }
 
 pub async fn init_db() -> Result<DbClient, mongodb::error::Error> {
@@ -92,8 +116,11 @@ pub async fn init_db() -> Result<DbClient, mongodb::error::Error> {
         Err(e) => return Err(e),
     };
 
-    init_user_collection(&client.client).await;
-    init_blog_collection(&client.client).await;
+    let client_ref = &client.client;
+    let init_user_future = init_user_collection(client_ref);
+    let init_blog_future = init_blog_collection(client_ref);
+    tokio::join!(init_user_future, init_blog_future);
+
     Ok(client)
 }
 
