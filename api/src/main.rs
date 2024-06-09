@@ -2,13 +2,14 @@ mod blog;
 mod constants;
 mod database;
 mod model;
-mod utils;
 mod security;
+mod utils;
 
 use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer};
 use aws_config::BehaviorVersion;
 use aws_sdk_s3 as s3;
 use blog::api::{delete_blog, get_blog, publish_blog, update_blog, upload_blog_images};
+use blog::auth::{admin_honeypot, login, login_honeypot, wp_honeypot};
 use database::db;
 use dotenv::dotenv;
 use model::index::Index;
@@ -51,6 +52,10 @@ async fn main() -> std::io::Result<()> {
             .service(update_blog)
             .service(delete_blog)
             .service(upload_blog_images)
+            .service(wp_honeypot)
+            .service(admin_honeypot)
+            .service(login_honeypot)
+            .service(login)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

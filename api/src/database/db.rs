@@ -1,13 +1,71 @@
 use crate::constants::constants;
+use crate::model::auth::{AuthError, User};
 use crate::model::blog::{Blog, BlogError};
+use crate::security::pw_hasher;
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
 use mongodb::options::{ClientOptions, Credential};
-use mongodb::{Client, Collection};
+use mongodb::{Client, Collection, IndexModel};
 
 #[derive(Clone)]
 pub struct DbClient {
     client: Client,
+}
+
+async fn init_user_collection(client: &Client) {
+    let db = client.database(constants::DATABASE);
+    let collection: Collection<User> = db.collection(constants::USER_COLLECTION);
+
+    // check if the collection already exists
+    let result = collection.find_one(None, None).await;
+    match result {
+        Ok(Some(_)) => return,
+        _ => {}
+    }
+
+    // although there will only be one account, just do this for future-proofing
+    let index = IndexModel::builder().keys(doc! {"username": 1}).build();
+    collection
+        .create_index(index, None)
+        .await
+        .expect("Failed to create username index for user collection");
+
+    let admin_username =
+        std::env::var(constants::BLOG_ADMIN_USERNAME).expect("admin username not set");
+    let admin_password =
+        std::env::var(constants::BLOG_ADMIN_PASSWORD).expect("admin password not set");
+    let hashed_admin_password =
+        pw_hasher::hash_password(&admin_password).expect("Failed to hash password");
+
+    let user = User::new(admin_username, hashed_admin_password);
+    match collection.insert_one(user, None).await {
+        Ok(_) => log::info!("Admin account created"),
+        Err(e) => panic!("Failed to create admin account: {}", e),
+    }
+}
+
+async fn init_blog_collection(client: &Client) {
+    let db = client.database(constants::DATABASE);
+    let collection: Collection<Blog> = db.collection(constants::BLOG_COLLECTION);
+
+    // check if the collection already exists
+    let result = collection.find_one(None, None).await;
+    match result {
+        Ok(Some(_)) => return,
+        _ => {}
+    }
+
+    let index = IndexModel::builder().keys(doc! { "title": 1 }).build();
+    collection
+        .create_index(index, None)
+        .await
+        .expect("Failed to create title index for blog collection");
+
+    let index = IndexModel::builder().keys(doc! { "tags": 1 }).build();
+    collection
+        .create_index(index, None)
+        .await
+        .expect("Failed to create tags index for blog collection");
 }
 
 pub async fn init_db() -> Result<DbClient, mongodb::error::Error> {
@@ -29,10 +87,14 @@ pub async fn init_db() -> Result<DbClient, mongodb::error::Error> {
         );
     }
 
-    match Client::with_options(client_options) {
-        Ok(client) => Ok(DbClient::new(client)),
-        Err(e) => Err(e),
-    }
+    let client = match Client::with_options(client_options) {
+        Ok(client) => DbClient::new(client),
+        Err(e) => return Err(e),
+    };
+
+    init_user_collection(&client.client).await;
+    init_blog_collection(&client.client).await;
+    Ok(client)
 }
 
 impl DbClient {
@@ -50,6 +112,26 @@ impl DbClient {
     pub fn get_blog_collection(&self) -> Collection<Blog> {
         self.get_database(None)
             .collection(constants::BLOG_COLLECTION)
+    }
+
+    pub fn get_user_collection(&self) -> Collection<User> {
+        self.get_database(None)
+            .collection(constants::USER_COLLECTION)
+    }
+
+    pub async fn get_user_by_username(&self, username: &str) -> Result<User, AuthError> {
+        match self
+            .get_user_collection()
+            .find_one(doc! {"username": username}, None)
+            .await
+        {
+            Ok(Some(user)) => Ok(user),
+            Ok(None) => Err(AuthError::UserNotFound),
+            Err(err) => {
+                log::error!("Failed to get user from database: {}", err);
+                Err(AuthError::InternalServerError)
+            }
+        }
     }
 
     pub async fn get_blog_post(&self, id: &ObjectId) -> Result<Blog, BlogError> {

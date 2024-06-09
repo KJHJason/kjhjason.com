@@ -1,2 +1,2 @@
 pub mod api;
-mod auth;
+pub mod auth;

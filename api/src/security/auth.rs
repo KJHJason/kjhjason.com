@@ -51,7 +51,7 @@ pub fn create_claim(id: ObjectId) -> UserClaim {
     }
 }
 
-pub async fn sign_claim(claim: &UserClaim) -> Result<String, actix_web::Error> {
+pub fn sign_claim(claim: &UserClaim) -> Result<String, actix_web::Error> {
     let secret_bytes = get_secret_key();
     match jsonwebtoken::encode(
         &jsonwebtoken::Header::default(),
@@ -61,7 +61,9 @@ pub async fn sign_claim(claim: &UserClaim) -> Result<String, actix_web::Error> {
         Ok(token) => Ok(token),
         Err(err) => {
             log::error!("Failed to sign token: {:?}", err);
-            Err(actix_web::error::ErrorInternalServerError("Failed to sign token"))
+            Err(actix_web::error::ErrorInternalServerError(
+                "Failed to sign token",
+            ))
         }
     }
 }
@@ -71,7 +73,8 @@ impl FromRequest for UserClaim {
     type Future = std::pin::Pin<Box<dyn std::future::Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
-        let auth_header = req.headers()
+        let auth_header = req
+            .headers()
             .get("Authorization")
             .and_then(|h| h.to_str().ok())
             .map(|s| s.to_string());
@@ -88,8 +91,6 @@ impl FromRequest for UserClaim {
             });
         }
 
-        Box::pin(async move {
-            get_claim(&auth_header)
-        })
+        Box::pin(async move { get_claim(&auth_header) })
     }
 }

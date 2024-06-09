@@ -1,22 +1,22 @@
 use crate::constants::constants;
-use crate::database::db::DbClient;
+use crate::database::db;
 use crate::model::base_msg::Msg;
 use crate::model::blog::{
     Blog, BlogError, BlogIdentifier, BlogPublishOperation, BlogResponse, BlogUpdateOperation,
     UploadedImages,
 };
+use crate::security::auth;
+use crate::utils::datetime;
 use crate::utils::io::get_temp_file_path;
 use crate::utils::storage;
-use crate::utils::datetime;
-use crate::security::auth;
 use actix_multipart::Multipart;
 use actix_web::http::header::CONTENT_LENGTH;
 use actix_web::{delete, get, post, put, web::Data, web::Json, web::Path, HttpRequest};
 use aws_sdk_s3 as s3;
 use futures_util::TryStreamExt;
 use mime::{Mime, IMAGE_GIF, IMAGE_JPEG, IMAGE_PNG};
-use mongodb::bson::doc;
 use mongodb::bson;
+use mongodb::bson::doc;
 use mongodb::bson::oid::ObjectId;
 use std::str::FromStr;
 use tokio::fs;
@@ -87,7 +87,7 @@ fn validate_id(id: &str) -> Result<ObjectId, BlogError> {
 
 #[get("/blog/{id}")]
 async fn get_blog(
-    client: Data<DbClient>,
+    client: Data<db::DbClient>,
     blog_identifier: Path<BlogIdentifier>,
 ) -> Result<Json<BlogResponse>, BlogError> {
     let blog_id = validate_id(&blog_identifier.into_inner().get_id())?;
@@ -111,7 +111,7 @@ async fn get_blog(
 
 #[post("/publish/blog")]
 async fn publish_blog(
-    client: Data<DbClient>,
+    client: Data<db::DbClient>,
     s3_client: Data<s3::Client>,
     _: auth::UserClaim,
     blog: Json<BlogPublishOperation>,
@@ -168,7 +168,7 @@ async fn publish_blog(
 
 #[put("/update/blog")]
 async fn update_blog(
-    client: Data<DbClient>,
+    client: Data<db::DbClient>,
     _: auth::UserClaim,
     s3_client: Data<s3::Client>,
     update_blog: Json<BlogUpdateOperation>,
@@ -277,7 +277,7 @@ async fn update_blog(
 
 #[delete("/delete/blog")]
 async fn delete_blog(
-    client: Data<DbClient>,
+    client: Data<db::DbClient>,
     _: auth::UserClaim,
     s3_client: Data<s3::Client>,
     blog_identifier: Json<BlogIdentifier>,
