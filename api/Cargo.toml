@@ -3,6 +3,9 @@ name = "blog-api"
 version = "0.1.0"
 edition = "2021"
 
+[lints.rust]
+unused_assignments = "allow"
+
 [dependencies]
 actix-web = "4.6.0"
 actix-multipart = "0.6.1"
@@ -17,6 +20,8 @@ chrono = "0.4.38"
 image = "0.25.1"
 mime = "0.3.16"
 fastuuid = "0.3.0"
-google-cloud-auth = "0.15.0"
-google-cloud-storage = "0.18.0"
-tokio = "1.38.0"
+dotenv = "0.15.0"
+aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
+aws-sdk-s3 = "1.34.0"
+tokio = { version = "1.38.0", features = ["full"] }
+futures-util = "0.3.30"

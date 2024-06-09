@@ -1,6 +1,4 @@
-use crate::constants::constants::{
-    MAX_FILES_ALLOWED, MAX_TAGS, MAX_THUMBNAIL_FILE_SIZE, TITLE_MAX_LENGTH,
-};
+use crate::constants::constants::{MAX_TAGS, MAX_THUMBNAIL_FILE_SIZE, TITLE_MAX_LENGTH};
 use crate::model::base_error::Error;
 use actix_web::{HttpResponse, ResponseError};
 use bson::oid::ObjectId;
@@ -24,6 +22,7 @@ pub struct Blog {
     _id: ObjectId,
     title: String,
     tags: Vec<String>,
+    images: Vec<String>,
     content: String,
     is_public: bool,
     unix_timestamp: i64,
@@ -33,11 +32,18 @@ pub struct Blog {
 
 // blog struct setter
 impl Blog {
-    pub fn new(title: String, content: String, tags: &Vec<String>, is_public: bool) -> Blog {
+    pub fn new(
+        title: String,
+        content: String,
+        tags: &Vec<String>,
+        images: &Vec<String>,
+        is_public: bool,
+    ) -> Blog {
         Blog {
             _id: ObjectId::new(),
             title: title,
             tags: tags.clone(),
+            images: images.clone(),
             content: content,
             is_public: is_public,
             unix_timestamp: Utc::now().timestamp(),
@@ -47,6 +53,9 @@ impl Blog {
     }
     pub fn get_tags(&self) -> &Vec<String> {
         &self.tags
+    }
+    pub fn get_images(&self) -> &Vec<String> {
+        &self.images
     }
     pub fn get_is_public(&self) -> bool {
         self.is_public
@@ -80,6 +89,7 @@ impl From<Blog> for BlogResponse {
 pub struct BlogPublishOperation {
     title: String,
     tags: Vec<String>,
+    images: Vec<String>,
     content: String,
     is_public: bool,
 }
@@ -90,6 +100,9 @@ impl BlogPublishOperation {
     }
     pub fn get_tags(&self) -> &Vec<String> {
         &self.tags
+    }
+    pub fn get_images(&self) -> &Vec<String> {
+        &self.images
     }
     pub fn get_content(&self) -> &str {
         &self.content
@@ -104,6 +117,7 @@ pub struct BlogUpdateOperation {
     id: String,
     title: String,
     tags: Vec<String>,
+    images: Vec<String>,
     content: String,
     is_public: Option<bool>,
 }
@@ -118,11 +132,28 @@ impl BlogUpdateOperation {
     pub fn get_tags(&self) -> &Vec<String> {
         &self.tags
     }
+    pub fn get_images(&self) -> &Vec<String> {
+        &self.images
+    }
     pub fn get_content(&self) -> &str {
         &self.content
     }
     pub fn get_is_public(&self) -> Option<bool> {
         self.is_public
+    }
+}
+
+#[derive(Serialize)]
+pub struct UploadedImages {
+    urls: Vec<String>,
+}
+
+impl UploadedImages {
+    pub fn new(urls: Vec<String>) -> UploadedImages {
+        UploadedImages { urls: urls }
+    }
+    pub fn append(&mut self, url: String) {
+        self.urls.push(url);
     }
 }
 
@@ -138,7 +169,6 @@ pub enum BlogError {
     TooManyTags,
     ImageIsEmpty,
     ImageTooLarge,
-    TooManyImages,
     ImageUploadError,
     InternalServerError,
 }
@@ -176,13 +206,6 @@ impl ResponseError for BlogError {
                 format!(
                     "Image size must be less than {} bytes",
                     MAX_THUMBNAIL_FILE_SIZE
-                )
-                .to_string(),
-            )),
-            BlogError::TooManyImages => HttpResponse::BadRequest().json(Error::new(
-                format!(
-                    "Too many images, must be less than or equal to {} images",
-                    MAX_FILES_ALLOWED
                 )
                 .to_string(),
             )),

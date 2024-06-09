@@ -5,11 +5,11 @@ mod model;
 mod utils;
 
 use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer};
-use blog::api::{delete_blog, get_blog, publish_blog, update_blog};
-use constants::constants::DEBUG_MODE;
+use aws_config::BehaviorVersion;
+use aws_sdk_s3 as s3;
+use blog::api::{delete_blog, get_blog, publish_blog, update_blog, upload_blog_images};
 use database::db;
-use google_cloud_auth::credentials::CredentialsFile;
-use google_cloud_storage::client::{Client, ClientConfig};
+use dotenv::dotenv;
 use model::index::Index;
 use serde_json;
 
@@ -21,41 +21,34 @@ async fn hello() -> HttpResponse {
         .body(serialised);
 }
 
-async fn get_gcp_cred_file() -> CredentialsFile {
-    let mut path = "gcp-storage.json";
-    if !DEBUG_MODE {
-        path = "/gcp/storage"; // to be mounted as a secret
-    }
-    match CredentialsFile::new_from_file(path.to_string()).await {
-        Ok(cred_file) => cred_file,
-        Err(_) => panic!("Failed to get GCP credentials"),
-    }
-}
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
+
+    dotenv().ok();
     let db_client = db::init_db()
         .await
         .unwrap_or_else(|_| panic!("Failed to connect to database"));
 
-    let cred_file = get_gcp_cred_file().await;
-    let config = ClientConfig::default()
-        .with_credentials(cred_file)
-        .await
-        .unwrap_or_else(|_| panic!("Failed to parse GCP client config"));
-    let gs_client = Client::new(config);
+    let api_endpoint = std::env::var(constants::constants::AWS_ENDPOINT_URL).unwrap();
+    let mut config = aws_config::defaults(BehaviorVersion::latest());
+    config = config.endpoint_url(api_endpoint);
+    config =
+        config.app_name(aws_config::AppName::new("blog".to_string()).expect("Invalid app name"));
+    let config = config.load().await;
 
+    let client = s3::Client::new(&config);
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_client.clone()))
-            .app_data(web::Data::new(gs_client.clone()))
+            .app_data(web::Data::new(client.clone()))
             .wrap(Logger::default())
             .service(hello)
             .service(get_blog)
             .service(publish_blog)
             .service(update_blog)
             .service(delete_blog)
+            .service(upload_blog_images)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

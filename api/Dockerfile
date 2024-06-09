@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 COPY . .
 
 # Install production dependencies and build a release artifact.
-RUN cargo install --path .
+RUN cargo install --path . # note: cargo install will automatically build the project with the --release flag
 
 # Run the web service on container startup.
 CMD ["blog-api"]
