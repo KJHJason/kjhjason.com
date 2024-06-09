@@ -7,5 +7,5 @@ pub fn get_temp_file_path() -> String {
 
     // create the temp directory if it doesn't exist
     std::fs::create_dir_all(TEMP_DIR).unwrap();
-    return file_path;
+    file_path
 }

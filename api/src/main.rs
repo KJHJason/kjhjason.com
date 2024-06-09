@@ -3,6 +3,7 @@ mod constants;
 mod database;
 mod model;
 mod utils;
+mod security;
 
 use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer};
 use aws_config::BehaviorVersion;
@@ -23,7 +24,7 @@ async fn hello() -> HttpResponse {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    pretty_env_logger::init();
+    env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
     dotenv().ok();
     let db_client = db::init_db()
@@ -43,6 +44,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(db_client.clone()))
             .app_data(web::Data::new(client.clone()))
             .wrap(Logger::default())
+            .wrap(Logger::new("%a %{User-Agent}i"))
             .service(hello)
             .service(get_blog)
             .service(publish_blog)

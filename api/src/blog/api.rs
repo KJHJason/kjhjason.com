@@ -7,14 +7,16 @@ use crate::model::blog::{
 };
 use crate::utils::io::get_temp_file_path;
 use crate::utils::storage;
+use crate::utils::datetime;
+use crate::security::auth;
 use actix_multipart::Multipart;
 use actix_web::http::header::CONTENT_LENGTH;
 use actix_web::{delete, get, post, put, web::Data, web::Json, web::Path, HttpRequest};
 use aws_sdk_s3 as s3;
-use chrono::Utc;
 use futures_util::TryStreamExt;
 use mime::{Mime, IMAGE_GIF, IMAGE_JPEG, IMAGE_PNG};
 use mongodb::bson::doc;
+use mongodb::bson;
 use mongodb::bson::oid::ObjectId;
 use std::str::FromStr;
 use tokio::fs;
@@ -111,6 +113,7 @@ async fn get_blog(
 async fn publish_blog(
     client: Data<DbClient>,
     s3_client: Data<s3::Client>,
+    _: auth::UserClaim,
     blog: Json<BlogPublishOperation>,
 ) -> Result<Json<Msg>, BlogError> {
     let blog_op = blog.into_inner();
@@ -166,6 +169,7 @@ async fn publish_blog(
 #[put("/update/blog")]
 async fn update_blog(
     client: Data<DbClient>,
+    _: auth::UserClaim,
     s3_client: Data<s3::Client>,
     update_blog: Json<BlogUpdateOperation>,
 ) -> Result<Json<Msg>, BlogError> {
@@ -185,8 +189,10 @@ async fn update_blog(
     let blog_in_db = client.get_blog_post(&blog_id).await?;
 
     let mut is_updating = false;
+    let last_modified = bson::DateTime::parse_rfc3339_str(datetime::get_dtnow_str())
+        .expect("DateTime shouldn't fail to parse in update_blog");
     let mut set_doc = doc! {
-        "last_modified": Utc::now().timestamp(),
+        "last_modified": last_modified,
     };
 
     let old_images = blog_in_db.get_images();
@@ -272,6 +278,7 @@ async fn update_blog(
 #[delete("/delete/blog")]
 async fn delete_blog(
     client: Data<DbClient>,
+    _: auth::UserClaim,
     s3_client: Data<s3::Client>,
     blog_identifier: Json<BlogIdentifier>,
 ) -> Result<Json<Msg>, BlogError> {
@@ -295,6 +302,7 @@ async fn delete_blog(
 #[post("/upload/images")]
 async fn upload_blog_images(
     s3_client: Data<s3::Client>,
+    _: auth::UserClaim,
     mut payload: Multipart,
     req: HttpRequest,
 ) -> Result<Json<UploadedImages>, BlogError> {

@@ -1,5 +1,6 @@
 use crate::constants::constants::{MAX_TAGS, MAX_THUMBNAIL_FILE_SIZE, TITLE_MAX_LENGTH};
 use crate::model::base_error::Error;
+use crate::utils::md;
 use actix_web::{HttpResponse, ResponseError};
 use bson::oid::ObjectId;
 use chrono::Utc;
@@ -25,8 +26,10 @@ pub struct Blog {
     images: Vec<String>,
     content: String,
     is_public: bool,
-    unix_timestamp: i64,
-    last_modified: Option<i64>,
+    #[serde(with = "crate::utils::datetime::rfc3339")]
+    timestamp: chrono::DateTime<Utc>,
+    #[serde(with = "crate::utils::datetime::rfc3339::option")]
+    last_modified: Option<chrono::DateTime<Utc>>,
     thumbnail_url: Option<String>,
 }
 
@@ -46,7 +49,7 @@ impl Blog {
             images: images.clone(),
             content: content,
             is_public: is_public,
-            unix_timestamp: Utc::now().timestamp(),
+            timestamp: Utc::now(),
             last_modified: None,
             thumbnail_url: None,
         }
@@ -67,8 +70,10 @@ pub struct BlogResponse {
     id: String,
     title: String,
     content: String,
-    unix_timestamp: i64,
-    last_modified: Option<i64>,
+    #[serde(with = "crate::utils::datetime::rfc3339")]
+    timestamp: chrono::DateTime<Utc>,
+    #[serde(with = "crate::utils::datetime::rfc3339::option")]
+    last_modified: Option<chrono::DateTime<Utc>>,
     thumbnail_url: Option<String>,
 }
 
@@ -77,8 +82,8 @@ impl From<Blog> for BlogResponse {
         BlogResponse {
             id: blog._id.to_hex(),
             title: blog.title,
-            content: blog.content,
-            unix_timestamp: blog.unix_timestamp,
+            content: md::convert_to_html(&blog.content, None),
+            timestamp: blog.timestamp,
             last_modified: blog.last_modified,
             thumbnail_url: blog.thumbnail_url,
         }
