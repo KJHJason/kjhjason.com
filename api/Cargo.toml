@@ -7,7 +7,7 @@ edition = "2021"
 unused_assignments = "allow"
 
 [dependencies]
-actix-web = "4.6.0"
+actix-web = "4.7.0"
 actix-multipart = "0.6.1"
 mongodb = "2.8.2"
 serde = { version = "1.0.203", features = ["derive"] }
