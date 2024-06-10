@@ -164,60 +164,48 @@ impl UploadedImages {
 
 #[derive(Debug, Display)]
 pub enum BlogError {
+    #[display(fmt = "Invalid ID")]
     InvalidObjectId,
+    #[display(fmt = "Blog not found")]
     BlogNotFound,
+    #[display(fmt = "Failed to publish blog")]
     PublishBlogError,
+    #[display(fmt = "Title cannot be empty")]
     EmptyTitle,
+    #[display(fmt = "Title cannot be longer than {} characters", TITLE_MAX_LENGTH)]
     TitleTooLong,
+    #[display(fmt = "Content cannot be empty")]
     EmptyContent,
+    #[display(fmt = "Failed to update blog")]
     UpdateBlogError,
+    #[display(fmt = "Too many tags, must be less than {} tags", MAX_TAGS)]
     TooManyTags,
+    #[display(fmt = "Image cannot be empty")]
     ImageIsEmpty,
+    #[display(fmt = "Image size must be less than {} bytes", MAX_THUMBNAIL_FILE_SIZE)]
     ImageTooLarge,
+    #[display(fmt = "Failed to upload image")]
     ImageUploadError,
+    #[display(fmt = "Internal server error")]
     InternalServerError,
 }
 
 impl ResponseError for BlogError {
     fn error_response(&self) -> HttpResponse {
+        let error = Error::new(self.to_string());
         match self {
-            BlogError::InvalidObjectId => {
-                HttpResponse::BadRequest().json(Error::new("Invalid ID".to_string()))
-            }
-            BlogError::BlogNotFound => {
-                HttpResponse::NotFound().json(Error::new("Blog not found".to_string()))
-            }
-            BlogError::PublishBlogError => HttpResponse::InternalServerError()
-                .json(Error::new("Failed to publish blog".to_string())),
-            BlogError::EmptyTitle => {
-                HttpResponse::BadRequest().json(Error::new("Title cannot be empty".to_string()))
-            }
-            BlogError::TitleTooLong => HttpResponse::BadRequest().json(Error::new(format!(
-                "Title cannot be longer than {} characters",
-                TITLE_MAX_LENGTH
-            ))),
-            BlogError::EmptyContent => {
-                HttpResponse::BadRequest().json(Error::new("Content cannot be empty".to_string()))
-            }
-            BlogError::UpdateBlogError => HttpResponse::InternalServerError()
-                .json(Error::new("Failed to update blog".to_string())),
-            BlogError::TooManyTags => HttpResponse::BadRequest().json(Error::new(
-                format!("Too many tags, must be less than {} tags", MAX_TAGS).to_string(),
-            )),
-            BlogError::ImageIsEmpty => {
-                HttpResponse::BadRequest().json(Error::new("Image cannot be empty".to_string()))
-            }
-            BlogError::ImageTooLarge => HttpResponse::BadRequest().json(Error::new(
-                format!(
-                    "Image size must be less than {} bytes",
-                    MAX_THUMBNAIL_FILE_SIZE
-                )
-                .to_string(),
-            )),
-            BlogError::ImageUploadError => HttpResponse::InternalServerError()
-                .json(Error::new("Failed to upload image".to_string())),
-            BlogError::InternalServerError => HttpResponse::InternalServerError()
-                .json(Error::new("Internal server error".to_string())),
+            BlogError::InvalidObjectId => HttpResponse::BadRequest().json(error),
+            BlogError::BlogNotFound => HttpResponse::NotFound().json(error),
+            BlogError::PublishBlogError => HttpResponse::InternalServerError().json(error),
+            BlogError::EmptyTitle => HttpResponse::BadRequest().json(error),
+            BlogError::TitleTooLong => HttpResponse::BadRequest().json(error),
+            BlogError::EmptyContent => HttpResponse::BadRequest().json(error),
+            BlogError::UpdateBlogError => HttpResponse::InternalServerError().json(error),
+            BlogError::TooManyTags => HttpResponse::BadRequest().json(error),
+            BlogError::ImageIsEmpty => HttpResponse::BadRequest().json(error),
+            BlogError::ImageTooLarge => HttpResponse::BadRequest().json(error),
+            BlogError::ImageUploadError => HttpResponse::InternalServerError().json(error),
+            BlogError::InternalServerError => HttpResponse::InternalServerError().json(error),
         }
     }
 }

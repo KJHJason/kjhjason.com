@@ -56,7 +56,7 @@ impl ResponseError for AuthError {
     fn error_response(&self) -> HttpResponse {
         let error = Error::new(self.to_string());
         match self {
-            AuthError::UserNotFound => HttpResponse::NotFound().json(error),
+            AuthError::UserNotFound => HttpResponse::Forbidden().json(error),
             AuthError::InvalidCredentials => HttpResponse::Forbidden().json(error),
             AuthError::InternalServerError => HttpResponse::InternalServerError().json(error),
         }
