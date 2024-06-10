@@ -1,14 +1,11 @@
+use crate::constants::constants;
 use crate::db;
 use crate::model::auth as auth_model;
-use crate::security::auth;
 use crate::security::pw_hasher;
-use actix_web::cookie::time;
-use actix_web::{
-    cookie::Cookie, post, web, web::Data, web::Json, Error, HttpRequest, HttpResponse,
-};
+use crate::security::{auth, jwt};
+use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
+use actix_web::{get, post, web, web::Data, web::Json, Error, HttpRequest, HttpResponse};
 use rand::Rng;
-// use time::Duration;
-use crate::constants::constants;
 use tokio::time as tokio_time;
 
 macro_rules! honeypot_logic {
@@ -66,8 +63,8 @@ async fn login(
             return Err(auth_model::AuthError::InvalidCredentials);
         }
 
-        let claims = auth::create_claim(user.get_id());
-        let token = match auth::sign_claim(&claims) {
+        let claims = auth::create_user_claim(user.get_id());
+        let token = match jwt::sign(&claims) {
             Ok(token) => token,
             Err(_) => {
                 return Err(auth_model::AuthError::InternalServerError);
@@ -75,17 +72,13 @@ async fn login(
         };
 
         let max_age = claims.exp.timestamp() - chrono::Utc::now().timestamp();
-        let domain = if constants::DEBUG_MODE {
-            "localhost"
-        } else {
-            constants::DOMAIN
-        };
         let c = Cookie::build(constants::AUTH_COOKIE_NAME, token.clone())
-            .domain(domain)
+            .domain(constants::get_domain())
             .path("/")
+            .same_site(SameSite::Lax)
             .http_only(true)
             .secure(!constants::DEBUG_MODE)
-            .max_age(time::Duration::seconds(max_age))
+            .max_age(cookie_time::Duration::seconds(max_age))
             .finish();
         let response = auth_model::LoginResponse {
             token,
@@ -96,4 +89,20 @@ async fn login(
     .await
     .unwrap()
     .await
+}
+
+#[get("/auth/logout")]
+async fn logout(req: HttpRequest) -> HttpResponse {
+    match req.cookie(constants::AUTH_COOKIE_NAME) {
+        Some(_) => {
+            let c = Cookie::build(constants::AUTH_COOKIE_NAME, "")
+                .domain(constants::DOMAIN)
+                .path("/")
+                .http_only(true)
+                .secure(!constants::DEBUG_MODE)
+                .finish();
+            HttpResponse::Ok().cookie(c).finish()
+        }
+        None => HttpResponse::Ok().finish(),
+    }
 }

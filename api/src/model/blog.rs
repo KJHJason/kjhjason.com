@@ -1,10 +1,10 @@
 use crate::constants::constants::{MAX_TAGS, MAX_THUMBNAIL_FILE_SIZE, TITLE_MAX_LENGTH};
-use crate::model::base_error::Error;
+use crate::model::base_error::Error as BaseError;
 use crate::utils::md;
 use actix_web::{HttpResponse, ResponseError};
 use bson::oid::ObjectId;
 use chrono::Utc;
-use derive_more::Display;
+use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -162,7 +162,7 @@ impl UploadedImages {
     }
 }
 
-#[derive(Debug, Display)]
+#[derive(Debug, Display, Error)]
 pub enum BlogError {
     #[display(fmt = "Invalid ID")]
     InvalidObjectId,
@@ -192,7 +192,7 @@ pub enum BlogError {
 
 impl ResponseError for BlogError {
     fn error_response(&self) -> HttpResponse {
-        let error = Error::new(self.to_string());
+        let error = BaseError::new(self.to_string());
         match self {
             BlogError::InvalidObjectId => HttpResponse::BadRequest().json(error),
             BlogError::BlogNotFound => HttpResponse::NotFound().json(error),

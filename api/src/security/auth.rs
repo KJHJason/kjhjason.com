@@ -1,7 +1,7 @@
 use crate::constants::constants;
+use crate::security::jwt;
 use actix_web::{FromRequest, HttpRequest};
 use bson::oid::ObjectId;
-use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 
 macro_rules! auth_failed {
@@ -20,51 +20,16 @@ pub struct UserClaim {
     pub exp: chrono::DateTime<chrono::Utc>,
 }
 
-fn get_validations() -> Validation {
-    Validation::new(Algorithm::HS512)
-}
-
-fn get_secret_key() -> Vec<u8> {
-    let secret_hex = std::env::var(constants::AUTH_SECRET_KEY).unwrap();
-    hex::decode(secret_hex).unwrap()
-}
-
-fn get_claim(token: &str) -> Result<UserClaim, actix_web::Error> {
-    let token = token.replace("Bearer ", "");
-    let secret_bytes = get_secret_key();
-    match decode::<UserClaim>(
-        &token,
-        &DecodingKey::from_secret(&secret_bytes),
-        &get_validations(),
-    ) {
-        Ok(token_data) => Ok(token_data.claims),
-        Err(_) => {
-            auth_failed!("Invalid token provided");
-        }
-    }
-}
-
-pub fn create_claim(id: ObjectId) -> UserClaim {
+pub fn create_user_claim(id: ObjectId) -> UserClaim {
     UserClaim {
         id,
         exp: chrono::Utc::now() + chrono::Duration::seconds(constants::SESSION_TIMEOUT),
     }
 }
 
-pub fn sign_claim(claim: &UserClaim) -> Result<String, actix_web::Error> {
-    let secret_bytes = get_secret_key();
-    match jsonwebtoken::encode(
-        &jsonwebtoken::Header::default(),
-        claim,
-        &jsonwebtoken::EncodingKey::from_secret(&secret_bytes),
-    ) {
-        Ok(token) => Ok(token),
-        Err(err) => {
-            log::error!("Failed to sign token: {:?}", err);
-            Err(actix_web::error::ErrorInternalServerError(
-                "Failed to sign token",
-            ))
-        }
+impl jwt::Claim for UserClaim {
+    fn get_exp(&self) -> chrono::DateTime<chrono::Utc> {
+        self.exp
     }
 }
 
@@ -87,6 +52,13 @@ impl FromRequest for UserClaim {
                 auth_failed!("Empty auth cookie found");
             });
         }
-        Box::pin(async move { get_claim(&auth_cookie) })
+        Box::pin(async move {
+            match jwt::unsign::<UserClaim>(&auth_cookie) {
+                Ok(claim) => Ok(claim),
+                Err(_) => {
+                    auth_failed!("Failed to unsign token");
+                }
+            }
+        })
     }
 }

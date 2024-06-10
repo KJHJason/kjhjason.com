@@ -1,6 +1,7 @@
 mod blog;
 mod constants;
 mod database;
+mod middleware;
 mod model;
 mod security;
 mod utils;
@@ -10,6 +11,7 @@ use aws_config::BehaviorVersion;
 use aws_sdk_s3 as s3;
 use blog::api::{delete_blog, get_blog, publish_blog, update_blog, upload_blog_images};
 use blog::auth::{admin_honeypot, login, login_honeypot, wp_honeypot};
+use blog::csrf::get_csrf_token;
 use database::db;
 use dotenv::dotenv;
 use model::index::Index;
@@ -51,6 +53,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(client.clone()))
             .wrap(Logger::default())
             .wrap(Logger::new("%a %{User-Agent}i"))
+            .wrap(middleware::csrf::CsrfMiddleware)
             .service(hello)
             .service(get_blog)
             .service(publish_blog)
@@ -61,6 +64,7 @@ async fn main() -> std::io::Result<()> {
             .service(admin_honeypot)
             .service(login_honeypot)
             .service(login)
+            .service(get_csrf_token)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
