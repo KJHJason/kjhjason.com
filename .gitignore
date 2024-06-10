@@ -24,6 +24,9 @@ go.work.sum
 # node modules
 node_modules/
 
+# tailwindcss output CSS file
+client/static/css/styles.css
+
 # tmp directory for air
 tmp/
 
