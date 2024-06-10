@@ -9,3 +9,11 @@ updates:
     directory: /api/
     schedule:
       interval: daily
+  - package-ecosystem: npm
+    directory: /client/
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: /client/
+    schedule:
+      interval: daily

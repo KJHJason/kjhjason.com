@@ -73,24 +73,20 @@ impl FromRequest for UserClaim {
     type Future = std::pin::Pin<Box<dyn std::future::Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
-        let auth_header = req
-            .headers()
-            .get("Authorization")
-            .and_then(|h| h.to_str().ok())
-            .map(|s| s.to_string());
-        if auth_header.is_none() {
+        let auth_cookie = match req.cookie(constants::AUTH_COOKIE_NAME) {
+            Some(cookie) => cookie.value().to_string(),
+            None => {
+                return Box::pin(async move {
+                    auth_failed!("No auth cookie found");
+                })
+            }
+        };
+
+        if auth_cookie.is_empty() {
             return Box::pin(async move {
-                auth_failed!("No Authorization header found");
+                auth_failed!("Empty auth cookie found");
             });
         }
-
-        let auth_header = auth_header.unwrap();
-        if !auth_header.starts_with("Bearer ") {
-            return Box::pin(async move {
-                auth_failed!("Invalid Authorization header format");
-            });
-        }
-
-        Box::pin(async move { get_claim(&auth_header) })
+        Box::pin(async move { get_claim(&auth_cookie) })
     }
 }

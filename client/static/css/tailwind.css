@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+main p {
+    @apply prose prose-neutral dark:prose-invert !max-w-none my-8;
+}
+
+nav div a {
+    @apply transition-all hover:text-neutral-800 dark:hover:text-neutral-400 flex align-middle relative py-1 px-2;
+}
+
+.badges {
+    @apply gap-2 grid grid-cols-3 sm:grid-cols-6;
+}
+
+.badge {
+    @apply bg-neutral-800 text-white py-4 flex justify-center items-center flex-col gap-5 rounded-lg;
+}
+
+.badge img {
+    @apply h-14;
+}
+
+.badges-header {
+    @apply text-2xl font-medium tracking-tighter my-8;
+}

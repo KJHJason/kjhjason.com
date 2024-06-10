@@ -1,6 +1,8 @@
 pub const DEBUG_MODE: bool = true;
 pub const APP_NAME: &str = "KJHJason's Blog Backend API"; // used for API SDKs like MongoDB
 pub const SESSION_TIMEOUT: i64 = 60 * 60 * 24 * 7; // 1 week
+pub const AUTH_COOKIE_NAME: &str = "session";
+pub const DOMAIN: &str = "kjhjason.com";
 
 pub const LOCAL_URI: &str = "mongodb://localhost:27017";
 pub const DATABASE: &str = "kjhjason";

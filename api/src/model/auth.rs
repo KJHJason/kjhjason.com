@@ -44,6 +44,8 @@ pub struct LoginResponse {
 
 #[derive(Debug, Display)]
 pub enum AuthError {
+    #[display(fmt = "User already logged in")]
+    AlreadyLoggedIn,
     #[display(fmt = "Invalid username or password")]
     UserNotFound, // same as InvalidCredentials to avoid enumeration attacks
     #[display(fmt = "Invalid username or password")]
@@ -56,6 +58,7 @@ impl ResponseError for AuthError {
     fn error_response(&self) -> HttpResponse {
         let error = Error::new(self.to_string());
         match self {
+            AuthError::AlreadyLoggedIn => HttpResponse::Ok().json(error),
             AuthError::UserNotFound => HttpResponse::Forbidden().json(error),
             AuthError::InvalidCredentials => HttpResponse::Forbidden().json(error),
             AuthError::InternalServerError => HttpResponse::InternalServerError().json(error),
