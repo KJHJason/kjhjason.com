@@ -67,7 +67,7 @@ func main() {
 				{Path: "/favicon.ico", CacheControl: "public, max-age=31536000, must-revalidate"}, // 1 year
 			},
 			RegexPaths: []*middleware.CachePathValue{
-				{Path: regexp.MustCompile(`^/static/css/.*$`), CacheControl: "public, max-age=31536000, must-revalidate"}, // 1 year
+				{Path: regexp.MustCompile(`^/static/.*$`), CacheControl: "public, max-age=31536000, must-revalidate"}, // 1 year
 			},
 		}
 	}
