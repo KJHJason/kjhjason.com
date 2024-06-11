@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func LoggerMiddleware(next http.Handler) http.Handler {
+func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userAgent := r.Header.Get("User-Agent")
 		if userAgent == "" {

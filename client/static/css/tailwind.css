@@ -25,3 +25,91 @@ nav div a {
 .badges-header {
     @apply text-2xl font-medium tracking-tighter my-8;
 }
+
+.text-primary {
+    @apply text-blue-700 dark:text-blue-600;
+}
+
+.text-success {
+    @apply text-green-700 dark:text-green-600;
+}
+
+.text-danger {
+    @apply text-red-700 dark:text-red-600;
+}
+
+.text-info {
+    @apply text-cyan-400 dark:text-cyan-600;
+}
+
+.text-warning {
+    @apply text-yellow-400 dark:text-yellow-600;
+}
+
+.text-link {
+    @apply text-blue-500 dark:text-blue-400;
+}
+
+.bg-item {
+    @apply bg-white border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700;
+}
+
+.bg-item-hover {
+    @apply hover:bg-zinc-100 dark:hover:bg-zinc-900;
+}
+
+.btn-text {
+    @apply hover:text-gray-500 dark:hover:text-gray-400;
+}
+
+.btn-text-primary {
+    @apply text-primary hover:text-blue-800 dark:hover:text-blue-700;
+}
+
+.btn-text-success {
+    @apply text-success hover:text-green-800 dark:hover:text-green-700;
+}
+
+.btn-text-danger {
+    @apply text-danger hover:text-red-800 dark:hover:text-red-700;
+}
+
+.btn-text-info {
+    @apply text-info hover:text-cyan-500 dark:hover:text-cyan-700;
+}
+
+.btn-text-warning {
+    @apply text-warning hover:text-yellow-500 dark:hover:text-yellow-700;
+}
+
+.btn-text-link {
+    @apply text-link hover:text-blue-600 dark:hover:text-blue-500;
+}
+
+.btn {
+    @apply text-white focus:outline-none focus:ring-4 font-medium rounded text-sm px-5 py-2.5 text-center me-2 mb-2;
+}
+
+.btn-primary {
+    @apply bg-blue-700 hover:bg-blue-800 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800;
+}
+
+.btn-success {
+    @apply bg-green-700 hover:bg-green-800 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800;
+}
+
+.btn-danger {
+    @apply bg-red-700 hover:bg-red-800 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900;
+}
+
+.btn-info {
+    @apply bg-cyan-400 hover:bg-cyan-500 focus:ring-cyan-300 dark:focus:ring-cyan-600; 
+}
+
+.btn-warning {
+    @apply bg-yellow-400 hover:bg-yellow-500 focus:ring-yellow-300 dark:focus:ring-yellow-900;
+}
+
+.btn-link {
+    @apply btn-text-link focus:ring-blue-300 dark:focus:ring-blue-800;
+}

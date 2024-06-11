@@ -37,3 +37,19 @@ pub fn get_domain() -> String {
         DOMAIN.to_string()
     }
 }
+
+pub fn get_scheme() -> String {
+    if DEBUG_MODE {
+        "http".to_string()
+    } else {
+        "https".to_string()
+    }
+}
+
+pub fn get_port() -> String {
+    if DEBUG_MODE {
+        ":8000".to_string()
+    } else {
+        "".to_string()
+    }
+}

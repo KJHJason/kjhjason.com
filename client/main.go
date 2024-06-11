@@ -2,52 +2,38 @@ package main
 
 import (
 	"fmt"
-	"html/template"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 
 	"github.com/KJHJason/Blog/client/constants"
 	"github.com/KJHJason/Blog/client/middleware"
+	"github.com/KJHJason/Blog/client/routes"
 )
-
-func renderTemplate(w http.ResponseWriter, r *http.Request, tmplPath string, data map[string]any) {
-	tmplPath = fmt.Sprintf("templates/%s", tmplPath)
-
-	t := template.New("base.go.tmpl").Funcs(template.FuncMap{
-		"nonce": func() string {
-			nonce := middleware.GetNonce(r)
-			return nonce
-		},
-	})
-	t = template.Must(t.ParseFiles(
-		"templates/base.go.tmpl",
-		tmplPath,
-	))
-	t.Execute(w, data)
-}
 
 func main() {
 	fmt.Println("Client running on http://localhost:8000")
 
-	http.Handle(
+	mux := http.NewServeMux()
+	routes.AddRoutes(mux)
+	mux.Handle(
 		"/static/",
 		http.StripPrefix("/static/", http.FileServer(http.Dir("static"))),
 	)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		renderTemplate(w, r, "general/index.go.tmpl", nil)
-	})
-	http.HandleFunc("/experiences", func(w http.ResponseWriter, r *http.Request) {
-		renderTemplate(w, r, "general/experiences.go.tmpl", nil)
-	})
-	http.HandleFunc("/projects", func(w http.ResponseWriter, r *http.Request) {
-		renderTemplate(w, r, "general/projects.go.tmpl", nil)
-	})
-	http.HandleFunc("/skills", func(w http.ResponseWriter, r *http.Request) {
-		renderTemplate(w, r, "general/skills.go.tmpl", nil)
-	})
-	http.HandleFunc("/blog", func(w http.ResponseWriter, r *http.Request) {
-		renderTemplate(w, r, "general/blog.go.tmpl", nil)
+	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/x-icon")
+		favicon, err := os.OpenFile("./static/images/favicon.ico", os.O_RDONLY, 0)
+		if err != nil {
+			http.Error(w, "Favicon not found", http.StatusNotFound)
+			return
+		}
+		defer favicon.Close()
+		_, err = io.Copy(w, favicon)
+		if err != nil {
+			http.Error(w, "Error serving favicon", http.StatusInternalServerError)
+		}
 	})
 
 	csp_options := middleware.ContentSecurityPolicies{
@@ -59,13 +45,14 @@ func main() {
 			"'self'",
 		},
 	}
-	mainHandler := middleware.CspNonceMiddleware(http.DefaultServeMux, &csp_options, 32)
-	mainHandler = middleware.ContentTypeMiddleware(mainHandler)
-	mainHandler = middleware.LoggerMiddleware(mainHandler)
+	mainHandler := middleware.CspNonce(mux, &csp_options, 32)
+	mainHandler = middleware.ContentType(mainHandler)
+	mainHandler = middleware.Logger(mainHandler)
+	mainHandler = middleware.Csrf(mainHandler)
 
 	var cachePaths *middleware.CachePaths
 	if !constants.DEBUG_MODE {
-		mainHandler = middleware.HstsMiddleware(mainHandler, middleware.HstsOptions{
+		mainHandler = middleware.Hsts(mainHandler, middleware.HstsOptions{
 			MaxAge:           31536000, // 1 year
 			IncludeSubDomain: true,
 			Preload:          true,
@@ -80,6 +67,6 @@ func main() {
 			},
 		}
 	}
-	mainHandler = middleware.CacheControlMiddleware(mainHandler, cachePaths)
+	mainHandler = middleware.CacheControl(mainHandler, cachePaths)
 	log.Fatal(http.ListenAndServe(":8000", mainHandler))
 }

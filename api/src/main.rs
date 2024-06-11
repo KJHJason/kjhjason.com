@@ -6,6 +6,7 @@ mod model;
 mod security;
 mod utils;
 
+use actix_files::NamedFile;
 use actix_web::http::Method;
 use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer};
 use aws_config::BehaviorVersion;
@@ -24,6 +25,11 @@ async fn hello() -> HttpResponse {
     return HttpResponse::Ok()
         .content_type("application/json")
         .body(serialised);
+}
+
+#[get("/favicon.ico")]
+async fn favicon() -> actix_web::Result<NamedFile> {
+    Ok(NamedFile::open("static/favicon.ico")?)
 }
 
 #[actix_web::main]
@@ -51,6 +57,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         let csrf_whitelist = vec![
             (Method::GET, "/".to_string()),
+            (Method::GET, "/favicon.ico".to_string()),
             (Method::GET, "/csrf-token".to_string()),
         ];
         let csrf_middleware = middleware::csrf::CsrfMiddleware::new(None, csrf_whitelist);
@@ -60,6 +67,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .wrap(Logger::new("%a %{User-Agent}i"))
             .wrap(csrf_middleware)
+            .service(favicon)
             .service(hello)
             .service(get_blog)
             .service(publish_blog)

@@ -3,12 +3,14 @@ use crate::security::csrf::CsrfSigner;
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
 use actix_web::http::header::HeaderValue;
 use actix_web::http::{header, Method};
-use actix_web::Error;
+use actix_web::{Error, HttpMessage};
 use futures::future::{ok, Ready};
 use futures::task::{Context, Poll};
 use futures_util::future::LocalBoxFuture;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
+
+pub struct HasCsrfCookie;
 
 #[derive(Clone)]
 struct CsrfMiddlewareConfig {
@@ -17,8 +19,8 @@ struct CsrfMiddlewareConfig {
 }
 
 impl CsrfMiddlewareConfig {
-    pub fn new(csrf_signer: CsrfSigner, whitelist: Vec<(Method, String)>) -> CsrfMiddlewareConfig {
-        CsrfMiddlewareConfig {
+    pub fn new(csrf_signer: CsrfSigner, whitelist: Vec<(Method, String)>) -> Self {
+        Self {
             csrf_signer,
             whitelist,
         }
@@ -47,7 +49,7 @@ impl CsrfMiddlewareConfig {
 
 impl Default for CsrfMiddlewareConfig {
     fn default() -> Self {
-        CsrfMiddlewareConfig {
+        Self {
             csrf_signer: CsrfSigner::default(),
             whitelist: vec![],
         }
@@ -60,7 +62,7 @@ pub struct CsrfMiddleware {
 }
 
 impl CsrfMiddleware {
-    pub fn new(signer: Option<CsrfSigner>, whitelist: Vec<(Method, String)>) -> CsrfMiddleware {
+    pub fn new(signer: Option<CsrfSigner>, whitelist: Vec<(Method, String)>) -> Self {
         let config = match signer {
             Some(signer) => CsrfMiddlewareConfig::new(signer, whitelist),
             None => {
@@ -71,7 +73,7 @@ impl CsrfMiddleware {
                 config
             }
         };
-        CsrfMiddleware {
+        Self {
             config: Arc::new(Mutex::new(config)),
         }
     }
@@ -158,6 +160,9 @@ where
                 .csrf_signer
                 .create_csrf_cookie()
                 .to_string();
+
+            // inject the CSRF cookie into the request for the handler to check
+            req.extensions_mut().insert(HasCsrfCookie);
         }
 
         let fut = self.service.call(req);

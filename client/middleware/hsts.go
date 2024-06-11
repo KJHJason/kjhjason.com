@@ -11,7 +11,7 @@ type HstsOptions struct {
 	Preload          bool // IncludeSubDomain must be true for Preload to work
 }
 
-func HstsMiddleware(next http.Handler, opt HstsOptions) http.Handler {
+func Hsts(next http.Handler, opt HstsOptions) http.Handler {
 	value := fmt.Sprintf("max-age=%d", opt.MaxAge)
 	if opt.IncludeSubDomain {
 		value += "; includeSubDomains"

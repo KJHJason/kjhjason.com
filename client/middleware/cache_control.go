@@ -20,7 +20,7 @@ type CachePaths struct {
 	RegexPaths  []*CachePathValue
 }
 
-func CacheControlMiddleware(next http.Handler, cachePaths *CachePaths) http.Handler {
+func CacheControl(next http.Handler, cachePaths *CachePaths) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if cachePaths == nil {
 			next.ServeHTTP(w, r)

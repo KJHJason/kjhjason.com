@@ -58,7 +58,7 @@ func ExemptRouteFromCsp(next http.Handler) http.Handler {
 	})
 }
 
-func CspNonceMiddleware(next http.Handler, csp *ContentSecurityPolicies, nonceSize int) http.Handler {
+func CspNonce(next http.Handler, csp *ContentSecurityPolicies, nonceSize int) http.Handler {
 	if csp == nil {
 		csp = &defaultCSP
 	}
