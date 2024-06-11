@@ -1,7 +1,7 @@
 use crate::model::base_error::Error;
 use actix_web::{HttpResponse, ResponseError};
 use bson::oid::ObjectId;
-use derive_more::Display;
+use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
@@ -42,7 +42,7 @@ pub struct LoginResponse {
     pub username: String,
 }
 
-#[derive(Debug, Display)]
+#[derive(Debug, Display, Error)]
 pub enum AuthError {
     #[display(fmt = "User already logged in")]
     AlreadyLoggedIn,

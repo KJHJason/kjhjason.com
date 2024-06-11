@@ -2,11 +2,14 @@ use crate::constants::constants;
 use crate::db;
 use crate::model::auth as auth_model;
 use crate::security::pw_hasher;
-use crate::security::{auth, jwt};
+use crate::security::jwt;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
 use actix_web::{get, post, web, web::Data, web::Json, Error, HttpRequest, HttpResponse};
 use rand::Rng;
 use tokio::time as tokio_time;
+use crate::middleware::auth;
+use crate::security::jwt::JwtSignerLogic;
+use crate::utils::security;
 
 macro_rules! honeypot_logic {
     ($login_data:expr) => {
@@ -63,8 +66,9 @@ async fn login(
             return Err(auth_model::AuthError::InvalidCredentials);
         }
 
+        let signer = jwt::JwtSigner::new(security::get_default_jwt_key(), jsonwebtoken::Algorithm::HS512);
         let claims = auth::create_user_claim(user.get_id());
-        let token = match jwt::sign(&claims) {
+        let token = match signer.sign(&claims) {
             Ok(token) => token,
             Err(_) => {
                 return Err(auth_model::AuthError::InternalServerError);

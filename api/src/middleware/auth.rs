@@ -3,6 +3,9 @@ use crate::security::jwt;
 use actix_web::{FromRequest, HttpRequest};
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
+use jsonwebtoken::Algorithm;
+use crate::security::jwt::JwtSignerLogic;
+use crate::utils::security;
 
 macro_rules! auth_failed {
     ($msg:expr) => {
@@ -20,12 +23,19 @@ pub struct UserClaim {
     pub exp: chrono::DateTime<chrono::Utc>,
 }
 
+impl UserClaim {
+    fn get_signer() -> jwt::JwtSigner {
+        jwt::JwtSigner::new(security::get_default_jwt_key(), Algorithm::HS512)
+    }
+}
+
 pub fn create_user_claim(id: ObjectId) -> UserClaim {
     UserClaim {
         id,
         exp: chrono::Utc::now() + chrono::Duration::seconds(constants::SESSION_TIMEOUT),
     }
 }
+
 
 impl jwt::Claim for UserClaim {
     fn get_exp(&self) -> chrono::DateTime<chrono::Utc> {
@@ -53,7 +63,8 @@ impl FromRequest for UserClaim {
             });
         }
         Box::pin(async move {
-            match jwt::unsign::<UserClaim>(&auth_cookie) {
+            let signer = UserClaim::get_signer();
+            match signer.unsign::<UserClaim>(&auth_cookie) {
                 Ok(claim) => Ok(claim),
                 Err(_) => {
                     auth_failed!("Failed to unsign token");

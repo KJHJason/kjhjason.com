@@ -1,8 +1,10 @@
 use crate::constants::constants;
 use crate::security::jwt;
+use crate::model::csrf;
+use crate::security::jwt::JwtSignerLogic;
+use crate::utils::security;
 use actix_web::cookie::{time as cookie_time, Cookie};
 use base64::{engine::general_purpose, Engine as _};
-use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -25,47 +27,62 @@ impl jwt::Claim for CsrfToken {
     }
 }
 
-// Cryptographically secure random token generator
-// Generates 32 random bytes base64-encoded string
-fn generate_csrf_token() -> String {
-    let mut random_bytes = [0u8; constants::CSRF_TOKEN_LENGTH];
-    thread_rng().fill(&mut random_bytes);
-
-    jwt::sign(&CsrfToken::new(
-        general_purpose::STANDARD.encode(&random_bytes),
-        chrono::Utc::now() + chrono::Duration::seconds(constants::CSRF_MAX_AGE),
-    ))
-    .unwrap_or_else(|_| "".to_string())
+#[derive(Clone)]
+pub struct CsrfSigner {
+    cookie_name: String,
+    header_name: String,
+    jwt_signer: jwt::JwtSigner
 }
 
-pub fn create_csrf_cookie() -> Cookie<'static> {
-    Cookie::build(constants::CSRF_COOKIE_NAME, generate_csrf_token())
-        .http_only(false) // Allow JavaScript to read the cookie to put it in the header
-        .domain(constants::get_domain())
-        .path("/")
-        .secure(!constants::DEBUG_MODE)
-        .max_age(cookie_time::Duration::seconds(constants::CSRF_MAX_AGE))
-        .finish()
-}
-
-pub fn get_csrf_cookie(req: &actix_web::HttpRequest) -> Option<String> {
-    match req.cookie(constants::CSRF_COOKIE_NAME) {
-        Some(cookie) => Some(cookie.value().to_string()),
-        None => None,
+impl CsrfSigner {
+    pub fn new(cookie_name: &str, header_name: &str, secret_key: Vec<u8>, algo: jsonwebtoken::Algorithm) -> CsrfSigner {
+        CsrfSigner {
+            cookie_name: cookie_name.to_string(),
+            header_name: header_name.to_string(),
+            jwt_signer: jwt::JwtSigner::new(secret_key, algo),
+        }
     }
-}
 
-pub fn verify_csrf_token(req: &actix_web::HttpRequest) -> bool {
-    let csrf_cookie = match req.cookie(constants::CSRF_COOKIE_NAME) {
-        Some(cookie) => match jwt::unsign::<CsrfToken>(&cookie.value()) {
-            Ok(token) => token,
-            Err(_) => return false,
-        },
-        None => return false,
-    };
-    let csrf_header = match req.headers().get(constants::CSRF_HEADER_NAME) {
-        Some(header) => header.to_str().unwrap_or_default().to_string(),
-        None => return false,
-    };
-    csrf_cookie.token == csrf_header
+    // Cryptographically secure random token generator
+    // Generates 32 random bytes base64-encoded string
+    fn generate_csrf_token(&self) -> String {
+        let random_bytes = security::generate_random_bytes(32);
+        self.jwt_signer.sign(&CsrfToken::new(
+            general_purpose::STANDARD.encode(&random_bytes),
+            chrono::Utc::now() + chrono::Duration::seconds(constants::CSRF_MAX_AGE),
+        ))
+            .unwrap_or_else(|_| "".to_string())
+    }
+
+    pub fn create_csrf_cookie(&self) -> Cookie<'_> {
+        let csrf_token = self.generate_csrf_token();
+        Cookie::build(&self.cookie_name, csrf_token)
+            .http_only(false) // Allow JavaScript to read the cookie to put it in the header
+            .domain(constants::get_domain())
+            .path("/")
+            .secure(!constants::DEBUG_MODE)
+            .max_age(cookie_time::Duration::seconds(constants::CSRF_MAX_AGE))
+            .finish()
+    }
+
+    pub fn extract_csrf_cookie(&self, req: &actix_web::dev::ServiceRequest) -> Result<String, csrf::CsrfError> {
+        req.cookie(&self.cookie_name)
+            .map(|cookie| cookie.value().to_string())
+            .ok_or(csrf::CsrfError::MissingToken)
+    }
+
+    pub fn extract_csrf_header(&self, req: &actix_web::dev::ServiceRequest) -> Result<String, csrf::CsrfError> {
+        req.headers()
+            .get(&self.header_name)
+            .map(|header| header.to_str().unwrap_or_default().to_string())
+            .ok_or(csrf::CsrfError::MissingToken)
+    }
+
+    pub fn get_csrf_cookie_name(&self) -> &str {
+        &self.cookie_name
+    }
+
+    pub fn get_csrf_header_name(&self) -> &str {
+        &self.header_name
+    }
 }

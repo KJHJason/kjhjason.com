@@ -2,7 +2,7 @@ use argon2::{
     password_hash::SaltString, Algorithm, Argon2, ParamsBuilder, PasswordHash, PasswordHasher,
     PasswordVerifier, Version,
 };
-use rand::{thread_rng, Rng};
+use crate::utils::security;
 
 // follows the RFC 9106 recommendation for Argon2id
 // ref: https://github.com/hynek/argon2-cffi/blob/main/src/argon2/profiles.py#L30-L38
@@ -19,8 +19,7 @@ fn get_default_hasher() -> Argon2<'static> {
 
 // generate a random salt (cryptographically secure)
 fn generate_salt() -> SaltString {
-    let mut salt = [0u8; 32];
-    thread_rng().fill(&mut salt[..]);
+    let salt = security::generate_random_bytes(32);
     SaltString::encode_b64(&salt).expect("Failed to encode salt")
 }
 

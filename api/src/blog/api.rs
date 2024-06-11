@@ -5,7 +5,7 @@ use crate::model::blog::{
     Blog, BlogError, BlogIdentifier, BlogPublishOperation, BlogResponse, BlogUpdateOperation,
     UploadedImages,
 };
-use crate::security::auth;
+use crate::middleware::auth;
 use crate::utils::datetime;
 use crate::utils::io::get_temp_file_path;
 use crate::utils::storage;
