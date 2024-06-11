@@ -5,8 +5,9 @@ use crate::model::auth as auth_model;
 use crate::security::jwt;
 use crate::security::jwt::JwtSignerLogic;
 use crate::security::pw_hasher;
-use crate::utils::security;
+use crate::utils::{redirect, security};
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
+use actix_web::http::header;
 use actix_web::{get, post, web, web::Data, web::Json, Error, HttpRequest, HttpResponse};
 use rand::Rng;
 use tokio::time as tokio_time;
@@ -45,7 +46,7 @@ async fn login_honeypot(login_data: Json<auth_model::LoginData>) -> Result<HttpR
 async fn login(
     req: HttpRequest,
     client: Data<db::DbClient>,
-    login_data: Json<auth_model::LoginData>,
+    login_data: web::Form<auth_model::LoginData>,
 ) -> Result<HttpResponse, auth_model::AuthError> {
     match req.cookie(constants::AUTH_COOKIE_NAME) {
         Some(_) => {
@@ -112,7 +113,9 @@ async fn login(
 }
 
 #[get("/auth/logout")]
-async fn logout(req: HttpRequest) -> HttpResponse {
+async fn logout(req: HttpRequest, redirect: web::Query<redirect::RedirectParams>) -> HttpResponse {
+    let full_redirect = redirect::get_redirect_url(&redirect);
+    let redirect_header = (header::LOCATION, full_redirect);
     match req.cookie(constants::AUTH_COOKIE_NAME) {
         Some(_) => {
             let c = Cookie::build(constants::AUTH_COOKIE_NAME, "")
@@ -121,8 +124,14 @@ async fn logout(req: HttpRequest) -> HttpResponse {
                 .http_only(true)
                 .secure(!constants::DEBUG_MODE)
                 .finish();
-            HttpResponse::Ok().cookie(c).finish()
+
+            HttpResponse::SeeOther()
+                .cookie(c)
+                .insert_header(redirect_header)
+                .finish()
         }
-        None => HttpResponse::Ok().finish(),
+        None => HttpResponse::SeeOther()
+            .insert_header(redirect_header)
+            .finish(),
     }
 }

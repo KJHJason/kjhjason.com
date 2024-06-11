@@ -6,7 +6,9 @@ mod model;
 mod security;
 mod utils;
 
+use actix_cors::Cors;
 use actix_files::NamedFile;
+use actix_web::http::header;
 use actix_web::http::Method;
 use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer};
 use aws_config::BehaviorVersion;
@@ -61,12 +63,36 @@ async fn main() -> std::io::Result<()> {
             (Method::GET, "/csrf-token".to_string()),
         ];
         let csrf_middleware = middleware::csrf::CsrfMiddleware::new(None, csrf_whitelist);
+
+        let cors = Cors::default()
+            .supports_credentials()
+            .allowed_origin(&constants::constants::get_client_full_url())
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+            .allowed_headers(vec![
+                header::CONTENT_TYPE,
+                header::ACCEPT,
+                header::ACCEPT_ENCODING,
+                header::ACCEPT_LANGUAGE,
+                header::CONTENT_LENGTH,
+                header::HOST,
+                header::CONNECTION,
+                header::COOKIE,
+                header::REFERER,
+                header::ORIGIN,
+                header::USER_AGENT,
+                "Hx-Request".parse().unwrap(),
+                "Hx-Current-Url".parse().unwrap(),
+                constants::constants::CSRF_HEADER_NAME.parse().unwrap(),
+            ])
+            .max_age(3600);
+
         App::new()
             .app_data(web::Data::new(db_client.clone()))
             .app_data(web::Data::new(client.clone()))
             .wrap(Logger::default())
             .wrap(Logger::new("%a %{User-Agent}i"))
             .wrap(csrf_middleware)
+            .wrap(cors)
             .service(favicon)
             .service(hello)
             .service(get_blog)

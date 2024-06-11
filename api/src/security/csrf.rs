@@ -3,7 +3,7 @@ use crate::model::csrf;
 use crate::security::jwt;
 use crate::security::jwt::JwtSignerLogic;
 use crate::utils::security;
-use actix_web::cookie::{time as cookie_time, Cookie};
+use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
 use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 
@@ -42,7 +42,7 @@ impl Default for CsrfSigner {
             constants::CSRF_HEADER_NAME,
             constants::CSRF_TOKEN_LENGTH,
             security::get_default_jwt_key(),
-            jsonwebtoken::Algorithm::HS512,
+            jsonwebtoken::Algorithm::HS256,
         )
     }
 }
@@ -80,6 +80,7 @@ impl CsrfSigner {
         Cookie::build(&self.cookie_name, csrf_token)
             .http_only(false) // Allow JavaScript to read the cookie to put it in the header
             .domain(constants::get_domain())
+            .same_site(SameSite::Lax)
             .path("/")
             .secure(!constants::DEBUG_MODE)
             .max_age(cookie_time::Duration::seconds(constants::CSRF_MAX_AGE))

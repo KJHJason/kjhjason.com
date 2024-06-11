@@ -46,10 +46,15 @@ pub fn get_scheme() -> String {
     }
 }
 
+// mainly for development
 pub fn get_port() -> String {
     if DEBUG_MODE {
         ":8000".to_string()
     } else {
         "".to_string()
     }
+}
+
+pub fn get_client_full_url() -> String {
+    format!("{}://{}{}", get_scheme(), get_domain(), get_port())
 }

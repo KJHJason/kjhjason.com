@@ -8,7 +8,6 @@ use futures::future::{ok, Ready};
 use futures::task::{Context, Poll};
 use futures_util::future::LocalBoxFuture;
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
 
 pub struct HasCsrfCookie;
 
@@ -58,7 +57,7 @@ impl Default for CsrfMiddlewareConfig {
 
 #[derive(Clone)]
 pub struct CsrfMiddleware {
-    config: Arc<Mutex<CsrfMiddlewareConfig>>,
+    config: CsrfMiddlewareConfig,
 }
 
 impl CsrfMiddleware {
@@ -73,15 +72,13 @@ impl CsrfMiddleware {
                 config
             }
         };
-        Self {
-            config: Arc::new(Mutex::new(config)),
-        }
+        Self { config }
     }
 }
 
 pub struct CsrfMiddlewareService<S> {
     service: Rc<S>,
-    config: Arc<Mutex<CsrfMiddlewareConfig>>,
+    inner: Rc<CsrfMiddlewareConfig>,
 }
 
 impl<S, B> Transform<S, ServiceRequest> for CsrfMiddleware
@@ -98,7 +95,7 @@ where
     fn new_transform(&self, service: S) -> Self::Future {
         ok(CsrfMiddlewareService {
             service: Rc::new(service),
-            config: self.config.clone(),
+            inner: Rc::new(self.config.clone()),
         })
     }
 }
@@ -117,23 +114,20 @@ where
     }
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        if self
-            .config
-            .lock()
-            .unwrap()
-            .is_protected(req.method(), req.path())
-        {
-            let csrf_cookie = match self.config.lock().unwrap().get_csrf_cookie(&req) {
+        if self.inner.is_protected(req.method(), req.path()) {
+            let csrf_cookie = match self.inner.get_csrf_cookie(&req) {
                 Ok(csrf_cookie) => csrf_cookie,
                 Err(e) => {
+                    log::warn!("CSRF cookie error: {}", e);
                     return Box::pin(async move {
                         Err(actix_web::error::ErrorUnauthorized(e.to_string()))
                     });
                 }
             };
-            let csrf_header = match self.config.lock().unwrap().get_csrf_header(&req) {
+            let csrf_header = match self.inner.get_csrf_header(&req) {
                 Ok(csrf_header) => csrf_header,
                 Err(e) => {
+                    log::warn!("CSRF header error: {}", e);
                     return Box::pin(async move {
                         Err(actix_web::error::ErrorUnauthorized(e.to_string()))
                     });
@@ -141,6 +135,7 @@ where
             };
             if csrf_cookie != csrf_header {
                 return Box::pin(async move {
+                    log::warn!("CSRF token mismatch");
                     Err(actix_web::error::ErrorUnauthorized(
                         csrf_model::CsrfError::InvalidToken.to_string(),
                     ))
@@ -149,17 +144,9 @@ where
         }
 
         let mut csrf_cookie = String::new();
-        let req_has_csrf_cookie = req
-            .cookie(self.config.lock().unwrap().get_csrf_cookie_name())
-            .is_some();
+        let req_has_csrf_cookie = req.cookie(self.inner.get_csrf_cookie_name()).is_some();
         if !req_has_csrf_cookie {
-            csrf_cookie = self
-                .config
-                .lock()
-                .unwrap()
-                .csrf_signer
-                .create_csrf_cookie()
-                .to_string();
+            csrf_cookie = self.inner.csrf_signer.create_csrf_cookie().to_string();
 
             // inject the CSRF cookie into the request for the handler to check
             req.extensions_mut().insert(HasCsrfCookie);

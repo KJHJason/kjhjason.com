@@ -29,3 +29,11 @@ func Csrf(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func GetCsrfToken(r *http.Request) string {
+	cookie, err := r.Cookie(constants.CSRF_COOKIE_NAME)
+	if err != nil {
+		return ""
+	}
+	return cookie.Value
+}
