@@ -70,7 +70,13 @@ async fn login(
             security::get_default_jwt_key(),
             jsonwebtoken::Algorithm::HS512,
         );
-        let claims = auth::create_user_claim(user.get_id());
+
+        let exp_sec = if login_data.remember {
+            constants::SESSION_TIMEOUT_REMEMBER
+        } else {
+            constants::SESSION_TIMEOUT
+        };
+        let claims = auth::create_user_claim(user.get_id(), exp_sec);
         let token = match signer.sign(&claims) {
             Ok(token) => token,
             Err(_) => {
@@ -78,14 +84,21 @@ async fn login(
             }
         };
 
-        let max_age = claims.exp.timestamp() - chrono::Utc::now().timestamp();
+        let max_age = if login_data.remember {
+            let offset_dt =
+                cookie_time::OffsetDateTime::from_unix_timestamp(claims.exp.timestamp_micros());
+            Some(offset_dt.unwrap())
+        } else {
+            None
+        };
+
         let c = Cookie::build(constants::AUTH_COOKIE_NAME, token.clone())
             .domain(constants::get_domain())
             .path("/")
             .same_site(SameSite::Lax)
             .http_only(true)
             .secure(!constants::DEBUG_MODE)
-            .max_age(cookie_time::Duration::seconds(max_age))
+            .expires(max_age)
             .finish();
         let response = auth_model::LoginResponse {
             token,

@@ -29,10 +29,10 @@ impl UserClaim {
     }
 }
 
-pub fn create_user_claim(id: ObjectId) -> UserClaim {
+pub fn create_user_claim(id: ObjectId, exp_sec: i64) -> UserClaim {
     UserClaim {
         id,
-        exp: chrono::Utc::now() + chrono::Duration::seconds(constants::SESSION_TIMEOUT),
+        exp: chrono::Utc::now() + chrono::Duration::seconds(exp_sec),
     }
 }
 

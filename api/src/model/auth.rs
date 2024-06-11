@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct LoginData {
     pub username: String,
     pub password: String,
+    pub remember: bool,
 }
 
 #[derive(Serialize, Deserialize)]

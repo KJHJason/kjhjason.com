@@ -37,8 +37,17 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		renderTemplate(w, r, "general/index.go.tmpl", nil)
 	})
+	http.HandleFunc("/experiences", func(w http.ResponseWriter, r *http.Request) {
+		renderTemplate(w, r, "general/experiences.go.tmpl", nil)
+	})
+	http.HandleFunc("/projects", func(w http.ResponseWriter, r *http.Request) {
+		renderTemplate(w, r, "general/projects.go.tmpl", nil)
+	})
 	http.HandleFunc("/skills", func(w http.ResponseWriter, r *http.Request) {
 		renderTemplate(w, r, "general/skills.go.tmpl", nil)
+	})
+	http.HandleFunc("/blog", func(w http.ResponseWriter, r *http.Request) {
+		renderTemplate(w, r, "general/blog.go.tmpl", nil)
 	})
 
 	csp_options := middleware.ContentSecurityPolicies{
