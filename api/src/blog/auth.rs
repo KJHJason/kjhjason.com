@@ -102,7 +102,6 @@ async fn login(
             .expires(max_age)
             .finish();
         let response = auth_model::LoginResponse {
-            token,
             username: user.get_username().to_string(),
         };
         return Ok(HttpResponse::Ok().cookie(c).json(response));

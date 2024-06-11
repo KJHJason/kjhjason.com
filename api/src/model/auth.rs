@@ -1,9 +1,9 @@
 use crate::model::base_error::Error;
+use crate::model::checkbox;
 use actix_web::{HttpResponse, ResponseError};
 use bson::oid::ObjectId;
 use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
-use crate::model::checkbox;
 
 #[derive(Deserialize)]
 pub struct LoginData {
@@ -49,7 +49,6 @@ impl User {
 
 #[derive(Serialize)]
 pub struct LoginResponse {
-    pub token: String,
     pub username: String,
 }
 
@@ -70,8 +69,8 @@ impl ResponseError for AuthError {
         let error = Error::new(self.to_string());
         match self {
             AuthError::AlreadyLoggedIn => HttpResponse::Ok().json(error),
-            AuthError::UserNotFound => HttpResponse::Forbidden().json(error),
-            AuthError::InvalidCredentials => HttpResponse::Forbidden().json(error),
+            AuthError::UserNotFound => HttpResponse::Unauthorized().json(error),
+            AuthError::InvalidCredentials => HttpResponse::Unauthorized().json(error),
             AuthError::InternalServerError => HttpResponse::InternalServerError().json(error),
         }
     }

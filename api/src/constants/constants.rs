@@ -58,3 +58,7 @@ pub fn get_port() -> String {
 pub fn get_client_full_url() -> String {
     format!("{}://{}{}", get_scheme(), get_domain(), get_port())
 }
+
+pub fn get_client_subdomain_url() -> String {
+    "https://www.kjhjason.com".to_string()
+}

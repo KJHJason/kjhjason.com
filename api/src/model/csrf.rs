@@ -14,8 +14,8 @@ impl ResponseError for CsrfError {
     fn error_response(&self) -> HttpResponse {
         let error = BaseError::new(self.to_string());
         match self {
-            CsrfError::MissingToken => HttpResponse::Forbidden().json(error),
-            CsrfError::InvalidToken => HttpResponse::Forbidden().json(error),
+            CsrfError::MissingToken => HttpResponse::Unauthorized().json(error),
+            CsrfError::InvalidToken => HttpResponse::Unauthorized().json(error),
         }
     }
 }

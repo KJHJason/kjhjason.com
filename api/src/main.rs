@@ -8,7 +8,6 @@ mod utils;
 
 use actix_cors::Cors;
 use actix_files::NamedFile;
-use actix_web::http::header;
 use actix_web::http::Method;
 use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer};
 use aws_config::BehaviorVersion;
@@ -66,25 +65,22 @@ async fn main() -> std::io::Result<()> {
 
         let cors = Cors::default()
             .supports_credentials()
-            .allowed_origin(&constants::constants::get_client_full_url())
-            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
-            .allowed_headers(vec![
-                header::CONTENT_TYPE,
-                header::ACCEPT,
-                header::ACCEPT_ENCODING,
-                header::ACCEPT_LANGUAGE,
-                header::CONTENT_LENGTH,
-                header::HOST,
-                header::CONNECTION,
-                header::COOKIE,
-                header::REFERER,
-                header::ORIGIN,
-                header::USER_AGENT,
-                "Hx-Request".parse().unwrap(),
-                "Hx-Current-Url".parse().unwrap(),
-                constants::constants::CSRF_HEADER_NAME.parse().unwrap(),
-            ])
-            .max_age(3600);
+            .allowed_origin_fn(|origin, _req_head| {
+                let origin = origin.to_str().unwrap_or_else(|_| "").to_string();
+                if constants::constants::DEBUG_MODE && origin.starts_with("http://localhost") {
+                    return true;
+                }
+                if origin.starts_with(&constants::constants::get_client_full_url()) {
+                    return true;
+                }
+                if origin.starts_with(&constants::constants::get_client_subdomain_url()) {
+                    return true;
+                }
+                false
+            })
+            .allow_any_header() // needed due to the htmx custom headers in the frontend
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+            .max_age(60);
 
         App::new()
             .app_data(web::Data::new(db_client.clone()))
