@@ -3,12 +3,22 @@ use actix_web::{HttpResponse, ResponseError};
 use bson::oid::ObjectId;
 use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
+use crate::model::checkbox;
 
 #[derive(Deserialize)]
 pub struct LoginData {
     pub username: String,
     pub password: String,
-    pub remember: bool,
+    pub remember: Option<checkbox::State>,
+}
+
+impl LoginData {
+    pub fn remember_session(&self) -> bool {
+        if self.remember.is_none() {
+            return false;
+        }
+        self.remember.as_ref().unwrap().get_state()
+    }
 }
 
 #[derive(Serialize, Deserialize)]

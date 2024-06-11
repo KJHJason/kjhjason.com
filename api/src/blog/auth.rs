@@ -72,7 +72,7 @@ async fn login(
             jsonwebtoken::Algorithm::HS512,
         );
 
-        let exp_sec = if login_data.remember {
+        let exp_sec = if login_data.remember_session() {
             constants::SESSION_TIMEOUT_REMEMBER
         } else {
             constants::SESSION_TIMEOUT
@@ -85,7 +85,7 @@ async fn login(
             }
         };
 
-        let max_age = if login_data.remember {
+        let max_age = if login_data.remember_session() {
             let offset_dt =
                 cookie_time::OffsetDateTime::from_unix_timestamp(claims.exp.timestamp_micros());
             Some(offset_dt.unwrap())
