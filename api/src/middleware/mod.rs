@@ -1,2 +1,2 @@
-pub mod csrf;
 pub mod auth;
+pub mod csrf;

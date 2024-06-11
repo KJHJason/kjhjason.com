@@ -6,8 +6,8 @@ mod model;
 mod security;
 mod utils;
 
-use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer};
 use actix_web::http::Method;
+use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer};
 use aws_config::BehaviorVersion;
 use aws_sdk_s3 as s3;
 use blog::api::{delete_blog, get_blog, publish_blog, update_blog, upload_blog_images};

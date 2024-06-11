@@ -1,16 +1,14 @@
-use crate::constants::constants;
+use crate::model::csrf as csrf_model;
+use crate::security::csrf::CsrfSigner;
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
+use actix_web::http::header::HeaderValue;
+use actix_web::http::{header, Method};
 use actix_web::Error;
 use futures::future::{ok, Ready};
 use futures::task::{Context, Poll};
+use futures_util::future::LocalBoxFuture;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
-use actix_web::http::header::HeaderValue;
-use actix_web::http::{header, Method};
-use crate::security::csrf::CsrfSigner;
-use crate::utils::security;
-use crate::model::csrf as csrf_model;
-use futures_util::future::LocalBoxFuture;
 
 #[derive(Clone)]
 struct CsrfMiddlewareConfig {
@@ -39,10 +37,7 @@ impl CsrfMiddlewareConfig {
     pub fn get_csrf_cookie_name(&self) -> &str {
         self.csrf_signer.get_csrf_cookie_name()
     }
-    pub fn get_csrf_header_name(&self) -> &str {
-        self.csrf_signer.get_csrf_header_name()
-    }
-    pub fn get_csrf_cookie(&self, req: &ServiceRequest) -> Result<String, csrf_model::CsrfError>{
+    pub fn get_csrf_cookie(&self, req: &ServiceRequest) -> Result<String, csrf_model::CsrfError> {
         self.csrf_signer.extract_csrf_cookie(req)
     }
     pub fn get_csrf_header(&self, req: &ServiceRequest) -> Result<String, csrf_model::CsrfError> {
@@ -53,12 +48,7 @@ impl CsrfMiddlewareConfig {
 impl Default for CsrfMiddlewareConfig {
     fn default() -> Self {
         CsrfMiddlewareConfig {
-            csrf_signer: CsrfSigner::new(
-                constants::CSRF_COOKIE_NAME,
-                constants::CSRF_HEADER_NAME,
-                security::get_default_jwt_key(),
-                jsonwebtoken::Algorithm::HS512,
-            ),
+            csrf_signer: CsrfSigner::default(),
             whitelist: vec![],
         }
     }
@@ -79,14 +69,11 @@ impl CsrfMiddleware {
                     config.add_to_whitelist(method, path);
                 }
                 config
-            },
+            }
         };
         CsrfMiddleware {
             config: Arc::new(Mutex::new(config)),
         }
-    }
-    pub fn add_to_whitelist(&mut self, method: Method, path: String) {
-        self.config.lock().unwrap().add_to_whitelist(method, path);
     }
 }
 
@@ -115,9 +102,9 @@ where
 }
 
 impl<S, B> Service<ServiceRequest> for CsrfMiddlewareService<S>
-    where
-        S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
-        B: 'static,
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    B: 'static,
 {
     type Response = ServiceResponse<B>;
     type Error = Error;
@@ -128,7 +115,12 @@ impl<S, B> Service<ServiceRequest> for CsrfMiddlewareService<S>
     }
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        if self.config.lock().unwrap().is_protected(req.method(), req.path()) {
+        if self
+            .config
+            .lock()
+            .unwrap()
+            .is_protected(req.method(), req.path())
+        {
             let csrf_cookie = match self.config.lock().unwrap().get_csrf_cookie(&req) {
                 Ok(csrf_cookie) => csrf_cookie,
                 Err(e) => {
@@ -147,15 +139,25 @@ impl<S, B> Service<ServiceRequest> for CsrfMiddlewareService<S>
             };
             if csrf_cookie != csrf_header {
                 return Box::pin(async move {
-                    Err(actix_web::error::ErrorUnauthorized(csrf_model::CsrfError::InvalidToken.to_string()))
+                    Err(actix_web::error::ErrorUnauthorized(
+                        csrf_model::CsrfError::InvalidToken.to_string(),
+                    ))
                 });
             }
         }
 
         let mut csrf_cookie = String::new();
-        let req_has_csrf_cookie = req.cookie(self.config.lock().unwrap().get_csrf_cookie_name()).is_some();
+        let req_has_csrf_cookie = req
+            .cookie(self.config.lock().unwrap().get_csrf_cookie_name())
+            .is_some();
         if !req_has_csrf_cookie {
-            csrf_cookie = self.config.lock().unwrap().csrf_signer.create_csrf_cookie().to_string();
+            csrf_cookie = self
+                .config
+                .lock()
+                .unwrap()
+                .csrf_signer
+                .create_csrf_cookie()
+                .to_string();
         }
 
         let fut = self.service.call(req);
@@ -176,10 +178,8 @@ impl<S, B> Service<ServiceRequest> for CsrfMiddlewareService<S>
             cookies.push_str(&csrf_cookie);
 
             // Insert the new cookies into the response headers
-            res.headers_mut().insert(
-                header::SET_COOKIE,
-                HeaderValue::from_str(&cookies).unwrap(),
-            );
+            res.headers_mut()
+                .insert(header::SET_COOKIE, HeaderValue::from_str(&cookies).unwrap());
             Ok(res)
         })
     }

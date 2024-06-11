@@ -1,8 +1,8 @@
+use crate::utils::security;
 use argon2::{
     password_hash::SaltString, Algorithm, Argon2, ParamsBuilder, PasswordHash, PasswordHasher,
     PasswordVerifier, Version,
 };
-use crate::utils::security;
 
 // follows the RFC 9106 recommendation for Argon2id
 // ref: https://github.com/hynek/argon2-cffi/blob/main/src/argon2/profiles.py#L30-L38

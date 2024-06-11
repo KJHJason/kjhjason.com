@@ -1,11 +1,11 @@
 use crate::constants::constants;
 use crate::security::jwt;
-use actix_web::{FromRequest, HttpRequest};
-use bson::oid::ObjectId;
-use serde::{Deserialize, Serialize};
-use jsonwebtoken::Algorithm;
 use crate::security::jwt::JwtSignerLogic;
 use crate::utils::security;
+use actix_web::{FromRequest, HttpRequest};
+use bson::oid::ObjectId;
+use jsonwebtoken::Algorithm;
+use serde::{Deserialize, Serialize};
 
 macro_rules! auth_failed {
     ($msg:expr) => {
@@ -35,7 +35,6 @@ pub fn create_user_claim(id: ObjectId) -> UserClaim {
         exp: chrono::Utc::now() + chrono::Duration::seconds(constants::SESSION_TIMEOUT),
     }
 }
-
 
 impl jwt::Claim for UserClaim {
     fn get_exp(&self) -> chrono::DateTime<chrono::Utc> {

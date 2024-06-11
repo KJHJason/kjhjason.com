@@ -1,5 +1,5 @@
-use rand::Rng;
 use crate::constants::constants;
+use rand::Rng;
 
 pub fn get_default_jwt_key() -> Vec<u8> {
     let secret_hex = std::env::var(constants::JWT_SECRET_KEY).unwrap();

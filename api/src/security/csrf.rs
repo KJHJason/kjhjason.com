@@ -1,6 +1,6 @@
 use crate::constants::constants;
-use crate::security::jwt;
 use crate::model::csrf;
+use crate::security::jwt;
 use crate::security::jwt::JwtSignerLogic;
 use crate::utils::security;
 use actix_web::cookie::{time as cookie_time, Cookie};
@@ -31,14 +31,34 @@ impl jwt::Claim for CsrfToken {
 pub struct CsrfSigner {
     cookie_name: String,
     header_name: String,
-    jwt_signer: jwt::JwtSigner
+    token_len: usize,
+    jwt_signer: jwt::JwtSigner,
+}
+
+impl Default for CsrfSigner {
+    fn default() -> Self {
+        Self::new(
+            constants::CSRF_COOKIE_NAME,
+            constants::CSRF_HEADER_NAME,
+            constants::CSRF_TOKEN_LENGTH,
+            security::get_default_jwt_key(),
+            jsonwebtoken::Algorithm::HS512,
+        )
+    }
 }
 
 impl CsrfSigner {
-    pub fn new(cookie_name: &str, header_name: &str, secret_key: Vec<u8>, algo: jsonwebtoken::Algorithm) -> CsrfSigner {
-        CsrfSigner {
+    pub fn new(
+        cookie_name: &str,
+        header_name: &str,
+        token_len: usize,
+        secret_key: Vec<u8>,
+        algo: jsonwebtoken::Algorithm,
+    ) -> CsrfSigner {
+        Self {
             cookie_name: cookie_name.to_string(),
             header_name: header_name.to_string(),
+            token_len,
             jwt_signer: jwt::JwtSigner::new(secret_key, algo),
         }
     }
@@ -46,11 +66,12 @@ impl CsrfSigner {
     // Cryptographically secure random token generator
     // Generates 32 random bytes base64-encoded string
     fn generate_csrf_token(&self) -> String {
-        let random_bytes = security::generate_random_bytes(32);
-        self.jwt_signer.sign(&CsrfToken::new(
-            general_purpose::STANDARD.encode(&random_bytes),
-            chrono::Utc::now() + chrono::Duration::seconds(constants::CSRF_MAX_AGE),
-        ))
+        let random_bytes = security::generate_random_bytes(self.token_len);
+        self.jwt_signer
+            .sign(&CsrfToken::new(
+                general_purpose::STANDARD.encode(&random_bytes),
+                chrono::Utc::now() + chrono::Duration::seconds(constants::CSRF_MAX_AGE),
+            ))
             .unwrap_or_else(|_| "".to_string())
     }
 
@@ -65,13 +86,19 @@ impl CsrfSigner {
             .finish()
     }
 
-    pub fn extract_csrf_cookie(&self, req: &actix_web::dev::ServiceRequest) -> Result<String, csrf::CsrfError> {
+    pub fn extract_csrf_cookie(
+        &self,
+        req: &actix_web::dev::ServiceRequest,
+    ) -> Result<String, csrf::CsrfError> {
         req.cookie(&self.cookie_name)
             .map(|cookie| cookie.value().to_string())
             .ok_or(csrf::CsrfError::MissingToken)
     }
 
-    pub fn extract_csrf_header(&self, req: &actix_web::dev::ServiceRequest) -> Result<String, csrf::CsrfError> {
+    pub fn extract_csrf_header(
+        &self,
+        req: &actix_web::dev::ServiceRequest,
+    ) -> Result<String, csrf::CsrfError> {
         req.headers()
             .get(&self.header_name)
             .map(|header| header.to_str().unwrap_or_default().to_string())
@@ -80,9 +107,5 @@ impl CsrfSigner {
 
     pub fn get_csrf_cookie_name(&self) -> &str {
         &self.cookie_name
-    }
-
-    pub fn get_csrf_header_name(&self) -> &str {
-        &self.header_name
     }
 }
