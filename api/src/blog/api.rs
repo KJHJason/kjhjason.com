@@ -1,6 +1,5 @@
 use crate::constants::constants;
 use crate::database::db;
-use crate::middleware::auth;
 use crate::model::base_msg::Msg;
 use crate::model::blog::{
     Blog, BlogError, BlogIdentifier, BlogPublishOperation, BlogResponse, BlogUpdateOperation,
@@ -113,7 +112,6 @@ async fn get_blog(
 async fn publish_blog(
     client: Data<db::DbClient>,
     s3_client: Data<s3::Client>,
-    _: auth::UserClaim,
     blog: Json<BlogPublishOperation>,
 ) -> Result<Json<Msg>, BlogError> {
     let blog_op = blog.into_inner();
@@ -169,7 +167,6 @@ async fn publish_blog(
 #[put("/update/blog")]
 async fn update_blog(
     client: Data<db::DbClient>,
-    _: auth::UserClaim,
     s3_client: Data<s3::Client>,
     update_blog: Json<BlogUpdateOperation>,
 ) -> Result<Json<Msg>, BlogError> {
@@ -278,7 +275,6 @@ async fn update_blog(
 #[delete("/delete/blog")]
 async fn delete_blog(
     client: Data<db::DbClient>,
-    _: auth::UserClaim,
     s3_client: Data<s3::Client>,
     blog_identifier: Json<BlogIdentifier>,
 ) -> Result<Json<Msg>, BlogError> {
@@ -302,7 +298,6 @@ async fn delete_blog(
 #[post("/upload/images")]
 async fn upload_blog_images(
     s3_client: Data<s3::Client>,
-    _: auth::UserClaim,
     mut payload: Multipart,
     req: HttpRequest,
 ) -> Result<Json<UploadedImages>, BlogError> {

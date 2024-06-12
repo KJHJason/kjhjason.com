@@ -14,11 +14,11 @@ pub fn get_redirect_url(redirect: &web::Query<RedirectParams>) -> String {
             if redirect.starts_with('/') {
                 redirect.to_string()
             } else {
-                "/".to_string()
+                "".to_string()
             }
         }
-        None => "/".to_string(),
+        None => "".to_string(),
     };
 
-    format!("{}/{}", constants::get_client_full_url(), redirect,)
+    format!("{}/{}", constants::get_client_full_url(), redirect)
 }

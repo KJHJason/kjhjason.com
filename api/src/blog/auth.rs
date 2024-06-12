@@ -2,13 +2,12 @@ use crate::constants::constants;
 use crate::db;
 use crate::middleware::auth;
 use crate::model::auth as auth_model;
-use crate::security::jwt;
-use crate::security::jwt::JwtSignerLogic;
 use crate::security::pw_hasher;
 use crate::utils::{redirect, security};
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
 use actix_web::http::header;
 use actix_web::{get, post, web, web::Data, web::Json, Error, HttpRequest, HttpResponse};
+use hmac_serialiser_rs::SignerLogic;
 use rand::Rng;
 use tokio::time as tokio_time;
 
@@ -25,11 +24,6 @@ macro_rules! honeypot_logic {
             "wrong username or password",
         ));
     };
-}
-
-#[post("/wp-admin.php")]
-async fn wp_honeypot(login_data: Json<auth_model::LoginData>) -> Result<HttpResponse, Error> {
-    honeypot_logic!(login_data);
 }
 
 #[post("/admin")]
@@ -67,23 +61,14 @@ async fn login(
             return Err(auth_model::AuthError::InvalidCredentials);
         }
 
-        let signer = jwt::JwtSigner::new(
-            security::get_default_jwt_key(),
-            jsonwebtoken::Algorithm::HS512,
-        );
-
+        let signer = security::get_auth_signer();
         let exp_sec = if login_data.remember_session() {
             constants::SESSION_TIMEOUT_REMEMBER
         } else {
             constants::SESSION_TIMEOUT
         };
         let claims = auth::create_user_claim(user.get_id(), exp_sec);
-        let token = match signer.sign(&claims) {
-            Ok(token) => token,
-            Err(_) => {
-                return Err(auth_model::AuthError::InternalServerError);
-            }
-        };
+        let token = signer.sign(&claims);
 
         let max_age = if login_data.remember_session() {
             let offset_dt =

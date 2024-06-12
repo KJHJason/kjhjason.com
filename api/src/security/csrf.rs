@@ -1,10 +1,9 @@
 use crate::constants::constants;
 use crate::model::csrf;
-use crate::security::jwt;
-use crate::security::jwt::JwtSignerLogic;
 use crate::utils::security;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
 use base64::{engine::general_purpose, Engine as _};
+use hmac_serialiser_rs::SignerLogic;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -21,9 +20,9 @@ impl CsrfToken {
     }
 }
 
-impl jwt::Claim for CsrfToken {
-    fn get_exp(&self) -> chrono::DateTime<chrono::Utc> {
-        self.expiry
+impl hmac_serialiser_rs::Data for CsrfToken {
+    fn get_exp(&self) -> Option<chrono::DateTime<chrono::Utc>> {
+        Some(self.expiry)
     }
 }
 
@@ -32,7 +31,7 @@ pub struct CsrfSigner {
     cookie_name: String,
     header_name: String,
     token_len: usize,
-    jwt_signer: jwt::JwtSigner,
+    signer: hmac_serialiser_rs::HmacSigner,
 }
 
 impl Default for CsrfSigner {
@@ -41,8 +40,12 @@ impl Default for CsrfSigner {
             constants::CSRF_COOKIE_NAME,
             constants::CSRF_HEADER_NAME,
             constants::CSRF_TOKEN_LENGTH,
-            security::get_default_jwt_key(),
-            jsonwebtoken::Algorithm::HS256,
+            security::get_default_key_info(
+                security::get_bytes_from_env(constants::CSRF_KEY_SALT),
+                vec![],
+            ),
+            hmac_serialiser_rs::algorithm::Algorithm::SHA1,
+            hmac_serialiser_rs::Encoder::UrlSafeNoPadding,
         )
     }
 }
@@ -52,14 +55,15 @@ impl CsrfSigner {
         cookie_name: &str,
         header_name: &str,
         token_len: usize,
-        secret_key: Vec<u8>,
-        algo: jsonwebtoken::Algorithm,
+        key_info: hmac_serialiser_rs::KeyInfo,
+        algo: hmac_serialiser_rs::algorithm::Algorithm,
+        encoder: hmac_serialiser_rs::Encoder,
     ) -> CsrfSigner {
         Self {
             cookie_name: cookie_name.to_string(),
             header_name: header_name.to_string(),
             token_len,
-            jwt_signer: jwt::JwtSigner::new(secret_key, algo),
+            signer: hmac_serialiser_rs::HmacSigner::new(key_info, algo, encoder),
         }
     }
 
@@ -67,12 +71,10 @@ impl CsrfSigner {
     // Generates 32 random bytes base64-encoded string
     fn generate_csrf_token(&self) -> String {
         let random_bytes = security::generate_random_bytes(self.token_len);
-        self.jwt_signer
-            .sign(&CsrfToken::new(
-                general_purpose::STANDARD.encode(&random_bytes),
-                chrono::Utc::now() + chrono::Duration::seconds(constants::CSRF_MAX_AGE),
-            ))
-            .unwrap_or_else(|_| "".to_string())
+        self.signer.sign(&CsrfToken::new(
+            general_purpose::STANDARD_NO_PAD.encode(&random_bytes),
+            chrono::Utc::now() + chrono::Duration::seconds(constants::CSRF_MAX_AGE),
+        ))
     }
 
     pub fn create_csrf_cookie(&self) -> Cookie<'_> {
@@ -87,23 +89,36 @@ impl CsrfSigner {
             .finish()
     }
 
+    fn verify_token(&self, csrf_token: &str) -> Result<CsrfToken, csrf::CsrfError> {
+        self.signer
+            .unsign::<CsrfToken>(csrf_token)
+            .map_err(|_| csrf::CsrfError::InvalidToken)
+    }
+
     pub fn extract_csrf_cookie(
         &self,
         req: &actix_web::dev::ServiceRequest,
     ) -> Result<String, csrf::CsrfError> {
-        req.cookie(&self.cookie_name)
-            .map(|cookie| cookie.value().to_string())
-            .ok_or(csrf::CsrfError::MissingToken)
+        let csrf_cookie = match req.cookie(&self.cookie_name) {
+            Some(cookie) => cookie.value().to_string(),
+            None => return Err(csrf::CsrfError::MissingToken),
+        };
+
+        let csrf_token = self.verify_token(&csrf_cookie)?;
+        Ok(csrf_token.token)
     }
 
     pub fn extract_csrf_header(
         &self,
         req: &actix_web::dev::ServiceRequest,
     ) -> Result<String, csrf::CsrfError> {
-        req.headers()
-            .get(&self.header_name)
-            .map(|header| header.to_str().unwrap_or_default().to_string())
-            .ok_or(csrf::CsrfError::MissingToken)
+        let csrf_header = match req.headers().get(&self.header_name) {
+            Some(header) => header.to_str().unwrap().to_string(),
+            None => return Err(csrf::CsrfError::MissingToken),
+        };
+
+        let csrf_token = self.verify_token(&csrf_header)?;
+        Ok(csrf_token.token)
     }
 
     pub fn get_csrf_cookie_name(&self) -> &str {

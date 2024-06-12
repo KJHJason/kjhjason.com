@@ -13,7 +13,7 @@ use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer};
 use aws_config::BehaviorVersion;
 use aws_sdk_s3 as s3;
 use blog::api::{delete_blog, get_blog, publish_blog, update_blog, upload_blog_images};
-use blog::auth::{admin_honeypot, login, login_honeypot, wp_honeypot};
+use blog::auth::{admin_honeypot, login, login_honeypot};
 use blog::csrf::get_csrf_token;
 use database::db;
 use dotenv::dotenv;
@@ -63,6 +63,26 @@ async fn main() -> std::io::Result<()> {
         ];
         let csrf_middleware = middleware::csrf::CsrfMiddleware::new(None, csrf_whitelist);
 
+        let auth_whitelist = vec![
+            (Method::GET, "/".to_string()),
+            (Method::GET, "/favicon.ico".to_string()),
+            (Method::GET, "/csrf-token".to_string()),
+            (Method::POST, "/admin".to_string()),
+            (Method::POST, "/login".to_string()),
+            (Method::POST, "/auth/login".to_string()),
+            (Method::GET, "/auth/logout".to_string()),
+        ];
+        let auth_whitelist_regex = vec![(
+            Method::GET,
+            regex::Regex::new(r"^/blog/[a-fA-F\d]{24}$").unwrap(),
+        )];
+        let auth_middleware = middleware::auth::AuthMiddleware::new(
+            None,
+            constants::constants::AUTH_COOKIE_NAME,
+            auth_whitelist,
+            auth_whitelist_regex,
+        );
+
         let cors = Cors::default()
             .supports_credentials()
             .allowed_origin_fn(|origin, _req_head| {
@@ -89,6 +109,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::new("%a %{User-Agent}i"))
             .wrap(csrf_middleware)
             .wrap(cors)
+            .wrap(auth_middleware)
             .service(favicon)
             .service(hello)
             .service(get_blog)
@@ -96,7 +117,6 @@ async fn main() -> std::io::Result<()> {
             .service(update_blog)
             .service(delete_blog)
             .service(upload_blog_images)
-            .service(wp_honeypot)
             .service(admin_honeypot)
             .service(login_honeypot)
             .service(login)
