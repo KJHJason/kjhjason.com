@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 struct CsrfToken {
     token: String,
 
-    #[serde(with = "crate::utils::datetime::rfc3339")]
+    #[serde(with = "chrono::serde::ts_seconds")]
     expiry: chrono::DateTime<chrono::Utc>,
 }
 

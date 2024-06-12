@@ -24,8 +24,8 @@ impl CsrfMiddlewareConfig {
             whitelist,
         }
     }
-    pub fn add_to_whitelist(&mut self, method: Method, path: String) {
-        self.whitelist.push((method, path));
+    pub fn set_whitelist(&mut self, whitelist: Vec<(Method, String)>) {
+        self.whitelist = whitelist;
     }
     pub fn is_protected(&self, method: &Method, path: &str) -> bool {
         for (allowed_method, allowed_path) in &self.whitelist {
@@ -66,9 +66,7 @@ impl CsrfMiddleware {
             Some(signer) => CsrfMiddlewareConfig::new(signer, whitelist),
             None => {
                 let mut config = CsrfMiddlewareConfig::default();
-                for (method, path) in whitelist {
-                    config.add_to_whitelist(method, path);
-                }
+                config.set_whitelist(whitelist);
                 config
             }
         };

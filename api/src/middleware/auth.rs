@@ -149,7 +149,8 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        if self.inner.requires_auth(req.method(), req.path()) {
+        // Request method of OPTIONS is used for Cors preflight requests
+        if req.method() != Method::OPTIONS && self.inner.requires_auth(req.method(), req.path()) {
             let auth_cookie = match self.inner.get_auth_cookie(&req) {
                 Ok(auth_cookie) => auth_cookie,
                 Err(e) => {
