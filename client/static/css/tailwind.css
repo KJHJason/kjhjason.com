@@ -6,8 +6,48 @@ main p {
     @apply prose prose-neutral dark:prose-invert !max-w-none my-8;
 }
 
-nav div a {
+/* nav div a {
     @apply transition-all hover:text-neutral-800 dark:hover:text-neutral-400 flex align-middle relative py-1 px-2;
+} */
+
+h1 {
+    @apply text-4xl font-bold tracking-tighter my-8;
+}
+
+h2 {
+    @apply text-3xl font-bold tracking-tighter my-8;
+}
+
+h3 {
+    @apply text-2xl font-bold tracking-tighter my-8;
+}
+
+h4 {
+    @apply text-xl font-bold tracking-tighter my-8;
+}
+
+h5 {
+    @apply text-lg font-bold tracking-tighter my-8;
+}
+
+h6 {
+    @apply text-base font-bold tracking-tighter my-8;
+}
+
+hr {
+    @apply border-gray-200 sm:mx-auto dark:border-gray-700;
+}
+
+.accent {
+    @apply bg-neutral-400 dark:bg-neutral-800
+}
+
+.accent-border {
+    @apply border-neutral-400 dark:border-neutral-800
+}
+
+.input-theme {
+    @apply bg-neutral-50 border border-neutral-300 text-neutral-900 sm:text-sm rounded-lg block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white;
 }
 
 .badges {
@@ -15,7 +55,7 @@ nav div a {
 }
 
 .badge {
-    @apply bg-neutral-800 text-white py-4 flex justify-center items-center flex-col gap-5 rounded-lg;
+    @apply bg-neutral-800 text-white py-4 flex justify-center items-center flex-col gap-5 rounded-lg text-center h-full w-full;
 }
 
 .badge img {
@@ -87,8 +127,12 @@ nav div a {
 }
 
 .btn {
-    @apply text-white focus:outline-none focus:ring-4 font-medium rounded text-sm px-5 py-2.5 text-center me-2 mb-2;
+    @apply text-white;
 }
+
+/* .btn {
+    @apply text-white focus:outline-none focus:ring-4 font-medium rounded text-sm px-5 py-2.5 text-center me-2 mb-2;
+} */
 
 .btn-primary {
     @apply bg-blue-700 hover:bg-blue-800 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800;

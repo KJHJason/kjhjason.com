@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="text-white bg-[#111010]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,26 +13,60 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/static/images/logo/dark/favicon-32x32.png" media="(prefers-color-scheme: dark)">
     <link rel="icon" type="image/png" sizes="16x16" href="/static/images/logo/dark/favicon-16x16.png" media="(prefers-color-scheme: dark)">
 </head>
-<body class="antialiased max-w-2xl mb-4 flex flex-col md:flex-row mx-4 mt-8 lg:mx-auto text-black bg-white dark:text-white dark:bg-[#111010]">
+<body class="antialiased max-w-2xl mb-4 flex flex-col md:flex-row mx-4 mt-8 lg:mx-auto ">
     <div class="flex-auto min-w-0 mt-6 flex flex-col px-2 md:px-0">
-        <aside class="-ml-[8px] mb-16 tracking-tight">
-            <div class="lg:sticky lg:top-20">
-                <nav class="flex flex-row items-start relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative">
-                    <div class="flex flex-row space-x-0 pr-10">
-                        <a href="/">About Me</a>
-                        <a href="/experiences">Experiences</a>
-                        <a href="/projects">Projects</a>
-                        <a href="/skills">Skills</a>
-                        <a href="/blog">Blog</a>
-                    </div>
-                </nav>
+        <nav class="mb-8">
+            <div class="navbar rounded-lg">
+                <div class="flex-1">
+                    <a href="/" class="btn btn-ghost text-4xl">KJHJason</a>
+                </div>
+                <div class="flex-none">
+                    <ul class="menu menu-horizontal px-1">
+                        <li>
+                            <a href="/blog">Blog</a>
+                        </li>
+                        <li>
+                            <details>
+                                <summary>
+                                    Others
+                                </summary>
+                                <ul class="p-2 accent rounded-t-none">
+                                    <li>
+                                        <a href="/experiences">Experiences</a>
+                                    </li>
+                                    <li>
+                                        <a href="/projects">Projects</a>
+                                    </li>
+                                    <li>
+                                        <a href="/skills">Skills</a>
+                                    </li>
+                                    <li>
+                                        <a href="/">Resume (WIP)</a>
+                                    </li>
+                                    <li id="login-item" class="hidden">
+                                        <a href="/admin">Login</a>
+                                    </li>
+                                    <div id="admin-items" class="hidden">
+                                        <li>
+                                            <a href="/admin/new/blog">New Blog</a>
+                                        </li>
+                                    </div>
+                                </ul>
+                            </details>
+                        </li>
+                        <li id="logout-item" class="hidden">
+                            <button type="button" hx-post="{{ apiUrl }}/auth/logout" hx-headers='{{ getCsrfHeader }}' hx-swap="none" hx-on::after-swap="handleLogout()">Logout</button>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </aside>
+            <hr class="mt-2" />
+        </nav>
         <main>
             {{ block "content" . }}{{ end }}
         </main>
         <footer>
-            <hr class="my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" />
+            <hr class="my-6 lg:my-8" />
             <div class="sm:flex sm:items-center sm:justify-between">
                 <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">
                     ©
@@ -82,7 +116,29 @@
         htmx.config.includeIndicatorStyles = false;
         htmx.config.withCredentials = true;
 
-        document.getElementById("footer-year").textContent = new Date().getFullYear();
+        const logoutItem = document.getElementById("logout-item");
+        const loginItem = document.getElementById("login-item");
+        const adminItems = document.getElementById("admin-items");
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("footer-year").textContent = new Date().getFullYear();
+
+            if ("{{ isLoggedIn }}" === "true") {
+                logoutItem.classList.remove("hidden");
+                adminItems.classList.remove("hidden");
+            } else {
+                loginItem.classList.remove("hidden");
+            }
+        });
+
+        const handleLogout = () => {
+            if (window.location.pathname.startsWith("/admin")) {
+                window.location.href = "/admin";
+                return;
+            }
+            loginItem.classList.remove("hidden");
+            adminItems.classList.add("hidden");
+            logoutItem.classList.add("hidden");
+        };
     </script>
     {{ block "scripts" . }}{{ end }}
 </body>

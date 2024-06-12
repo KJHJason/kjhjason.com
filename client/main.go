@@ -36,7 +36,22 @@ func main() {
 		}
 	})
 
-	csp_options := middleware.ContentSecurityPolicies{
+	staticDirRegex := regexp.MustCompile(`^/static/.*$`)
+	whitelistedRoutes := []middleware.Route{
+		{Method: http.MethodGet, Path: "/login"},
+		{Method: http.MethodGet, Path: "/admin"},
+		{Method: http.MethodGet, Path: "/auth/login"},
+		{Method: http.MethodGet, Path: "/"},
+		{Method: http.MethodGet, Path: "/experiences"},
+		{Method: http.MethodGet, Path: "/projects"},
+		{Method: http.MethodGet, Path: "/skills"},
+		{Method: http.MethodGet, Path: "/blog"},
+		{Method: http.MethodGet, Regex: staticDirRegex},
+		{Method: http.MethodGet, Regex: regexp.MustCompile(`^/blog/[^/]+$`)},
+	}
+	mainHandler := middleware.Auth(mux, whitelistedRoutes)
+
+	cspOptions := middleware.ContentSecurityPolicies{
 		ScriptSrc: []string{
 			"'self'",
 			"https://unpkg.com/htmx.org@1.9.12",
@@ -45,7 +60,7 @@ func main() {
 			"'self'",
 		},
 	}
-	mainHandler := middleware.CspNonce(mux, &csp_options, 32)
+	mainHandler = middleware.CspNonce(mainHandler, &cspOptions, 32)
 	mainHandler = middleware.ContentType(mainHandler)
 	mainHandler = middleware.Logger(mainHandler)
 	mainHandler = middleware.Csrf(mainHandler)
@@ -63,7 +78,7 @@ func main() {
 				{Path: "/favicon.ico", CacheControl: "public, max-age=31536000, must-revalidate"}, // 1 year
 			},
 			RegexPaths: []*middleware.CachePathValue{
-				{Path: regexp.MustCompile(`^/static/.*$`), CacheControl: "public, max-age=31536000, must-revalidate"}, // 1 year
+				{Path: staticDirRegex, CacheControl: "public, max-age=31536000, must-revalidate"}, // 1 year
 			},
 		}
 	}

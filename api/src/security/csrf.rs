@@ -80,7 +80,7 @@ impl CsrfSigner {
     pub fn create_csrf_cookie(&self) -> Cookie<'_> {
         let csrf_token = self.generate_csrf_token();
         Cookie::build(&self.cookie_name, csrf_token)
-            .http_only(false) // Allow JavaScript to read the cookie to put it in the header
+            .http_only(true)
             .domain(constants::get_domain())
             .same_site(SameSite::Lax)
             .path("/")

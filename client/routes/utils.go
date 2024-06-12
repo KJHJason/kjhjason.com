@@ -9,6 +9,14 @@ import (
 	"github.com/KJHJason/Blog/client/middleware"
 )
 
+func renderError(w http.ResponseWriter, r *http.Request, status int, message string) {
+	w.WriteHeader(status)
+	renderTemplate(w, r, "error.go.tmpl", map[string]any{
+		"status":  status,
+		"message": message,
+	})
+}
+
 func renderTemplate(w http.ResponseWriter, r *http.Request, tmplPath string, data map[string]any) {
 	tmplPath = fmt.Sprintf("templates/%s", tmplPath)
 
@@ -27,6 +35,13 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, tmplPath string, dat
 		"csrfHeader": func() string {
 			return constants.CSRF_HEADER_NAME
 		},
+		"getCsrfHeader": func() string {
+			return fmt.Sprintf("{\"%s\": \"%s\"}", constants.CSRF_HEADER_NAME, middleware.GetCsrfToken(r))
+		},
+		"isLoggedIn": func() bool {
+			_, err := r.Cookie(constants.SESSION_COOKIE_NAME)
+			return err == nil
+		},
 	})
 	t = template.Must(t.ParseFiles(
 		"templates/base.go.tmpl",
@@ -38,4 +53,5 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, tmplPath string, dat
 func AddRoutes(mux *http.ServeMux) {
 	addGeneral(mux)
 	addAuth(mux)
+	addAdmin(mux)
 }

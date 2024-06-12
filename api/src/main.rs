@@ -12,8 +12,10 @@ use actix_web::http::Method;
 use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer};
 use aws_config::BehaviorVersion;
 use aws_sdk_s3 as s3;
-use blog::api::{delete_blog, get_blog, publish_blog, update_blog, upload_blog_images};
-use blog::auth::{admin_honeypot, login, login_honeypot};
+use blog::api::{
+    blog_exists, delete_blog, get_blog, publish_blog, update_blog, upload_blog_images,
+};
+use blog::auth::{admin_honeypot, login, logout};
 use blog::csrf::get_csrf_token;
 use database::db;
 use dotenv::dotenv;
@@ -70,7 +72,7 @@ async fn main() -> std::io::Result<()> {
             (Method::POST, "/admin".to_string()),
             (Method::POST, "/login".to_string()),
             (Method::POST, "/auth/login".to_string()),
-            (Method::GET, "/auth/logout".to_string()),
+            (Method::POST, "/auth/logout".to_string()),
         ];
         let auth_whitelist_regex = vec![(
             Method::GET,
@@ -113,13 +115,14 @@ async fn main() -> std::io::Result<()> {
             .service(favicon)
             .service(hello)
             .service(get_blog)
+            .service(blog_exists)
             .service(publish_blog)
             .service(update_blog)
             .service(delete_blog)
             .service(upload_blog_images)
             .service(admin_honeypot)
-            .service(login_honeypot)
             .service(login)
+            .service(logout)
             .service(get_csrf_token)
     })
     .bind(("127.0.0.1", 8080))?

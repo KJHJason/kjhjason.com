@@ -4,6 +4,7 @@ use crate::model::blog::{Blog, BlogError};
 use crate::security::pw_hasher;
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
+use mongodb::options::FindOneOptions;
 use mongodb::options::{ClientOptions, Credential, IndexOptions};
 use mongodb::{Client, Collection, IndexModel};
 
@@ -161,10 +162,14 @@ impl DbClient {
         }
     }
 
-    pub async fn get_blog_post(&self, id: &ObjectId) -> Result<Blog, BlogError> {
+    pub async fn get_blog_post(
+        &self,
+        id: &ObjectId,
+        options: Option<FindOneOptions>,
+    ) -> Result<Blog, BlogError> {
         match self
             .get_blog_collection()
-            .find_one(doc! {"_id": id}, None)
+            .find_one(doc! {"_id": id}, options)
             .await
         {
             Ok(Some(blog)) => Ok(blog),

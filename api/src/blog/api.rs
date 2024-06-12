@@ -17,6 +17,7 @@ use mime::{Mime, IMAGE_GIF, IMAGE_JPEG, IMAGE_PNG};
 use mongodb::bson;
 use mongodb::bson::doc;
 use mongodb::bson::oid::ObjectId;
+use mongodb::options::FindOneOptions;
 use std::str::FromStr;
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
@@ -108,6 +109,20 @@ async fn get_blog(
     }
 }
 
+#[get("/blog/exists/{id}")]
+async fn blog_exists(
+    client: Data<db::DbClient>,
+    blog_identifier: Path<BlogIdentifier>,
+) -> Result<Json<Msg>, BlogError> {
+    let blog_id = validate_id(&blog_identifier.into_inner().get_id())?;
+
+    let options = FindOneOptions::builder()
+        .projection(doc! { "_id": 1 })
+        .build();
+    client.get_blog_post(&blog_id, Some(options)).await?;
+    Ok(Json(Msg::new("blog exists".to_string())))
+}
+
 #[post("/publish/blog")]
 async fn publish_blog(
     client: Data<db::DbClient>,
@@ -182,8 +197,12 @@ async fn update_blog(
         return Err(BlogError::TooManyTags);
     }
 
+    let options = FindOneOptions::builder()
+        .projection(doc! { "title": 1, "tags": 1, "images": 1, "is_public": 1 })
+        .build();
+
     let blog_id = validate_id(blog_op_id)?;
-    let blog_in_db = client.get_blog_post(&blog_id).await?;
+    let blog_in_db = client.get_blog_post(&blog_id, Some(options)).await?;
 
     let mut is_updating = false;
     let last_modified = bson::DateTime::parse_rfc3339_str(datetime::get_dtnow_str())
@@ -232,7 +251,7 @@ async fn update_blog(
     }
 
     let title = blog.get_title();
-    if !title.is_empty() {
+    if !title.is_empty() && title != blog_in_db.get_title() {
         is_updating = true;
         set_doc.insert("title", title);
     }
@@ -244,8 +263,10 @@ async fn update_blog(
     }
 
     if let Some(is_public) = blog.get_is_public() {
-        is_updating = true;
-        set_doc.insert("is_public", is_public);
+        if is_public != blog_in_db.get_is_public() {
+            is_updating = true;
+            set_doc.insert("is_public", is_public);
+        }
     }
 
     let old_tags = blog_in_db.get_tags();
@@ -279,7 +300,11 @@ async fn delete_blog(
     blog_identifier: Json<BlogIdentifier>,
 ) -> Result<Json<Msg>, BlogError> {
     let blog_id = validate_id(&blog_identifier.into_inner().get_id())?;
-    let blog_data = client.get_blog_post(&blog_id).await?;
+
+    let options = FindOneOptions::builder()
+        .projection(doc! { "images": 1 })
+        .build();
+    let blog_data = client.get_blog_post(&blog_id, Some(options)).await?;
 
     for image in blog_data.get_images() {
         delete_blob!(&s3_client, constants::BUCKET, image);

@@ -54,6 +54,9 @@ impl Blog {
             thumbnail_url: None,
         }
     }
+    pub fn get_title(&self) -> &str {
+        &self.title
+    }
     pub fn get_tags(&self) -> &Vec<String> {
         &self.tags
     }

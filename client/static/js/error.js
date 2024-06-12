@@ -1,5 +1,12 @@
-const GetErrorMsg = (e) => {
-    const errorResponse = JSON.parse(e.detail.xhr.response);
+const getErrorMsg = (e) => {
+    let errorResponse;
+    const xhr = e.detail.xhr;
+    try {
+        errorResponse = JSON.parse(xhr.response);
+    } catch (e) {
+        return xhr.response;
+    }
+
     if (errorResponse.error) {
         return errorResponse.error;
     }

@@ -1,43 +1,40 @@
 {{ define "title" }}Login{{ end }}
 
 {{ define "content" }}
-<hr class="my-6 border-neutral-200 sm:mx-auto dark:border-neutral-700 lg:my-8" />
-<section>
-    <div class="w-full bg-neutral-400 dark:bg-neutral-800 rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0  dark:border-neutral-700 mx-auto">
-        <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative hidden" role="alert" id="alert">
-                <span class="block sm:inline" id="error-alert-msg"></span>
-                <button class="absolute top-0 bottom-0 right-0 px-4 py-3" hx-on:click='htmx.toggleClass(htmx.find("#alert"), "hidden");'>
-                    <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
-                </button>
+<div class="w-full accent rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 accent-border mx-auto">
+    <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative hidden" role="alert" id="alert">
+            <span class="block sm:inline" id="error-alert-msg"></span>
+            <button class="absolute top-0 bottom-0 right-0 px-4 py-3" hx-on:click='htmx.toggleClass(htmx.find("#alert"), "hidden");'>
+                <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+            </button>
+        </div>
+        <h1 class="text-xl font-bold leading-tight tracking-tight text-neutral-900 md:text-2xl dark:text-white">
+            Sign in to your account
+        </h1>
+        <form id="login-form" hx-post="{{ apiUrl }}/{{ .loginUrl }}" hx-headers='{{ getCsrfHeader }}' hx-swap="none" class="space-y-4 md:space-y-6" action="#">
+            <div>
+                <label for="username" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Username/Email</label>
+                <input type="text" name="username" id="username" class="input-theme" placeholder="name@proton.me" required>
             </div>
-            <h1 class="text-xl font-bold leading-tight tracking-tight text-neutral-900 md:text-2xl dark:text-white">
-                Sign in to your account
-            </h1>
-            <form id="login-form" hx-post="{{ apiUrl }}/auth/login" hx-headers='{"{{ csrfHeader }}": "{{ csrfToken }}"}' hx-swap="none" class="space-y-4 md:space-y-6" action="#">
-                <div>
-                    <label for="username" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Username/Email</label>
-                    <input type="text" name="username" id="username" class="bg-neutral-50 border border-neutral-300 text-neutral-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="name@proton.me" required>
-                </div>
-                <div>
-                    <label for="password" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Password</label>
-                    <input type="password" name="password" id="password" placeholder="••••••••" class="bg-neutral-50 border border-neutral-300 text-neutral-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required>
-                </div>
-                <div class="flex items-center justify-between">
-                    <div class="flex items-start">
-                        <div class="flex items-center h-5">
-                            <input name="remember" id="remember" aria-describedby="remember" type="checkbox" class="w-4 h-4 border border-neutral-300 rounded bg-neutral-50 focus:ring-3 focus:ring-primary-300 dark:bg-neutral-700 dark:border-neutral-600 dark:focus:ring-primary-600 dark:ring-offset-neutral-800">
-                        </div>
-                        <div class="ml-3 text-sm">
-                            <label for="remember" class="text-neutral-500 dark:text-neutral-300">Remember me</label>
-                        </div>
+            <div>
+                <label for="password" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Password</label>
+                <input type="password" name="password" id="password" placeholder="••••••••" class="input-theme" required minlength="8" maxlength="64">
+            </div>
+            <div class="flex items-center justify-between">
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        <input name="remember" id="remember" aria-describedby="remember" type="checkbox" class="w-4 h-4 border border-neutral-300 rounded-lg bg-neutral-50 focus:ring-3 focus:ring-primary-300 dark:bg-neutral-700 dark:border-neutral-600 dark:focus:ring-primary-600 dark:ring-offset-neutral-800">
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="remember" class="text-neutral-500 dark:text-neutral-300">Remember me</label>
                     </div>
                 </div>
-                <button type="submit" class="w-full btn btn-primary">Sign in</button>
-            </form>
-        </div>
+            </div>
+            <button type="submit" class="w-full btn btn-primary">Sign in</button>
+        </form>
     </div>
-</section>
+</div>
 {{ end }}
 
 {{ define "scripts" }}
@@ -45,7 +42,7 @@
         const alertElement = document.getElementById("alert");
         const loginForm = document.getElementById("login-form");
         loginForm.addEventListener("htmx:responseError", (e) => {
-            document.getElementById("error-alert-msg").innerText = GetErrorMsg(e);
+            document.getElementById("error-alert-msg").innerText = getErrorMsg(e);
             alertElement.classList.remove("hidden");
         });
         loginForm.addEventListener("htmx:afterOnLoad", (e) => {
