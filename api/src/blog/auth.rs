@@ -72,7 +72,7 @@ async fn login(
 
         let max_age = if login_data.remember_session() {
             let offset_dt =
-                cookie_time::OffsetDateTime::from_unix_timestamp(claims.exp.timestamp_micros());
+                cookie_time::OffsetDateTime::from_unix_timestamp(claims.exp.timestamp_millis());
             Some(offset_dt.unwrap())
         } else {
             None

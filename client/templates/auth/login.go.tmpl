@@ -49,7 +49,9 @@
             alertElement.classList.remove("hidden");
         });
         loginForm.addEventListener("htmx:afterOnLoad", (e) => {
-            window.location.href = "/";
+            if (e.detail.xhr.status === 200) {
+                window.location.href = "/";
+            }
         });
     </script>
 {{ end }}
