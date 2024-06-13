@@ -55,6 +55,8 @@ func main() {
 		ScriptSrc: []string{
 			"'self'",
 			"https://unpkg.com/htmx.org@1.9.12",
+			"https://unpkg.com/htmx.org@1.9.12/dist/ext/client-side-templates.js",
+			"https://unpkg.com/htmx.org@1.9.12/dist/ext/response-targets.js",
 		},
 		StyleSrc: []string{
 			"'self'",

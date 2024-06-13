@@ -5,13 +5,15 @@ use crate::model::auth as auth_model;
 use crate::security::pw_hasher;
 use crate::utils::security;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
-use actix_web::{post, web, web::Data, web::Form, Error, HttpRequest, HttpResponse};
+use actix_web::{post, web, web::Data, web::Form, HttpRequest, HttpResponse};
 use hmac_serialiser_rs::SignerLogic;
 use rand::Rng;
 use tokio::time as tokio_time;
 
 #[post("/admin")]
-async fn admin_honeypot(login_data: Form<auth_model::LoginData>) -> Result<HttpResponse, Error> {
+async fn admin_honeypot(
+    login_data: Form<auth_model::LoginData>,
+) -> Result<HttpResponse, auth_model::AuthError> {
     log::warn!(
         "Honeypot triggered! Username: {} Password: {}",
         login_data.username,
@@ -19,9 +21,7 @@ async fn admin_honeypot(login_data: Form<auth_model::LoginData>) -> Result<HttpR
     );
     let sleep_time = rand::thread_rng().gen_range(500..1500);
     tokio_time::sleep(tokio_time::Duration::from_millis(sleep_time)).await;
-    return Err(actix_web::error::ErrorUnauthorized(
-        auth_model::AuthError::InvalidCredentials.to_string(),
-    ));
+    Err(auth_model::AuthError::InvalidCredentials)
 }
 
 #[post("auth/login")]
@@ -86,6 +86,7 @@ async fn login(
 
 #[post("/auth/logout")]
 async fn logout(req: HttpRequest) -> HttpResponse {
+    let msg = "you have logged out";
     match req.cookie(constants::AUTH_COOKIE_NAME) {
         Some(_) => {
             let mut c = Cookie::build(constants::AUTH_COOKIE_NAME, "")
@@ -96,8 +97,8 @@ async fn logout(req: HttpRequest) -> HttpResponse {
                 .secure(!constants::DEBUG_MODE)
                 .finish();
             c.make_removal();
-            HttpResponse::Ok().cookie(c).finish()
+            HttpResponse::Ok().cookie(c).body(msg)
         }
-        None => HttpResponse::Ok().finish(),
+        None => HttpResponse::Ok().body(msg),
     }
 }

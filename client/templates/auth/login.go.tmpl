@@ -2,17 +2,18 @@
 
 {{ define "content" }}
 <div class="w-full accent rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 accent-border mx-auto">
-    <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative hidden" role="alert" id="alert">
-            <span class="block sm:inline" id="error-alert-msg"></span>
-            <button class="absolute top-0 bottom-0 right-0 px-4 py-3" hx-on:click='htmx.toggleClass(htmx.find("#alert"), "hidden");'>
-                <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
-            </button>
-        </div>
+    <div class="p-6 space-y-4 md:space-y-6 sm:p-8" hx-ext="response-targets">
         <h1 class="text-xl font-bold leading-tight tracking-tight text-neutral-900 md:text-2xl dark:text-white">
             Sign in to your account
         </h1>
-        <form id="login-form" hx-post="{{ apiUrl }}/{{ .loginUrl }}" hx-headers='{{ getCsrfHeader }}' hx-swap="none" class="space-y-4 md:space-y-6" action="#">
+        <div id="error-alert"></div>
+        <form id="login-form"
+            hx-post="{{ apiUrl }}/{{ .loginUrl }}" 
+            hx-headers='{{ getCsrfHeader }}' 
+            hx-target-error="#error-alert" 
+            class="space-y-4 md:space-y-6" 
+            action="#"
+        >
             <div>
                 <label for="username" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Username/Email</label>
                 <input type="text" name="username" id="username" class="input-theme" placeholder="name@proton.me" required>
@@ -35,20 +36,4 @@
         </form>
     </div>
 </div>
-{{ end }}
-
-{{ define "scripts" }}
-    <script nonce="{{ nonce }}">
-        const alertElement = document.getElementById("alert");
-        const loginForm = document.getElementById("login-form");
-        loginForm.addEventListener("htmx:responseError", (e) => {
-            document.getElementById("error-alert-msg").innerText = getErrorMsg(e);
-            alertElement.classList.remove("hidden");
-        });
-        loginForm.addEventListener("htmx:afterOnLoad", (e) => {
-            if (e.detail.xhr.status === 200) {
-                window.location.href = "/";
-            }
-        });
-    </script>
 {{ end }}

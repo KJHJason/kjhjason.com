@@ -102,7 +102,7 @@ async fn main() -> std::io::Result<()> {
             })
             .allow_any_header() // needed due to the htmx custom headers in the frontend
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
-            .max_age(60);
+            .max_age(3600);
 
         App::new()
             .app_data(web::Data::new(db_client.clone()))

@@ -54,3 +54,6 @@ target/
 
 # env files for private keys
 .env
+
+# test files
+*test*

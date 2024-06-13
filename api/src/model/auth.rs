@@ -1,6 +1,7 @@
-use crate::model::base_error::Error;
 use crate::model::checkbox;
+use actix_web::http::header;
 use actix_web::{HttpResponse, ResponseError};
+use askama_actix::Template;
 use bson::oid::ObjectId;
 use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
@@ -64,14 +65,33 @@ pub enum AuthError {
     InternalServerError,
 }
 
+#[derive(Template)]
+#[template(path = "auth_error.html")]
+struct AuthErrTemplate<'a> {
+    err: &'a str,
+}
+
 impl ResponseError for AuthError {
     fn error_response(&self) -> HttpResponse {
-        let error = Error::new(self.to_string());
+        let header = (header::CONTENT_TYPE, "text/html; charset=utf-8");
+        let error_html = AuthErrTemplate {
+            err: &self.to_string(),
+        }
+        .render()
+        .unwrap();
         match self {
-            AuthError::AlreadyLoggedIn => HttpResponse::Ok().json(error),
-            AuthError::UserNotFound => HttpResponse::Unauthorized().json(error),
-            AuthError::InvalidCredentials => HttpResponse::Unauthorized().json(error),
-            AuthError::InternalServerError => HttpResponse::InternalServerError().json(error),
+            AuthError::AlreadyLoggedIn => HttpResponse::Forbidden()
+                .insert_header(header)
+                .body(error_html),
+            AuthError::UserNotFound => HttpResponse::Unauthorized()
+                .insert_header(header)
+                .body(error_html),
+            AuthError::InvalidCredentials => HttpResponse::Unauthorized()
+                .insert_header(header)
+                .body(error_html),
+            AuthError::InternalServerError => HttpResponse::InternalServerError()
+                .insert_header(header)
+                .body(error_html),
         }
     }
 }

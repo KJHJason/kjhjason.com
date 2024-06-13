@@ -12,6 +12,9 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/logo/dark/apple-touch-icon.png" media="(prefers-color-scheme: dark)">
     <link rel="icon" type="image/png" sizes="32x32" href="/static/images/logo/dark/favicon-32x32.png" media="(prefers-color-scheme: dark)">
     <link rel="icon" type="image/png" sizes="16x16" href="/static/images/logo/dark/favicon-16x16.png" media="(prefers-color-scheme: dark)">
+    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/client-side-templates.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/response-targets.js"></script>
 </head>
 <body class="antialiased max-w-2xl mb-4 flex flex-col md:flex-row mx-4 mt-8 lg:mx-auto ">
     <div class="flex-auto min-w-0 mt-6 flex flex-col px-2 md:px-0">
@@ -110,8 +113,6 @@
             </div>
         </footer>
     </div>
-    <script nonce="{{ nonce }}" src="/static/js/error.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
     <script nonce="{{ nonce }}">
         htmx.config.includeIndicatorStyles = false;
         htmx.config.withCredentials = true;

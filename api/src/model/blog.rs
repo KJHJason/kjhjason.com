@@ -1,5 +1,4 @@
 use crate::constants::constants::{MAX_TAGS, MAX_THUMBNAIL_FILE_SIZE, TITLE_MAX_LENGTH};
-use crate::model::base_error::Error as BaseError;
 use crate::utils::md;
 use actix_web::{HttpResponse, ResponseError};
 use bson::oid::ObjectId;
@@ -195,20 +194,20 @@ pub enum BlogError {
 
 impl ResponseError for BlogError {
     fn error_response(&self) -> HttpResponse {
-        let error = BaseError::new(self.to_string());
+        let error = self.to_string();
         match self {
-            BlogError::InvalidObjectId => HttpResponse::BadRequest().json(error),
-            BlogError::BlogNotFound => HttpResponse::NotFound().json(error),
-            BlogError::PublishBlogError => HttpResponse::InternalServerError().json(error),
-            BlogError::EmptyTitle => HttpResponse::BadRequest().json(error),
-            BlogError::TitleTooLong => HttpResponse::BadRequest().json(error),
-            BlogError::EmptyContent => HttpResponse::BadRequest().json(error),
-            BlogError::UpdateBlogError => HttpResponse::InternalServerError().json(error),
-            BlogError::TooManyTags => HttpResponse::BadRequest().json(error),
-            BlogError::ImageIsEmpty => HttpResponse::BadRequest().json(error),
-            BlogError::ImageTooLarge => HttpResponse::BadRequest().json(error),
-            BlogError::ImageUploadError => HttpResponse::InternalServerError().json(error),
-            BlogError::InternalServerError => HttpResponse::InternalServerError().json(error),
+            BlogError::InvalidObjectId => HttpResponse::BadRequest().body(error),
+            BlogError::BlogNotFound => HttpResponse::NotFound().body(error),
+            BlogError::PublishBlogError => HttpResponse::InternalServerError().body(error),
+            BlogError::EmptyTitle => HttpResponse::BadRequest().body(error),
+            BlogError::TitleTooLong => HttpResponse::BadRequest().body(error),
+            BlogError::EmptyContent => HttpResponse::BadRequest().body(error),
+            BlogError::UpdateBlogError => HttpResponse::InternalServerError().body(error),
+            BlogError::TooManyTags => HttpResponse::BadRequest().body(error),
+            BlogError::ImageIsEmpty => HttpResponse::BadRequest().body(error),
+            BlogError::ImageTooLarge => HttpResponse::BadRequest().body(error),
+            BlogError::ImageUploadError => HttpResponse::InternalServerError().body(error),
+            BlogError::InternalServerError => HttpResponse::InternalServerError().body(error),
         }
     }
 }

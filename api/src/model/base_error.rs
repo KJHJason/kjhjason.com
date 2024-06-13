@@ -1,8 +1,7 @@
 use actix_web::ResponseError;
 use derive_more::{Display, Error};
-use serde::Serialize;
 
-#[derive(Debug, Display, Error, Serialize)]
+#[derive(Debug, Display, Error)]
 pub struct Error {
     error: String,
 }
@@ -18,6 +17,6 @@ impl ResponseError for Error {
         actix_web::http::StatusCode::INTERNAL_SERVER_ERROR
     }
     fn error_response(&self) -> actix_web::HttpResponse {
-        actix_web::HttpResponse::InternalServerError().json(self)
+        actix_web::HttpResponse::InternalServerError().body(self.error.clone())
     }
 }

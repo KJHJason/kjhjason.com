@@ -1,6 +1,5 @@
 use crate::constants::constants;
 use crate::database::db;
-use crate::model::base_msg::Msg;
 use crate::model::blog::{
     Blog, BlogError, BlogIdentifier, BlogPublishOperation, BlogResponse, BlogUpdateOperation,
     UploadedImages,
@@ -10,7 +9,9 @@ use crate::utils::io::get_temp_file_path;
 use crate::utils::storage;
 use actix_multipart::Multipart;
 use actix_web::http::header::CONTENT_LENGTH;
-use actix_web::{delete, get, post, put, web::Data, web::Json, web::Path, HttpRequest};
+use actix_web::{
+    delete, get, post, put, web::Data, web::Json, web::Path, HttpRequest, HttpResponse,
+};
 use aws_sdk_s3 as s3;
 use futures_util::TryStreamExt;
 use mime::{Mime, IMAGE_GIF, IMAGE_JPEG, IMAGE_PNG};
@@ -113,14 +114,14 @@ async fn get_blog(
 async fn blog_exists(
     client: Data<db::DbClient>,
     blog_identifier: Path<BlogIdentifier>,
-) -> Result<Json<Msg>, BlogError> {
+) -> Result<HttpResponse, BlogError> {
     let blog_id = validate_id(&blog_identifier.into_inner().get_id())?;
 
     let options = FindOneOptions::builder()
         .projection(doc! { "_id": 1 })
         .build();
     client.get_blog_post(&blog_id, Some(options)).await?;
-    Ok(Json(Msg::new("blog exists".to_string())))
+    Ok(HttpResponse::Ok().body("blog exists".to_string()))
 }
 
 #[post("/publish/blog")]
@@ -128,7 +129,7 @@ async fn publish_blog(
     client: Data<db::DbClient>,
     s3_client: Data<s3::Client>,
     blog: Json<BlogPublishOperation>,
-) -> Result<Json<Msg>, BlogError> {
+) -> Result<HttpResponse, BlogError> {
     let blog_op = blog.into_inner();
     let blog_col = client.into_inner().get_blog_collection();
 
@@ -171,7 +172,7 @@ async fn publish_blog(
         blog_op.get_is_public(),
     );
     match blog_col.insert_one(blog, None).await {
-        Ok(_) => Ok(Json(Msg::new("Blog created successfully".to_string()))),
+        Ok(_) => Ok(HttpResponse::Ok().body("Blog created successfully".to_string())),
         Err(err) => {
             log::error!("Failed to create blog in database: {}", err);
             Err(BlogError::PublishBlogError)
@@ -184,7 +185,7 @@ async fn update_blog(
     client: Data<db::DbClient>,
     s3_client: Data<s3::Client>,
     update_blog: Json<BlogUpdateOperation>,
-) -> Result<Json<Msg>, BlogError> {
+) -> Result<HttpResponse, BlogError> {
     let blog = update_blog.into_inner();
 
     let blog_op_id = blog.get_id();
@@ -276,7 +277,7 @@ async fn update_blog(
         set_doc.insert("tags", new_tags);
     }
 
-    let success_json = Json(Msg::new("Blog updated successfully".to_string()));
+    let success_json = HttpResponse::Ok().body("Blog updated successfully".to_string());
     if !is_updating {
         return Ok(success_json);
     }
@@ -298,7 +299,7 @@ async fn delete_blog(
     client: Data<db::DbClient>,
     s3_client: Data<s3::Client>,
     blog_identifier: Json<BlogIdentifier>,
-) -> Result<Json<Msg>, BlogError> {
+) -> Result<HttpResponse, BlogError> {
     let blog_id = validate_id(&blog_identifier.into_inner().get_id())?;
 
     let options = FindOneOptions::builder()
@@ -312,7 +313,7 @@ async fn delete_blog(
 
     let blog_col = client.into_inner().get_blog_collection();
     match blog_col.delete_one(doc! { "_id": blog_id }, None).await {
-        Ok(_) => Ok(Json(Msg::new("Blog deleted successfully".to_string()))),
+        Ok(_) => Ok(HttpResponse::Ok().body("Blog deleted successfully".to_string())),
         Err(err) => {
             log::error!("Failed to delete blog from database: {}", err);
             Err(BlogError::InternalServerError)
