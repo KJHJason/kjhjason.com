@@ -10,17 +10,16 @@ mod utils;
 use actix_files::NamedFile;
 use actix_web::http::Method;
 use actix_web::{get, middleware::Logger, web, App, HttpServer};
+use api::admin::{delete_blog, preview_blog, publish_blog, update_blog, upload_blog_images};
 use api::auth::{admin_honeypot, login, logout};
-use api::blog::{
-    blog_exists, delete_blog, get_blog, publish_blog, update_blog, upload_blog_images,
-};
+use api::blog::{blog_exists, get_blog};
 use api::csrf::get_csrf_token;
 use api::general::api_index;
-use client::general::{index, experiences, projects, skills, blog, blog_id};
-use client::auth::{login_redirect, login_admin, login_auth};
-use client::admin::new_blog;
 use aws_config::BehaviorVersion;
 use aws_sdk_s3 as s3;
+use client::admin::new_blog;
+use client::auth::{login_admin, login_auth, login_redirect};
+use client::general::{blog, blog_id, experiences, index, projects, skills};
 use database::db;
 use dotenv::dotenv;
 
@@ -82,9 +81,11 @@ fn configure_csp_middleware() -> middleware::csp::CspMiddleware {
     let csp_options = middleware::csp::ContentSecurityPolicies {
         script_src: vec![
             "'self'".to_string(),
+            "'unsafe-eval'".to_string(), // needed for htmx to work
             "https://unpkg.com/htmx.org@1.9.12".to_string(),
             "https://unpkg.com/htmx.org@1.9.12/dist/ext/client-side-templates.js".to_string(),
             "https://unpkg.com/htmx.org@1.9.12/dist/ext/response-targets.js".to_string(),
+            "https://unpkg.com/htmx.org@1.9.12/dist/ext/json-enc.js".to_string(),
         ],
         style_src: vec!["'self'".to_string()],
         default_src: vec![],
@@ -194,16 +195,17 @@ async fn main() -> std::io::Result<()> {
             .service(login_redirect)
             .service(login_admin)
             .service(login_auth)
-            // below are the admin routes
+            // below are the admin routes + API routes
             .service(new_blog)
-            // below are the API routes
-            .service(api_index)
-            .service(get_blog)
-            .service(blog_exists)
+            .service(preview_blog)
             .service(publish_blog)
             .service(update_blog)
             .service(delete_blog)
             .service(upload_blog_images)
+            // below are the API routes
+            .service(api_index)
+            .service(get_blog)
+            .service(blog_exists)
             .service(admin_honeypot)
             .service(login)
             .service(logout)

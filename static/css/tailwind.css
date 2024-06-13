@@ -38,6 +38,21 @@ hr {
     @apply border-gray-200 sm:mx-auto dark:border-gray-700;
 }
 
+/* reset due to daisyui */
+.reset-lists ul {
+    list-style-type: disc;
+    margin: revert;
+    padding: revert;
+}
+.reset-lists ol {
+    list-style-type: decimal;
+    margin: revert;
+    padding: revert;
+}
+.blog p {
+    @apply my-2;
+}
+
 .accent {
     @apply bg-neutral-400 dark:bg-neutral-800
 }

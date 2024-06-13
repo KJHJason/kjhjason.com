@@ -9,6 +9,8 @@ pub const CSRF_HEADER_NAME: &str = "X-CSRF-Token";
 pub const CSRF_TOKEN_LENGTH: usize = 32;
 pub const CSRF_MAX_AGE: i64 = 60 * 60 * 24 * 1; // 1 day
 
+pub const HTML_CONTENT_TYPE: &str = "text/html; charset=utf-8";
+
 pub const LOCAL_URI: &str = "mongodb://localhost:27017";
 pub const DATABASE: &str = "kjhjason";
 pub const BLOG_COLLECTION: &str = "api";

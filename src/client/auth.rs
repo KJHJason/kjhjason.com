@@ -1,6 +1,6 @@
-use actix_web::{get, HttpRequest, Responder, web};
-use askama_actix::Template;
 use crate::utils::security::extract_for_template;
+use actix_web::{get, web, HttpRequest, Responder};
+use askama_actix::Template;
 
 #[derive(Template)]
 #[template(path = "auth/login.html")]

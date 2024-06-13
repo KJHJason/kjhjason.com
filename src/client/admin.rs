@@ -1,6 +1,6 @@
+use crate::utils::security::extract_for_template;
 use actix_web::{get, HttpRequest, Responder};
 use askama_actix::Template;
-use crate::utils::security::extract_for_template;
 
 #[derive(Template)]
 #[template(path = "admin/new_blog.html")]

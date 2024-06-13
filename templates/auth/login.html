@@ -10,11 +10,11 @@
         </h1>
         <div id="error-alert"></div>
         <form id="login-form"
-              hx-post="/api/{{ login_url }}"
-              hx-headers='{{ csrf_header }}'
-              hx-target-error="#error-alert"
-              class="space-y-4 md:space-y-6"
-              action="#"
+            hx-post="/api/{{ login_url }}"
+            hx-headers='{{ csrf_header }}'
+            hx-target-error="#error-alert"
+            class="space-y-4 md:space-y-6"
+            action="#"
         >
             <div>
                 <label for="username" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Username/Email</label>

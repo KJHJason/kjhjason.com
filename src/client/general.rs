@@ -1,7 +1,7 @@
-use actix_web::{get, HttpRequest, Responder, web::Path};
-use askama_actix::Template;
 use crate::model::blog::BlogIdentifier;
 use crate::utils::security::extract_for_template;
+use actix_web::{get, web::Path, HttpRequest, Responder};
+use askama_actix::Template;
 
 #[derive(Template)]
 #[template(path = "general/index.html")]

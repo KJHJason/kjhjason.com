@@ -3,19 +3,90 @@
 {% block title %}New Blog{% endblock %}
 
 {% block content %}
-<div class="gap-y-8 grid grid-cols-1">
-    <div>
-        <label for="title" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Title:</label>
-        <input type="text" name="title" id="title" class="input-theme" placeholder="Hello World!" required maxlength="150" autofocus>
+    <div class="join grid grid-cols-2 mb-8">
+        <button class="join-item btn btn-outline" hx-on:click="editBtnEvt()" type="button">Edit</button>
+        <form 
+            class="join-item btn btn-outline !p-0" 
+            id="previewBtn" 
+            hx-headers='{{ csrf_header }}' 
+            hx-post="/api/admin/ws/blog/preview"
+            hx-target="#blog-content"
+        >
+            <button type="submit" class="w-full h-full" hx-on:click="previewBtnEvt()">Preview</button>
+            <input type="hidden" name="content" id="content-preview">
+        </form>
     </div>
-
-    <div>
-        <label for="content" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Content:</label>
-        <textarea placeholder="Start typing the content for this blog in markdown!" name="content" id="content" class="input-theme" rows="25" spellcheck="true"></textarea>
+    <div id="edit" class="gap-y-8 grid grid-cols-1">
+        <div>
+            <label for="title" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Title:</label>
+            <input type="text" name="title" id="title" class="input-theme" placeholder="Hello World!" required maxlength="150" autofocus>
+        </div>
+        <div>
+            <label for="content" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Content:</label>
+            <textarea placeholder="Start typing the content for this blog in markdown!" name="content" id="content" class="input-theme" rows="25" spellcheck="true"></textarea>
+        </div>
     </div>
-
-    <button type="button" hx-post="/api/admin/new/blog" hx-headers='{{ csrf_header }}' hx-swap="none" hx-target="#content" class="btn btn-primary">Create Blog</button>
-</div>
+    <div id="preview" class="accent-border reset-lists blog hidden">
+        <h1 id="blog-title"></h1>
+        <div id="blog-content"></div>
+    </div>
+    <button 
+        class="btn btn-primary my-8 w-full"
+        type="button" 
+        hx-post="/api/admin/new/blog" 
+        hx-headers='{{ csrf_header }}' 
+        hx-swap="none" 
+        hx-target="#content" 
+        hx-on::after-swap="onSuccess()" 
+    >
+        Create Blog
+    </button>
 {% endblock %}
 
-<!-- TODO: save the draft in localstorage -->
+{% block scripts %}
+    <script nonce="{{ nonce }}">
+        const editDiv = document.getElementById("edit");
+        const previewDiv = document.getElementById("preview");
+        const editBtnEvt = () => {
+            editDiv.classList.remove("hidden");
+            previewDiv.classList.add("hidden");
+        };
+        const previewBtnEvt = () => {
+            editDiv.classList.add("hidden");
+            previewDiv.classList.remove("hidden");
+        };
+
+        const content = document.getElementById("content");
+        const contentPreview = document.getElementById("content-preview");
+        content.addEventListener("input", () => {
+            const value = content.value;
+            localStorage.setItem("content", value);
+            contentPreview.value = value;
+        });
+        const title = document.getElementById("title");
+        const titlePreivew = document.getElementById("blog-title");
+        title.addEventListener("input", () => {
+            const value = title.value;
+            titlePreivew.innerText = value;
+            localStorage.setItem("title", value);
+        });
+
+        const onSuccess = () => {
+            localStorage.removeItem("content");
+            localStorage.removeItem("title");
+            window.location.href = "/admin/blogs"; // TODO: Change to the blog page
+        };
+
+        // read from localstorage
+        const savedContent = localStorage.getItem("content");
+        if (savedContent) {
+            content.value = savedContent;
+            contentPreview.value = savedContent;
+        }
+        const savedTitle = localStorage.getItem("title");
+        if (savedTitle) {
+            title.value = savedTitle;
+            titlePreivew.innerText = savedTitle;
+        }
+    </script>
+{% endblock %}

@@ -1,3 +1,4 @@
+use crate::constants::constants::HTML_CONTENT_TYPE;
 use crate::model::checkbox;
 use actix_web::http::header;
 use actix_web::{HttpResponse, ResponseError};
@@ -73,7 +74,7 @@ struct AuthErrTemplate<'a> {
 
 impl ResponseError for AuthError {
     fn error_response(&self) -> HttpResponse {
-        let header = (header::CONTENT_TYPE, "text/html; charset=utf-8");
+        let header = (header::CONTENT_TYPE, HTML_CONTENT_TYPE);
         let error_html = AuthErrTemplate {
             err: &self.to_string(),
         }
