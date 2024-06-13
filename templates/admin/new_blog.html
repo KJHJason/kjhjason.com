@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}New Blog{% endblock %}
+
+{% block content %}
+<div class="gap-y-8 grid grid-cols-1">
+    <div>
+        <label for="title" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Title:</label>
+        <input type="text" name="title" id="title" class="input-theme" placeholder="Hello World!" required maxlength="150" autofocus>
+    </div>
+
+    <div>
+        <label for="content" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Content:</label>
+        <textarea placeholder="Start typing the content for this blog in markdown!" name="content" id="content" class="input-theme" rows="25" spellcheck="true"></textarea>
+    </div>
+
+    <button type="button" hx-post="/api/admin/new/blog" hx-headers='{{ csrf_header }}' hx-swap="none" hx-target="#content" class="btn btn-primary">Create Blog</button>
+</div>
+{% endblock %}
+
+<!-- TODO: save the draft in localstorage -->
