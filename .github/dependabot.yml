@@ -6,14 +6,10 @@
 version: 2
 updates:
   - package-ecosystem: cargo
-    directory: /api/
+    directory: /
     schedule:
       interval: daily
   - package-ecosystem: npm
-    directory: /client/
-    schedule:
-      interval: daily
-  - package-ecosystem: gomod
-    directory: /client/
+    directory: /
     schedule:
       interval: daily
