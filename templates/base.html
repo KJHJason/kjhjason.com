@@ -16,12 +16,18 @@
     <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/client-side-templates.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/response-targets.js"></script>
 </head>
-<body class="antialiased max-w-2xl mb-4 flex flex-col md:flex-row mx-4 mt-8 lg:mx-auto ">
-    <div class="flex-auto min-w-0 mt-6 flex flex-col px-2 md:px-0">
+<body class="antialiased max-w-2xl mb-4 md:flex-row mx-4 mt-8 lg:mx-auto">
+    <div class="min-w-0 mt-6 px-2 md:px-0">
         <nav class="mb-8">
             <div class="navbar rounded-lg">
                 <div class="flex-1">
-                    <a href="/" class="btn btn-ghost text-4xl">KJHJason</a>
+                    <a href="/" class="w-12 h-12">
+                        <picture >
+                            <source srcset="/static/images/logo/light/android-chrome-192x192.png" type="image/png" media="(prefers-color-scheme: light)">
+                            <source srcset="/static/images/logo/dark/android-chrome-192x192.png" type="image/png" media="(prefers-color-scheme: dark)">
+                            <img src="/static/images/logo/light/android-chrome-192x192.png" alt="KJHJason Logo">
+                        </picture>
+                    </a>
                 </div>
                 <div class="flex-none">
                     <ul class="menu menu-horizontal px-1">

@@ -45,7 +45,37 @@
 
 {% block scripts %}
     <script nonce="{{ nonce }}">
+        const images = []; // will store the image urls after they are uploaded
+
         const editDiv = document.getElementById("edit");
+        document.onpaste = (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (index in items) {
+                const item = items[index];
+                if (item.kind === "file") {
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        console.log(e.target.result)
+                        // TODO: upload the image to the server and add the image to the content
+                    };
+                    reader.readAsDataURL(blob);
+                }
+            }
+        }
+        editDiv.addEventListener("drop", (e) => {
+            e.preventDefault();
+            const files = event.dataTransfer.files;
+            for (const file of files) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    console.log(event.target);
+                    // TODO: upload the image to the server and add the image to the content
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
         const previewDiv = document.getElementById("preview");
         const editBtnEvt = () => {
             editDiv.classList.remove("hidden");
