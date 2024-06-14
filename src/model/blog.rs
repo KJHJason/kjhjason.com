@@ -33,7 +33,7 @@ pub struct Blog {
     _id: ObjectId,
     title: String,
     tags: Vec<String>,
-    images: Vec<String>,
+    files: Vec<FileInfo>,
     content: String,
     is_public: bool,
     #[serde(with = "crate::utils::datetime::rfc3339")]
@@ -49,16 +49,16 @@ impl Blog {
         title: String,
         content: String,
         tags: &Vec<String>,
-        images: &Vec<String>,
+        files: &Vec<FileInfo>,
         is_public: bool,
     ) -> Blog {
         Blog {
             _id: ObjectId::new(),
-            title: title,
+            title,
             tags: tags.clone(),
-            images: images.clone(),
-            content: content,
-            is_public: is_public,
+            files: files.clone(),
+            content,
+            is_public,
             timestamp: Utc::now(),
             last_modified: None,
             thumbnail_url: None,
@@ -70,8 +70,8 @@ impl Blog {
     pub fn get_tags(&self) -> &Vec<String> {
         &self.tags
     }
-    pub fn get_images(&self) -> &Vec<String> {
-        &self.images
+    pub fn get_files(&self) -> &Vec<FileInfo> {
+        &self.files
     }
     pub fn get_is_public(&self) -> bool {
         self.is_public
@@ -107,7 +107,7 @@ impl From<Blog> for BlogResponse {
 pub struct BlogPublishOperation {
     title: String,
     tags: Vec<String>,
-    images: Vec<String>,
+    files: Vec<FileInfo>,
     content: String,
     is_public: bool,
 }
@@ -119,8 +119,8 @@ impl BlogPublishOperation {
     pub fn get_tags(&self) -> &Vec<String> {
         &self.tags
     }
-    pub fn get_images(&self) -> &Vec<String> {
-        &self.images
+    pub fn get_files(&self) -> &Vec<FileInfo> {
+        &self.files
     }
     pub fn get_content(&self) -> &str {
         &self.content
@@ -135,7 +135,7 @@ pub struct BlogUpdateOperation {
     id: String,
     title: String,
     tags: Vec<String>,
-    images: Vec<String>,
+    files: Vec<FileInfo>,
     content: String,
     is_public: Option<bool>,
 }
@@ -150,8 +150,8 @@ impl BlogUpdateOperation {
     pub fn get_tags(&self) -> &Vec<String> {
         &self.tags
     }
-    pub fn get_images(&self) -> &Vec<String> {
-        &self.images
+    pub fn get_files(&self) -> &Vec<FileInfo> {
+        &self.files
     }
     pub fn get_content(&self) -> &str {
         &self.content
@@ -161,23 +161,29 @@ impl BlogUpdateOperation {
     }
 }
 
-#[derive(Serialize)]
-pub struct UploadedImageInfo {
-    name: String,
-    url: String,
+#[derive(Serialize, Deserialize, Clone)]
+pub struct FileInfo {
+    pub name: String,
+    pub url: String,
+}
+
+impl PartialEq for FileInfo {
+    fn eq(&self, other: &Self) -> bool {
+        self.url == other.url
+    }
 }
 
 #[derive(Serialize)]
-pub struct UploadedImages {
-    images: Vec<UploadedImageInfo>,
+pub struct UploadedFiles {
+    files: Vec<FileInfo>,
 }
 
-impl UploadedImages {
-    pub fn new(images: Vec<UploadedImageInfo>) -> UploadedImages {
-        UploadedImages { images }
+impl UploadedFiles {
+    pub fn new(files: Vec<FileInfo>) -> UploadedFiles {
+        UploadedFiles { files }
     }
     pub fn append(&mut self, name: String, url: String) {
-        self.images.push(UploadedImageInfo { name, url });
+        self.files.push(FileInfo { name, url });
     }
 }
 
@@ -199,12 +205,12 @@ pub enum BlogError {
     UpdateBlogError,
     #[display(fmt = "Too many tags, must be less than {} tags", MAX_TAGS)]
     TooManyTags,
-    #[display(fmt = "Image cannot be empty")]
-    ImageIsEmpty,
+    #[display(fmt = "File cannot be empty")]
+    FileIsEmpty,
     #[display(fmt = "File size must be less than {} bytes", MAX_FILE_SIZE)]
-    ImageTooLarge,
-    #[display(fmt = "Failed to upload image")]
-    ImageUploadError,
+    FileTooLarge,
+    #[display(fmt = "Failed to upload file")]
+    FileUploadError,
     #[display(fmt = "Internal server error")]
     InternalServerError,
 }
@@ -221,9 +227,9 @@ impl ResponseError for BlogError {
             BlogError::EmptyContent => HttpResponse::BadRequest().body(error),
             BlogError::UpdateBlogError => HttpResponse::InternalServerError().body(error),
             BlogError::TooManyTags => HttpResponse::BadRequest().body(error),
-            BlogError::ImageIsEmpty => HttpResponse::BadRequest().body(error),
-            BlogError::ImageTooLarge => HttpResponse::BadRequest().body(error),
-            BlogError::ImageUploadError => HttpResponse::InternalServerError().body(error),
+            BlogError::FileIsEmpty => HttpResponse::BadRequest().body(error),
+            BlogError::FileTooLarge => HttpResponse::BadRequest().body(error),
+            BlogError::FileUploadError => HttpResponse::InternalServerError().body(error),
             BlogError::InternalServerError => HttpResponse::InternalServerError().body(error),
         }
     }

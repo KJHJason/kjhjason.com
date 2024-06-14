@@ -2,7 +2,7 @@ use crate::constants::constants;
 use crate::database::db;
 use crate::model::blog::{
     Blog, BlogError, BlogIdentifier, BlogPreview, BlogPublishOperation, BlogUpdateOperation,
-    UploadedImages,
+    FileInfo, UploadedFiles,
 };
 use crate::utils::datetime;
 use crate::utils::io::get_temp_file_path;
@@ -42,7 +42,7 @@ macro_rules! move_blob {
         )
         .await
         {
-            return Err(BlogError::ImageUploadError);
+            return Err(BlogError::FileUploadError);
         }
     };
 }
@@ -50,7 +50,7 @@ macro_rules! move_blob {
 macro_rules! upload_blob {
     ($client:expr, $bucket:expr, $name:expr, $data:expr) => {
         if !storage::upload_blob($client, $bucket, $name, $data).await {
-            return Err(BlogError::ImageUploadError);
+            return Err(BlogError::FileUploadError);
         }
     };
 }
@@ -100,19 +100,19 @@ async fn publish_blog(
         return Err(BlogError::EmptyContent);
     }
 
-    let images = blog_op.get_images();
-    for image in images.iter() {
-        if image.is_empty() {
-            return Err(BlogError::ImageIsEmpty);
+    let files = blog_op.get_files();
+    for file in files.iter() {
+        if file.url.is_empty() {
+            return Err(BlogError::FileIsEmpty);
         }
 
         move_blob!(
             &s3_client,
             constants::BUCKET,
-            image,
+            &file.url,
             constants::BUCKET,
             &change_obj_prefix(
-                image,
+                &file.url,
                 constants::TEMP_OBJ_PREFIX,
                 constants::BLOG_OBJ_PREFIX,
             )
@@ -123,7 +123,7 @@ async fn publish_blog(
         title.to_string(),
         content.to_string(),
         blog_op.get_tags(),
-        images,
+        files,
         blog_op.get_is_public(),
     );
     match blog_col.insert_one(blog, None).await {
@@ -154,7 +154,7 @@ async fn update_blog(
     }
 
     let options = FindOneOptions::builder()
-        .projection(doc! { "title": 1, "tags": 1, "images": 1, "is_public": 1 })
+        .projection(doc! { "title": 1, "tags": 1, "files": 1, "is_public": 1 })
         .build();
 
     let blog_id = validate_id(blog_op_id)?;
@@ -167,42 +167,42 @@ async fn update_blog(
         "last_modified": last_modified,
     };
 
-    let old_images = blog_in_db.get_images();
-    let new_images = blog.get_images();
-    if new_images.iter().all(|image| old_images.contains(image)) {
+    let old_files = blog_in_db.get_files();
+    let new_files = blog.get_files();
+    if new_files.iter().all(|file| old_files.contains(file)) {
         is_updating = true;
 
-        // get all images not in old_images for uploading
-        let images_to_upload: Vec<String> = new_images
+        // get all files not in old_files for uploading
+        let files_to_upload: Vec<FileInfo> = new_files
             .iter()
-            .filter(|image| !old_images.contains(image))
-            .map(|image| image.to_string())
+            .filter(|file| !old_files.contains(file))
+            .map(|file| file.to_owned())
             .collect();
-        for image in images_to_upload.iter() {
-            if image.is_empty() {
+        for file in files_to_upload.iter() {
+            if file.url.is_empty() {
                 continue;
             }
             move_blob!(
                 &s3_client,
                 constants::BUCKET,
-                image,
+                &file.url,
                 constants::BUCKET,
                 &change_obj_prefix(
-                    image,
+                    &file.url,
                     constants::TEMP_OBJ_PREFIX,
                     constants::BLOG_OBJ_PREFIX,
                 )
             );
         }
 
-        // get all images not in new_images for deletion
-        let images_to_delete: Vec<String> = old_images
+        // get all files not in new_files for deletion
+        let files_to_delete: Vec<FileInfo> = old_files
             .iter()
-            .filter(|image| !new_images.contains(image))
-            .map(|image| image.to_string())
+            .filter(|file| !new_files.contains(file))
+            .map(|file| file.to_owned())
             .collect();
-        for image in images_to_delete.iter() {
-            delete_blob!(&s3_client, constants::BUCKET, image);
+        for file in files_to_delete.iter() {
+            delete_blob!(&s3_client, constants::BUCKET, &file.url);
         }
     }
 
@@ -252,18 +252,18 @@ async fn update_blog(
 #[delete("/api/blog/delete")]
 async fn delete_blog(
     client: Data<db::DbClient>,
-    s3_client: Data<GcsClient>,
+    gcs_client: Data<GcsClient>,
     blog_identifier: Json<BlogIdentifier>,
 ) -> Result<HttpResponse, BlogError> {
     let blog_id = validate_id(&blog_identifier.into_inner().get_id())?;
 
     let options = FindOneOptions::builder()
-        .projection(doc! { "images": 1 })
+        .projection(doc! { "files": 1 })
         .build();
     let blog_data = client.get_blog_post(&blog_id, Some(options)).await?;
 
-    for image in blog_data.get_images() {
-        delete_blob!(&s3_client, constants::BUCKET, image);
+    for file in blog_data.get_files() {
+        delete_blob!(&gcs_client, constants::BUCKET, &file.url);
     }
 
     let blog_col = client.into_inner().get_blog_collection();
@@ -276,38 +276,45 @@ async fn delete_blog(
     }
 }
 
-#[post("/api/blog/upload/images")]
-async fn upload_blog_images(
-    s3_client: Data<GcsClient>,
+#[post("/api/blog/upload/files")]
+async fn upload_blog_files(
+    gcs_client: Data<GcsClient>,
     mut payload: Multipart,
     req: HttpRequest,
-) -> Result<Json<UploadedImages>, BlogError> {
+) -> Result<Json<UploadedFiles>, BlogError> {
     let content_length: usize = match req.headers().get(CONTENT_LENGTH) {
         Some(v) => v.to_str().unwrap_or("0").parse().unwrap(),
         None => 0,
     };
 
     if content_length == 0 {
-        return Err(BlogError::ImageIsEmpty);
+        return Err(BlogError::FileIsEmpty);
     } else if content_length > constants::MAX_FILE_SIZE {
-        return Err(BlogError::ImageTooLarge);
+        return Err(BlogError::FileTooLarge);
     }
 
-    let mut images = UploadedImages::new(vec![]);
+    let mut files = UploadedFiles::new(vec![]);
     let image_webp: Mime = Mime::from_str("image/webp").unwrap();
-    let allowed_mimetypes: [Mime; 4] = [IMAGE_PNG, IMAGE_JPEG, IMAGE_GIF, image_webp.clone()];
+    let video_mp4: Mime = Mime::from_str("video/mp4").unwrap();
+    let allowed_mimetypes: [Mime; 5] = [
+        IMAGE_PNG,
+        IMAGE_JPEG,
+        IMAGE_GIF,
+        image_webp.clone(),
+        video_mp4.clone(),
+    ];
     while let Ok(Some(mut field)) = payload.try_next().await {
         log::info!("Processing image");
 
         let content_type: Option<&Mime> = field.content_type();
         if content_type.is_none() {
-            log::info!("No content type found for image");
+            log::info!("No content type found for file");
             continue;
         }
 
         let content_type = content_type.unwrap();
         if !allowed_mimetypes.contains(content_type) {
-            log::info!("Invalid content type found for image");
+            log::info!("Invalid content type found for file");
             continue;
         }
         let mut file_ext = "";
@@ -318,8 +325,11 @@ async fn upload_blog_images(
             file_ext = "png";
         } else if content_type_clone == IMAGE_JPEG {
             file_ext = "jpeg";
-        } else {
+        } else if content_type_clone == IMAGE_GIF {
             file_ext = "gif";
+        } else {
+            // video_mp4
+            file_ext = "mp4";
         }
 
         let destination = format!(
@@ -333,8 +343,8 @@ async fn upload_blog_images(
             data.extend_from_slice(&chunk);
         }
 
-        log::info!("Uploading image, {}", destination);
-        upload_blob!(&s3_client, constants::BUCKET, destination.clone(), data);
+        log::info!("Uploading file, {}", destination);
+        upload_blob!(&gcs_client, constants::BUCKET, destination.clone(), data);
         let url = format!(
             "https://storage.googleapis.com/{}/{}",
             constants::BUCKET,
@@ -345,7 +355,7 @@ async fn upload_blog_images(
             .unwrap()
             .to_str()
             .unwrap();
-        images.append(file_name.to_string(), url);
+        files.append(file_name.to_string(), url);
     }
-    return Ok(Json(images));
+    return Ok(Json(files));
 }

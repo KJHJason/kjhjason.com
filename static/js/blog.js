@@ -1,4 +1,12 @@
-const images = []; // will store the image urls after they are uploaded
+const parseUrlToMd = (file) => {
+    if (!file.url.endsWith(".mp4")) {
+        return `![${file.name}](${file.url})\n`;
+    }
+    // if the file uploaded is a mp4, use video tag
+    return `<video controls>
+    <source src="${file.url}" type="video/mp4">
+</video>\n`;
+};
 
 const editDiv = document.getElementById("edit");
 if (editDiv === null) {
@@ -11,7 +19,6 @@ document.onpaste = (e) => {
         const item = items[index];
         if (item.kind === "file") {
             const file = item.getAsFile();
-            console.log("file", file);
             uploadImage(file);
         }
     }
@@ -20,7 +27,6 @@ editDiv.addEventListener("drop", (e) => {
     e.preventDefault();
     const files = e.dataTransfer.files;
     for (const file of files) {
-        console.log("file", file);
         uploadImage(file);
     }
 });

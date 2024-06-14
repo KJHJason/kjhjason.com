@@ -41,35 +41,31 @@
     >
         Create Blog
     </button>
-
-    <form id="image-upload" enctype="multipart/form-data" hx-post="/api/blog/upload/images" hx-headers='{"{{ common.csrf_header }}": "{{ common.csrf_value }}"}' hx-swap="none">
-        <input type="file" name="file" id="file" accept="image/*">
-        <button type="submit">Submit</button>
-    </form>
 {% endblock %}
 
 {% block scripts %}
     <script nonce="{{ common.nonce }}" src="/static/js/blog.js"></script>
     <script nonce="{{ common.nonce }}">
+        const files = [];
         const uploadImage = (file) => {
             const formData = new FormData();
-            formData.append("file", file, file.name);
-            fetch("/api/blog/upload/images", {
+            formData.append("file", file);
+            fetch("/api/blog/upload/files", {
                 method: "POST",
                 body: formData,
                 headers: {
-                    "content-type": "multipart/form-data",
                     "{{ common.csrf_header }}": "{{ common.csrf_value }}",
                 },  
             })
                 .then((response) => response.json())
                 .then((data) => {
-                    images.push(data.url);
-
-                    // insert the image url into the content
-                    console.log(data.images);
-                    data.images.forEach((img) => {
-                        content.value += `![${img.name}](${img.url})`;
+                    data.files.forEach((file) => {
+                        files.push(file);
+                        content.value += parseUrlToMd(file);
+                        content.dispatchEvent(new Event("input", {
+                            bubbles: true,
+                            cancelable: true,
+                        }));
                     });
                 })
                 .catch((error) => {

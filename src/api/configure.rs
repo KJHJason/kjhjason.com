@@ -1,0 +1,35 @@
+use crate::api::admin::{delete_blog, preview_blog, publish_blog, update_blog, upload_blog_files};
+use crate::api::auth::{admin_honeypot, login, logout};
+use crate::api::blog::{blog_exists, get_blog};
+use crate::api::csrf::get_csrf_token;
+use crate::api::general::api_index;
+use actix_web::web;
+
+pub fn add_api_routes(cfg: &mut web::ServiceConfig) {
+    add_admin_routes(cfg);
+    add_auth_routes(cfg);
+    add_general_routes(cfg);
+    add_csrf_routes(cfg);
+}
+
+fn add_admin_routes(cfg: &mut web::ServiceConfig) {
+    cfg.service(delete_blog)
+        .service(preview_blog)
+        .service(publish_blog)
+        .service(update_blog)
+        .service(upload_blog_files);
+}
+
+fn add_auth_routes(cfg: &mut web::ServiceConfig) {
+    cfg.service(admin_honeypot).service(login).service(logout);
+}
+
+fn add_general_routes(cfg: &mut web::ServiceConfig) {
+    cfg.service(api_index)
+        .service(get_blog)
+        .service(blog_exists);
+}
+
+fn add_csrf_routes(cfg: &mut web::ServiceConfig) {
+    cfg.service(get_csrf_token);
+}

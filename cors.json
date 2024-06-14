@@ -1,0 +1,12 @@
+[
+    {
+        "origin": [
+            "http://localhost:8080",
+            "https://www.kjhjason.com",
+            "https://kjhjason.com"
+        ],
+        "method": ["GET"],
+        "responseHeader": ["Content-Type"],
+        "maxAgeSeconds": 3600
+    }
+]

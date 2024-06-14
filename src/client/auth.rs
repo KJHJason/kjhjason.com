@@ -1,13 +1,6 @@
-use crate::utils::security::{extract_for_template, TemplateValues};
+use crate::client::templates::auth::Login;
+use crate::utils::security::extract_for_template;
 use actix_web::{get, web, HttpRequest, Responder};
-use askama_actix::Template;
-
-#[derive(Template)]
-#[template(path = "auth/login.html")]
-struct Login {
-    common: TemplateValues,
-    login_url: String,
-}
 
 #[get("/login")]
 async fn login_redirect() -> web::Redirect {
