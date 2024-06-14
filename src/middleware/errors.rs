@@ -7,10 +7,10 @@ use askama_actix::Template;
 
 #[derive(Template)]
 #[template(path = "error.html")]
-pub struct ErrorTemplate {
+pub struct ErrorTemplate<'a> {
     common: TemplateValues,
     pub status: u16,
-    pub message: String,
+    pub message: &'a str,
 }
 
 // mostly thanks to https://www.reddit.com/r/rust/comments/wu69kt/how_to_display_an_error_page_in_actix_web_using/
@@ -25,7 +25,7 @@ pub fn render_error<B>(res: ServiceResponse<B>) -> Result<ErrorHandlerResponse<B
     let html = ErrorTemplate {
         common: extract_for_template(&request),
         status: status.as_u16(),
-        message: status.canonical_reason().unwrap_or("Unknown").to_string(),
+        message: status.canonical_reason().unwrap_or("Unknown"),
     }
     .render()
     .unwrap_or(format!("error: {}", status.as_u16()));
