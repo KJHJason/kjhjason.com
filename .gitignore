@@ -55,5 +55,8 @@ target/
 # env files for private keys
 .env
 
+# .json files for API keys
+*.json
+
 # test files
 *test*

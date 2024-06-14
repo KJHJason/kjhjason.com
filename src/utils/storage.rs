@@ -1,24 +1,27 @@
-use aws_sdk_s3::operation::{
-    copy_object::{CopyObjectError, CopyObjectOutput},
-    delete_object::{DeleteObjectError, DeleteObjectOutput},
-    put_object::{PutObjectError, PutObjectOutput},
-};
-use aws_sdk_s3::{error::SdkError, primitives::ByteStream, Client};
+use google_cloud_storage::client::Client;
+use google_cloud_storage::http::objects::copy::CopyObjectRequest;
+use google_cloud_storage::http::objects::delete::DeleteObjectRequest;
+use google_cloud_storage::http::objects::upload::{Media, UploadObjectRequest, UploadType};
 
-pub async fn upload_blob(
-    client: &Client,
-    bucket: &str,
-    obj_name: &str,
-    file_path: &str,
-) -> Result<PutObjectOutput, SdkError<PutObjectError>> {
-    let body = ByteStream::from_path(file_path).await;
-    client
-        .put_object()
-        .bucket(bucket)
-        .key(obj_name)
-        .body(body.unwrap())
-        .send()
-        .await
+pub async fn upload_blob(client: &Client, bucket: &str, obj_name: String, data: Vec<u8>) -> bool {
+    let upload_type = UploadType::Simple(Media::new(obj_name));
+    let uploaded = client
+        .upload_object(
+            &UploadObjectRequest {
+                bucket: bucket.to_string(),
+                ..Default::default()
+            },
+            data,
+            &upload_type,
+        )
+        .await;
+    match uploaded {
+        Ok(_) => true,
+        Err(e) => {
+            log::error!("Error uploading object: {:?}", e);
+            false
+        }
+    }
 }
 
 pub async fn copy_blob(
@@ -27,26 +30,38 @@ pub async fn copy_blob(
     src_obj_name: &str,
     dest_bucket: &str,
     dest_obj_name: &str,
-) -> Result<CopyObjectOutput, SdkError<CopyObjectError>> {
-    // source_bucket/source_name
-    let mut source_obj_with_bucket: String = "".to_owned();
-    source_obj_with_bucket.push_str(src_bucket);
-    source_obj_with_bucket.push_str("/");
-    source_obj_with_bucket.push_str(src_obj_name);
-
-    return client
-        .copy_object()
-        .copy_source(source_obj_with_bucket)
-        .bucket(dest_bucket)
-        .key(dest_obj_name)
-        .send()
-        .await;
+) -> bool {
+    match client
+        .copy_object(&CopyObjectRequest {
+            destination_bucket: dest_bucket.to_string(),
+            destination_object: dest_obj_name.to_string(),
+            source_bucket: src_bucket.to_string(),
+            source_object: src_obj_name.to_string(),
+            ..Default::default()
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(e) => {
+            log::error!("Error copying object: {:?}", e);
+            false
+        }
+    }
 }
 
-pub async fn delete_blob(
-    client: &Client,
-    bucket: &str,
-    name: &str,
-) -> Result<DeleteObjectOutput, SdkError<DeleteObjectError>> {
-    return client.delete_object().bucket(bucket).key(name).send().await;
+pub async fn delete_blob(client: &Client, bucket: &str, name: &str) -> bool {
+    match client
+        .delete_object(&DeleteObjectRequest {
+            bucket: bucket.to_string(),
+            object: name.to_string(),
+            ..Default::default()
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(e) => {
+            log::error!("Error deleting object: {:?}", e);
+            false
+        }
+    }
 }

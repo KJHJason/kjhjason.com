@@ -8,7 +8,7 @@
         <form 
             class="join-item btn btn-outline !p-0" 
             id="previewBtn" 
-            hx-headers='{{ csrf_header }}' 
+            hx-headers='{"{{ common.csrf_header }}": "{{ common.csrf_value }}"}' 
             hx-post="/api/admin/ws/blog/preview"
             hx-target="#blog-content"
         >
@@ -34,78 +34,48 @@
         class="btn btn-primary my-8 w-full"
         type="button" 
         hx-post="/api/admin/new/blog" 
-        hx-headers='{{ csrf_header }}' 
+        hx-headers='{"{{ common.csrf_header }}": "{{ common.csrf_value }}"}' 
         hx-swap="none" 
         hx-target="#content" 
-        hx-on::after-swap="onSuccess()" 
+        hx-on::after-swap="onSuccess(true)" 
     >
         Create Blog
     </button>
+
+    <form id="image-upload" enctype="multipart/form-data" hx-post="/api/blog/upload/images" hx-headers='{"{{ common.csrf_header }}": "{{ common.csrf_value }}"}' hx-swap="none">
+        <input type="file" name="file" id="file" accept="image/*">
+        <button type="submit">Submit</button>
+    </form>
 {% endblock %}
 
 {% block scripts %}
-    <script nonce="{{ nonce }}">
-        const images = []; // will store the image urls after they are uploaded
+    <script nonce="{{ common.nonce }}" src="/static/js/blog.js"></script>
+    <script nonce="{{ common.nonce }}">
+        const uploadImage = (file) => {
+            const formData = new FormData();
+            formData.append("file", file, file.name);
+            fetch("/api/blog/upload/images", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "content-type": "multipart/form-data",
+                    "{{ common.csrf_header }}": "{{ common.csrf_value }}",
+                },  
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    images.push(data.url);
 
-        const editDiv = document.getElementById("edit");
-        document.onpaste = (e) => {
-            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            for (index in items) {
-                const item = items[index];
-                if (item.kind === "file") {
-                    const blob = item.getAsFile();
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        console.log(e.target.result)
-                        // TODO: upload the image to the server and add the image to the content
-                    };
-                    reader.readAsDataURL(blob);
-                }
-            }
+                    // insert the image url into the content
+                    console.log(data.images);
+                    data.images.forEach((img) => {
+                        content.value += `![${img.name}](${img.url})`;
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                });
         }
-        editDiv.addEventListener("drop", (e) => {
-            e.preventDefault();
-            const files = event.dataTransfer.files;
-            for (const file of files) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    console.log(event.target);
-                    // TODO: upload the image to the server and add the image to the content
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        const previewDiv = document.getElementById("preview");
-        const editBtnEvt = () => {
-            editDiv.classList.remove("hidden");
-            previewDiv.classList.add("hidden");
-        };
-        const previewBtnEvt = () => {
-            editDiv.classList.add("hidden");
-            previewDiv.classList.remove("hidden");
-        };
-
-        const content = document.getElementById("content");
-        const contentPreview = document.getElementById("content-preview");
-        content.addEventListener("input", () => {
-            const value = content.value;
-            localStorage.setItem("content", value);
-            contentPreview.value = value;
-        });
-        const title = document.getElementById("title");
-        const titlePreivew = document.getElementById("blog-title");
-        title.addEventListener("input", () => {
-            const value = title.value;
-            titlePreivew.innerText = value;
-            localStorage.setItem("title", value);
-        });
-
-        const onSuccess = () => {
-            localStorage.removeItem("content");
-            localStorage.removeItem("title");
-            window.location.href = "/admin/blogs"; // TODO: Change to the blog page
-        };
 
         // read from localstorage
         const savedContent = localStorage.getItem("content");

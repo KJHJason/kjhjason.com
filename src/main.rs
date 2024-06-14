@@ -15,13 +15,13 @@ use api::auth::{admin_honeypot, login, logout};
 use api::blog::{blog_exists, get_blog};
 use api::csrf::get_csrf_token;
 use api::general::api_index;
-use aws_config::BehaviorVersion;
-use aws_sdk_s3 as s3;
 use client::admin::new_blog;
 use client::auth::{login_admin, login_auth, login_redirect};
 use client::general::{blog, blog_id, experiences, index, projects, skills};
 use database::db;
 use dotenv::dotenv;
+use google_cloud_auth::credentials::CredentialsFile;
+use google_cloud_storage::client::{Client as GcsClient, ClientConfig};
 
 #[get("/favicon.ico")]
 async fn favicon() -> actix_web::Result<NamedFile> {
@@ -144,6 +144,18 @@ fn configure_cache_control_middleware() -> middleware::cache_control::CacheContr
     cache_control_middleware
 }
 
+async fn get_gcp_cred_file() -> CredentialsFile {
+    let path = if !constants::constants::DEBUG_MODE {
+        "/gcp/storage" // to be mounted as a secret
+    } else {
+        "gcp-storage.json"
+    };
+    match CredentialsFile::new_from_file(path.to_string()).await {
+        Ok(cred_file) => cred_file,
+        Err(_) => panic!("Failed to get GCP credentials"),
+    }
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
@@ -155,18 +167,15 @@ async fn main() -> std::io::Result<()> {
             .await
             .unwrap_or_else(|_| panic!("Failed to connect to database"))
     };
-    let aws_future = async {
-        let api_endpoint = std::env::var(constants::constants::AWS_ENDPOINT_URL).unwrap();
-        let mut config = aws_config::defaults(BehaviorVersion::latest());
-        config = config.endpoint_url(api_endpoint);
-        config = config.app_name(
-            aws_config::AppName::new("kjhjason-blog".to_string()).expect("Invalid app name"),
-        );
-        config.load().await
+    let gcp_future = async {
+        let creds = get_gcp_cred_file().await;
+        let config = ClientConfig::default()
+            .with_credentials(creds)
+            .await
+            .unwrap_or_else(|_| panic!("Failed to parse GCP client config"));
+        GcsClient::new(config)
     };
-    let (db_client, aws_config) = tokio::join!(db_future, aws_future);
-
-    let client = s3::Client::new(&aws_config);
+    let (db_client, client) = tokio::join!(db_future, gcp_future);
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_client.clone()))

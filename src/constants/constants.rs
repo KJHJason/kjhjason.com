@@ -19,15 +19,14 @@ pub const USER_COLLECTION: &str = "user";
 pub const TITLE_MAX_LENGTH: usize = 150;
 pub const MAX_TAGS: usize = 8;
 
-pub const MAX_THUMBNAIL_FILE_SIZE: usize = 1024 * 1024 * 10;
-pub const TEMP_DIR: &str = "/uploads/";
+pub const MAX_FILE_SIZE: usize = 1024 * 1024 * 100;
+pub const TEMP_DIR: &str = "uploads";
 
-pub const BUCKET: &str = "kjhjason";
+pub const BUCKET: &str = "kjhjason.com";
 pub const TEMP_OBJ_PREFIX: &str = "temp";
 pub const BLOG_OBJ_PREFIX: &str = "api";
 
 // env keys
-pub const AWS_ENDPOINT_URL: &str = "AWS_ENDPOINT_URL";
 pub const SECRET_KEY: &str = "SECRET_KEY";
 pub const SECRET_KEY_SALT: &str = "SECRET_KEY_SALT";
 pub const CSRF_KEY_SALT: &str = "CSRF_KEY_SALT";

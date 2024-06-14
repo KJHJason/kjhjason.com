@@ -14,31 +14,26 @@ use actix_web::http::header::CONTENT_LENGTH;
 use actix_web::{
     delete, http::header, post, put, web::Data, web::Form, web::Json, HttpRequest, HttpResponse,
 };
-use aws_sdk_s3 as s3;
 use futures_util::TryStreamExt;
+use google_cloud_storage::client::Client as GcsClient;
 use mime::{Mime, IMAGE_GIF, IMAGE_JPEG, IMAGE_PNG};
 use mongodb::bson;
 use mongodb::bson::doc;
 use mongodb::options::FindOneOptions;
+use std::path::Path as std_Path;
 use std::str::FromStr;
-use tokio::fs;
-use tokio::io::AsyncWriteExt;
 
 macro_rules! delete_blob {
     ($client:expr, $bucket:expr, $name:expr) => {
-        match storage::delete_blob($client, $bucket, $name).await {
-            Ok(_) => (),
-            Err(err) => {
-                log::error!("Failed to delete image from GCP Storage: {}", err);
-                return Err(BlogError::InternalServerError);
-            }
+        if !storage::delete_blob($client, $bucket, $name).await {
+            return Err(BlogError::InternalServerError);
         }
     };
 }
 
 macro_rules! move_blob {
     ($client:expr, $source_bucket:expr, $source_name:expr, $destination_bucket:expr, $destination_name:expr) => {
-        match storage::copy_blob(
+        if !storage::copy_blob(
             $client,
             $source_bucket,
             $source_name,
@@ -47,23 +42,15 @@ macro_rules! move_blob {
         )
         .await
         {
-            Ok(_) => (),
-            Err(err) => {
-                log::error!("Failed to move image to GCP Storage: {}", err);
-                return Err(BlogError::ImageUploadError);
-            }
+            return Err(BlogError::ImageUploadError);
         }
     };
 }
 
 macro_rules! upload_blob {
-    ($client:expr, $bucket:expr, $name:expr, $file_name:expr) => {
-        match storage::upload_blob($client, $bucket, $name, $file_name).await {
-            Ok(_) => (),
-            Err(err) => {
-                log::error!("Failed to upload image to GCP Storage: {}", err);
-                return Err(BlogError::ImageUploadError);
-            }
+    ($client:expr, $bucket:expr, $name:expr, $data:expr) => {
+        if !storage::upload_blob($client, $bucket, $name, $data).await {
+            return Err(BlogError::ImageUploadError);
         }
     };
 }
@@ -95,7 +82,7 @@ async fn preview_blog(data: Form<BlogPreview>) -> HttpResponse {
 #[post("/api/publish/blog")]
 async fn publish_blog(
     client: Data<db::DbClient>,
-    s3_client: Data<s3::Client>,
+    s3_client: Data<GcsClient>,
     blog: Json<BlogPublishOperation>,
 ) -> Result<HttpResponse, BlogError> {
     let blog_op = blog.into_inner();
@@ -151,7 +138,7 @@ async fn publish_blog(
 #[put("/api/blog/update")]
 async fn update_blog(
     client: Data<db::DbClient>,
-    s3_client: Data<s3::Client>,
+    s3_client: Data<GcsClient>,
     update_blog: Json<BlogUpdateOperation>,
 ) -> Result<HttpResponse, BlogError> {
     let blog = update_blog.into_inner();
@@ -265,7 +252,7 @@ async fn update_blog(
 #[delete("/api/blog/delete")]
 async fn delete_blog(
     client: Data<db::DbClient>,
-    s3_client: Data<s3::Client>,
+    s3_client: Data<GcsClient>,
     blog_identifier: Json<BlogIdentifier>,
 ) -> Result<HttpResponse, BlogError> {
     let blog_id = validate_id(&blog_identifier.into_inner().get_id())?;
@@ -291,7 +278,7 @@ async fn delete_blog(
 
 #[post("/api/blog/upload/images")]
 async fn upload_blog_images(
-    s3_client: Data<s3::Client>,
+    s3_client: Data<GcsClient>,
     mut payload: Multipart,
     req: HttpRequest,
 ) -> Result<Json<UploadedImages>, BlogError> {
@@ -302,7 +289,7 @@ async fn upload_blog_images(
 
     if content_length == 0 {
         return Err(BlogError::ImageIsEmpty);
-    } else if content_length > constants::MAX_THUMBNAIL_FILE_SIZE {
+    } else if content_length > constants::MAX_FILE_SIZE {
         return Err(BlogError::ImageTooLarge);
     }
 
@@ -310,13 +297,17 @@ async fn upload_blog_images(
     let image_webp: Mime = Mime::from_str("image/webp").unwrap();
     let allowed_mimetypes: [Mime; 4] = [IMAGE_PNG, IMAGE_JPEG, IMAGE_GIF, image_webp.clone()];
     while let Ok(Some(mut field)) = payload.try_next().await {
+        log::info!("Processing image");
+
         let content_type: Option<&Mime> = field.content_type();
         if content_type.is_none() {
+            log::info!("No content type found for image");
             continue;
         }
 
         let content_type = content_type.unwrap();
         if !allowed_mimetypes.contains(content_type) {
+            log::info!("Invalid content type found for image");
             continue;
         }
         let mut file_ext = "";
@@ -332,19 +323,29 @@ async fn upload_blog_images(
         }
 
         let destination = format!(
-            "{}/{}.{}",
+            "{}{}.{}",
             constants::TEMP_OBJ_PREFIX,
             get_temp_file_path(),
             file_ext
         );
-        let mut saved_file: fs::File = fs::File::create(&destination).await.unwrap();
+        let mut data = Vec::new();
         while let Ok(Some(chunk)) = field.try_next().await {
-            saved_file.write_all(&chunk).await.unwrap();
+            data.extend_from_slice(&chunk);
         }
 
-        upload_blob!(&s3_client, constants::BUCKET, &destination, &destination);
-        let url = constants::BUCKET.to_string() + "/" + &destination;
-        images.append(url);
+        log::info!("Uploading image, {}", destination);
+        upload_blob!(&s3_client, constants::BUCKET, destination.clone(), data);
+        let url = format!(
+            "https://storage.googleapis.com/{}/{}",
+            constants::BUCKET,
+            destination
+        );
+        let file_name = std_Path::new(&destination)
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap();
+        images.append(file_name.to_string(), url);
     }
     return Ok(Json(images));
 }

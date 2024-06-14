@@ -1,4 +1,4 @@
-use crate::constants::constants::{MAX_TAGS, MAX_THUMBNAIL_FILE_SIZE, TITLE_MAX_LENGTH};
+use crate::constants::constants::{MAX_FILE_SIZE, MAX_TAGS, TITLE_MAX_LENGTH};
 use crate::utils::md;
 use actix_web::{HttpResponse, ResponseError};
 use bson::oid::ObjectId;
@@ -162,16 +162,22 @@ impl BlogUpdateOperation {
 }
 
 #[derive(Serialize)]
+pub struct UploadedImageInfo {
+    name: String,
+    url: String,
+}
+
+#[derive(Serialize)]
 pub struct UploadedImages {
-    urls: Vec<String>,
+    images: Vec<UploadedImageInfo>,
 }
 
 impl UploadedImages {
-    pub fn new(urls: Vec<String>) -> UploadedImages {
-        UploadedImages { urls: urls }
+    pub fn new(images: Vec<UploadedImageInfo>) -> UploadedImages {
+        UploadedImages { images }
     }
-    pub fn append(&mut self, url: String) {
-        self.urls.push(url);
+    pub fn append(&mut self, name: String, url: String) {
+        self.images.push(UploadedImageInfo { name, url });
     }
 }
 
@@ -195,7 +201,7 @@ pub enum BlogError {
     TooManyTags,
     #[display(fmt = "Image cannot be empty")]
     ImageIsEmpty,
-    #[display(fmt = "Image size must be less than {} bytes", MAX_THUMBNAIL_FILE_SIZE)]
+    #[display(fmt = "File size must be less than {} bytes", MAX_FILE_SIZE)]
     ImageTooLarge,
     #[display(fmt = "Failed to upload image")]
     ImageUploadError,
