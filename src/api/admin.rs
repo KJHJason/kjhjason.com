@@ -10,7 +10,7 @@ use crate::utils::md::convert_to_html;
 use crate::utils::storage;
 use crate::utils::validations::validate_id;
 use actix_multipart::Multipart;
-use actix_web::http::header::CONTENT_LENGTH;
+use actix_web::http::header::{ContentType, CONTENT_LENGTH};
 use actix_web::{
     delete, http::header, post, put, web::Data, web::Form, web::Json, HttpRequest, HttpResponse,
 };
@@ -75,14 +75,14 @@ async fn preview_blog(data: Form<BlogPreview>) -> HttpResponse {
     }
     let preview = convert_to_html(content, None);
     HttpResponse::Ok()
-        .insert_header((header::CONTENT_TYPE, constants::HTML_CONTENT_TYPE))
+        .insert_header((header::CONTENT_TYPE, ContentType::html().to_string()))
         .body(preview)
 }
 
 #[post("/api/publish/blog")]
 async fn publish_blog(
     client: Data<db::DbClient>,
-    s3_client: Data<GcsClient>,
+    gcs_client: Data<GcsClient>,
     blog: Json<BlogPublishOperation>,
 ) -> Result<HttpResponse, BlogError> {
     let blog_op = blog.into_inner();
@@ -95,7 +95,7 @@ async fn publish_blog(
         return Err(BlogError::TitleTooLong);
     }
 
-    let content = blog_op.get_content();
+    let mut content = blog_op.get_content().to_string();
     if content.is_empty() {
         return Err(BlogError::EmptyContent);
     }
@@ -106,13 +106,37 @@ async fn publish_blog(
             return Err(BlogError::FileIsEmpty);
         }
 
+        let signed_url = match &file.signed_url {
+            Some(url) => url,
+            None => {
+                continue;
+            }
+        };
+
+        // check if the signed_url is in the content
+        if !content.contains(signed_url) {
+            storage::remove_file_from_md_content(&mut content, signed_url);
+            continue;
+        }
+
+        let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url(&signed_url);
+        // replace the signed url with the actual url
+        content = content.replace(
+            signed_url,
+            &format!(
+                "https://storage.googleapis.com/{}/{}",
+                constants::BUCKET,
+                obj_name
+            ),
+        );
+
         move_blob!(
-            &s3_client,
-            constants::BUCKET,
-            &file.url,
+            &gcs_client,
+            &bucket,
+            &obj_name,
             constants::BUCKET,
             &change_obj_prefix(
-                &file.url,
+                &obj_name,
                 constants::TEMP_OBJ_PREFIX,
                 constants::BLOG_OBJ_PREFIX,
             )
@@ -138,7 +162,7 @@ async fn publish_blog(
 #[put("/api/blog/update")]
 async fn update_blog(
     client: Data<db::DbClient>,
-    s3_client: Data<GcsClient>,
+    gcs_client: Data<GcsClient>,
     update_blog: Json<BlogUpdateOperation>,
 ) -> Result<HttpResponse, BlogError> {
     let blog = update_blog.into_inner();
@@ -167,6 +191,7 @@ async fn update_blog(
         "last_modified": last_modified,
     };
 
+    let mut content = blog.get_content().to_string();
     let old_files = blog_in_db.get_files();
     let new_files = blog.get_files();
     if new_files.iter().all(|file| old_files.contains(file)) {
@@ -175,20 +200,43 @@ async fn update_blog(
         // get all files not in old_files for uploading
         let files_to_upload: Vec<FileInfo> = new_files
             .iter()
-            .filter(|file| !old_files.contains(file))
+            .filter(|file| !file.url.is_empty() && file.signed_url.is_some())
             .map(|file| file.to_owned())
             .collect();
         for file in files_to_upload.iter() {
             if file.url.is_empty() {
                 continue;
             }
+            let signed_url = match &file.signed_url {
+                Some(url) => url,
+                None => {
+                    continue;
+                }
+            };
+
+            // check if the signed_url is in the content
+            if !content.contains(signed_url) {
+                storage::remove_file_from_md_content(&mut content, signed_url);
+                continue;
+            }
+
+            let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url(&signed_url);
+            // replace the signed url with the actual url
+            content = content.replace(
+                signed_url,
+                &format!(
+                    "https://storage.googleapis.com/{}/{}",
+                    constants::BUCKET,
+                    obj_name
+                ),
+            );
             move_blob!(
-                &s3_client,
-                constants::BUCKET,
-                &file.url,
+                &gcs_client,
+                &bucket,
+                &obj_name,
                 constants::BUCKET,
                 &change_obj_prefix(
-                    &file.url,
+                    &obj_name,
                     constants::TEMP_OBJ_PREFIX,
                     constants::BLOG_OBJ_PREFIX,
                 )
@@ -202,20 +250,19 @@ async fn update_blog(
             .map(|file| file.to_owned())
             .collect();
         for file in files_to_delete.iter() {
-            delete_blob!(&s3_client, constants::BUCKET, &file.url);
+            delete_blob!(&gcs_client, constants::BUCKET, &file.url);
         }
+    }
+
+    if !content.is_empty() {
+        is_updating = true;
+        set_doc.insert("content", content);
     }
 
     let title = blog.get_title();
     if !title.is_empty() && title != blog_in_db.get_title() {
         is_updating = true;
         set_doc.insert("title", title);
-    }
-
-    let content = blog.get_content();
-    if !content.is_empty() {
-        is_updating = true;
-        set_doc.insert("content", content);
     }
 
     if let Some(is_public) = blog.get_is_public() {
@@ -344,10 +391,15 @@ async fn upload_blog_files(
         }
 
         log::info!("Uploading file, {}", destination);
-        upload_blob!(&gcs_client, constants::BUCKET, destination.clone(), data);
+        upload_blob!(
+            &gcs_client,
+            constants::BUCKET_FOR_TEMP,
+            destination.clone(),
+            data
+        );
         let url = format!(
             "https://storage.googleapis.com/{}/{}",
-            constants::BUCKET,
+            constants::BUCKET_FOR_TEMP,
             destination
         );
         let file_name = std_Path::new(&destination)
@@ -355,7 +407,9 @@ async fn upload_blog_files(
             .unwrap()
             .to_str()
             .unwrap();
-        files.append(file_name.to_string(), url);
+        let signed_url =
+            storage::get_signed_url(&gcs_client, constants::BUCKET_FOR_TEMP, &destination).await;
+        files.append(file_name.to_string(), url, signed_url);
     }
     return Ok(Json(files));
 }

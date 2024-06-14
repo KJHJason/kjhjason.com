@@ -52,6 +52,9 @@ hr {
 .blog p {
     @apply my-2;
 }
+.blog-content {
+    @apply accent-border reset-lists blog;
+}
 
 .accent {
     @apply bg-neutral-400 dark:bg-neutral-800

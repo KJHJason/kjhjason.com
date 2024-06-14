@@ -1,7 +1,8 @@
-use crate::constants::constants::HTML_CONTENT_TYPE;
 use crate::model::checkbox;
-use actix_web::http::header;
-use actix_web::{HttpResponse, ResponseError};
+use actix_web::{
+    http::{header, header::ContentType},
+    HttpResponse, ResponseError,
+};
 use askama_actix::Template;
 use bson::oid::ObjectId;
 use derive_more::{Display, Error};
@@ -67,14 +68,14 @@ pub enum AuthError {
 }
 
 #[derive(Template)]
-#[template(path = "error_components/auth_error.html")]
+#[template(path = "components/auth_error.html")]
 struct AuthErrTemplate<'a> {
     err: &'a str,
 }
 
 impl ResponseError for AuthError {
     fn error_response(&self) -> HttpResponse {
-        let header = (header::CONTENT_TYPE, HTML_CONTENT_TYPE);
+        let header = (header::CONTENT_TYPE, ContentType::html().to_string());
         let error_html = AuthErrTemplate {
             err: &self.to_string(),
         }

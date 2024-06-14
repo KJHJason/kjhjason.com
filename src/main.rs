@@ -8,7 +8,11 @@ mod security;
 mod utils;
 
 use actix_files::NamedFile;
-use actix_web::{get, middleware::Logger, web, App, HttpServer};
+use actix_web::{
+    get,
+    middleware::{ErrorHandlers, Logger},
+    web, App, HttpServer,
+};
 use api::configure::add_api_routes;
 use client::configure::add_client_routes;
 use database::db;
@@ -19,6 +23,15 @@ use middleware::configure::{
     configure_auth_middleware, configure_cache_control_middleware, configure_csp_middleware,
     configure_csrf_middleware, configure_hsts_middleware,
 };
+use middleware::errors::render_error;
+
+#[macro_export]
+macro_rules! error_handler_many {
+    ($handler:ident, [$($variant:ident),*]) => {
+        ErrorHandlers::new()
+            $(.handler(actix_web::http::StatusCode::$variant, $handler))+
+    }
+}
 
 #[get("/favicon.ico")]
 async fn favicon() -> actix_web::Result<NamedFile> {
@@ -68,6 +81,33 @@ async fn main() -> std::io::Result<()> {
             .wrap(configure_csp_middleware())
             .wrap(configure_hsts_middleware())
             .wrap(configure_cache_control_middleware())
+            .wrap(error_handler_many!(
+                render_error,
+                [
+                    BAD_REQUEST,
+                    UNAUTHORIZED,
+                    FORBIDDEN,
+                    NOT_FOUND,
+                    METHOD_NOT_ALLOWED,
+                    NOT_ACCEPTABLE,
+                    REQUEST_TIMEOUT,
+                    GONE,
+                    LENGTH_REQUIRED,
+                    PAYLOAD_TOO_LARGE,
+                    URI_TOO_LONG,
+                    UNSUPPORTED_MEDIA_TYPE,
+                    RANGE_NOT_SATISFIABLE,
+                    IM_A_TEAPOT,
+                    TOO_MANY_REQUESTS,
+                    REQUEST_HEADER_FIELDS_TOO_LARGE,
+                    MISDIRECTED_REQUEST,
+                    UPGRADE_REQUIRED,
+                    INTERNAL_SERVER_ERROR,
+                    NOT_IMPLEMENTED,
+                    SERVICE_UNAVAILABLE,
+                    HTTP_VERSION_NOT_SUPPORTED
+                ]
+            ))
             .configure(add_client_routes)
             .configure(add_api_routes)
             .service(favicon)

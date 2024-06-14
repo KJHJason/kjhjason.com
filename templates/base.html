@@ -64,7 +64,14 @@
                             </details>
                         </li>
                         <li id="logout-item" class="hidden">
-                            <button type="button" hx-post="/api/auth/logout" hx-headers='{"{{ common.csrf_header }}": "{{ common.csrf_value }}"}' hx-swap="none" hx-on::after-swap="handleLogout()">Logout</button>
+                            <button type="button" 
+                                hx-post="/api/auth/logout" 
+                                hx-headers='{{ common.csrf_header_json|safe }}' 
+                                hx-swap="none" 
+                                hx-on::after-swap="handleLogout()"
+                            >
+                                Logout
+                            </button>
                         </li>
                     </ul>
                 </div>

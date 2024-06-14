@@ -73,6 +73,19 @@ pub fn get_csrf_value(req: &HttpRequest) -> String {
     }
 }
 
+pub fn parse_csrf_json(req: &HttpRequest) -> String {
+    match req.cookie(constants::CSRF_COOKIE_NAME) {
+        Some(cookie) => {
+            format!(
+                r#"{{"{}":"{}"}}"#,
+                constants::CSRF_HEADER_NAME,
+                cookie.value()
+            )
+        }
+        None => "".to_string(),
+    }
+}
+
 pub fn is_logged_in(req: &HttpRequest) -> bool {
     match req.cookie(constants::AUTH_COOKIE_NAME) {
         Some(_) => true,
@@ -84,6 +97,7 @@ pub struct TemplateValues {
     pub nonce: String,
     pub csrf_header: String,
     pub csrf_value: String,
+    pub csrf_header_json: String,
     pub is_logged_in: bool,
 }
 
@@ -99,6 +113,7 @@ pub fn extract_for_template(req: &HttpRequest) -> TemplateValues {
         nonce,
         csrf_header: constants::CSRF_HEADER_NAME.to_string(),
         csrf_value: get_csrf_value(req),
+        csrf_header_json: parse_csrf_json(req),
         is_logged_in: is_logged_in(req),
     }
 }

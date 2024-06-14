@@ -1,3 +1,5 @@
+use std::time;
+
 pub const DEBUG_MODE: bool = true;
 pub const APP_NAME: &str = "KJHJason's Blog API"; // used for API SDKs like MongoDB
 pub const SESSION_TIMEOUT: i64 = 60 * 60 * 24 * 1; // 1 day
@@ -9,11 +11,9 @@ pub const CSRF_HEADER_NAME: &str = "X-CSRF-Token";
 pub const CSRF_TOKEN_LENGTH: usize = 32;
 pub const CSRF_MAX_AGE: i64 = 60 * 60 * 24 * 1; // 1 day
 
-pub const HTML_CONTENT_TYPE: &str = "text/html; charset=utf-8";
-
 pub const LOCAL_URI: &str = "mongodb://localhost:27017";
 pub const DATABASE: &str = "kjhjason";
-pub const BLOG_COLLECTION: &str = "api";
+pub const BLOG_COLLECTION: &str = "blog";
 pub const USER_COLLECTION: &str = "user";
 
 pub const TITLE_MAX_LENGTH: usize = 150;
@@ -23,6 +23,8 @@ pub const MAX_FILE_SIZE: usize = 1024 * 1024 * 100;
 pub const TEMP_DIR: &str = "uploads";
 
 pub const BUCKET: &str = "kjhjason.com";
+pub const BUCKET_FOR_TEMP: &str = "kjhjason";
+pub const SIGNED_URL_MAX_AGE: time::Duration = time::Duration::from_secs(60 * 60 * 24 * 7);
 pub const TEMP_OBJ_PREFIX: &str = "temp";
 pub const BLOG_OBJ_PREFIX: &str = "api";
 

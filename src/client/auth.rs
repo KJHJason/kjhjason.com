@@ -11,7 +11,7 @@ async fn login_redirect() -> web::Redirect {
 async fn login_admin(req: HttpRequest) -> impl Responder {
     Login {
         common: extract_for_template(&req),
-        login_url: "/api/admin".to_string(),
+        login_url: "/api/admin",
     }
 }
 
@@ -19,6 +19,6 @@ async fn login_admin(req: HttpRequest) -> impl Responder {
 async fn login_auth(req: HttpRequest) -> impl Responder {
     Login {
         common: extract_for_template(&req),
-        login_url: "/api/auth/login".to_string(),
+        login_url: "/api/auth/login",
     }
 }

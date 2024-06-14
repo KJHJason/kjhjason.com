@@ -5,10 +5,11 @@
 {% block content %}
     <div class="join grid grid-cols-2 mb-8">
         <button class="join-item btn btn-outline" hx-on:click="editBtnEvt()" type="button">Edit</button>
+
         <form 
             class="join-item btn btn-outline !p-0" 
             id="previewBtn" 
-            hx-headers='{"{{ common.csrf_header }}": "{{ common.csrf_value }}"}' 
+            hx-headers='{{ common.csrf_header_json|safe }}' 
             hx-post="/api/admin/ws/blog/preview"
             hx-target="#blog-content"
         >
@@ -22,22 +23,26 @@
             <input type="text" name="title" id="title" class="input-theme" placeholder="Hello World!" required maxlength="150" autofocus>
         </div>
         <div>
+            <label for="tags" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Tags (Max 8):</label>
+            <input type="text" name="tags" id="tags" class="input-theme" placeholder="Rust, Web Dev">
+        </div>
+        <div class="flex">
+            <label for="is-public" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Public:</label>
+            <input type="checkbox" name="is-public" id="is-public" class="ml-4 toggle toggle-success" checked>
+        </div>
+        <div>
             <label for="content" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Content:</label>
             <textarea placeholder="Start typing the content for this blog in markdown!" name="content" id="content" class="input-theme" rows="25" spellcheck="true"></textarea>
         </div>
     </div>
-    <div id="preview" class="accent-border reset-lists blog hidden">
+    <div id="preview" class="blog-content hidden">
         <h1 id="blog-title"></h1>
         <div id="blog-content"></div>
     </div>
     <button 
         class="btn btn-primary my-8 w-full"
         type="button" 
-        hx-post="/api/admin/new/blog" 
-        hx-headers='{"{{ common.csrf_header }}": "{{ common.csrf_value }}"}' 
-        hx-swap="none" 
-        hx-target="#content" 
-        hx-on::after-swap="onSuccess(true)" 
+        hx-on:click="postBlog()"
     >
         Create Blog
     </button>
@@ -46,7 +51,7 @@
 {% block scripts %}
     <script nonce="{{ common.nonce }}" src="/static/js/blog.js"></script>
     <script nonce="{{ common.nonce }}">
-        const files = [];
+        const files = loadFileInfo();
         const uploadImage = (file) => {
             const formData = new FormData();
             formData.append("file", file);
@@ -60,7 +65,7 @@
                 .then((response) => response.json())
                 .then((data) => {
                     data.files.forEach((file) => {
-                        files.push(file);
+                        saveFileInfo(file, files);
                         content.value += parseUrlToMd(file);
                         content.dispatchEvent(new Event("input", {
                             bubbles: true,
@@ -73,11 +78,64 @@
                 });
         }
 
+        const isPublic = document.getElementById("is-public");
+        loadTags();
+        const postBlog = () => {
+            const tileVal = title.value;
+            const contentVal = content.value;
+            const tagsVal = tagsInp.value
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter((tag) => tag.length > 0);
+
+            if (tileVal.length === 0 || contentVal.length === 0 || tagsVal.length === 0) {
+                alert("Title, content, and tags are required!");
+                return;
+            }
+            if (tagsVal.length > 8) {
+                alert("Max 8 tags allowed!");
+                return;
+            }
+
+            fetch("/api/publish/blog", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "{{ common.csrf_header }}": "{{ common.csrf_value }}",
+                },
+                body: JSON.stringify({
+                    title: tileVal,
+                    tags: tagsVal,
+                    files: parseFileSliceForUpload(files),
+                    content: contentVal,
+                    is_public: isPublic.checked,
+                }),
+            })
+                .then((response) => {
+                    if (response.status === 200) {
+                        alert("Blog created successfully!");
+                        localStorage.removeItem("content");
+                        localStorage.removeItem("tags");
+                        localStorage.removeItem("title");
+                        window.location.href = "/admin/blog";
+                    } else {
+                        alert("Failed to create blog!");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                });
+        }
+
         // read from localstorage
         const savedContent = localStorage.getItem("content");
         if (savedContent) {
             content.value = savedContent;
             contentPreview.value = savedContent;
+        }
+        const savedTags = localStorage.getItem("tags");
+        if (savedTags) {
+            tags.value = savedTags;
         }
         const savedTitle = localStorage.getItem("title");
         if (savedTitle) {

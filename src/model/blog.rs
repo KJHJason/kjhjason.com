@@ -40,7 +40,6 @@ pub struct Blog {
     timestamp: chrono::DateTime<Utc>,
     #[serde(with = "crate::utils::datetime::rfc3339::option")]
     last_modified: Option<chrono::DateTime<Utc>>,
-    thumbnail_url: Option<String>,
 }
 
 // api struct setter
@@ -61,7 +60,6 @@ impl Blog {
             is_public,
             timestamp: Utc::now(),
             last_modified: None,
-            thumbnail_url: None,
         }
     }
     pub fn get_title(&self) -> &str {
@@ -87,7 +85,6 @@ pub struct BlogResponse {
     timestamp: chrono::DateTime<Utc>,
     #[serde(with = "crate::utils::datetime::rfc3339::option")]
     last_modified: Option<chrono::DateTime<Utc>>,
-    thumbnail_url: Option<String>,
 }
 
 impl From<Blog> for BlogResponse {
@@ -98,7 +95,6 @@ impl From<Blog> for BlogResponse {
             content: md::convert_to_html(&blog.content, None),
             timestamp: blog.timestamp,
             last_modified: blog.last_modified,
-            thumbnail_url: blog.thumbnail_url,
         }
     }
 }
@@ -165,6 +161,7 @@ impl BlogUpdateOperation {
 pub struct FileInfo {
     pub name: String,
     pub url: String,
+    pub signed_url: Option<String>,
 }
 
 impl PartialEq for FileInfo {
@@ -182,8 +179,12 @@ impl UploadedFiles {
     pub fn new(files: Vec<FileInfo>) -> UploadedFiles {
         UploadedFiles { files }
     }
-    pub fn append(&mut self, name: String, url: String) {
-        self.files.push(FileInfo { name, url });
+    pub fn append(&mut self, name: String, url: String, signed_url: String) {
+        self.files.push(FileInfo {
+            name,
+            url,
+            signed_url: Some(signed_url),
+        });
     }
 }
 
