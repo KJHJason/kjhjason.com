@@ -1,0 +1,9 @@
+{% macro parse_tags(tags) %}
+    {% if tags.len() > 0 %}
+    <div class="flex flex-wrap my-1">
+        {% for tag in tags %}
+            <div class="badge badge-outline mr-2">{{ tag }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endmacro %}

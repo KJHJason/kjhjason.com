@@ -68,19 +68,19 @@ hr {
     @apply bg-neutral-50 border border-neutral-300 text-neutral-900 sm:text-sm rounded-lg block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white;
 }
 
-.badges {
+.skills {
     @apply gap-2 grid grid-cols-3 sm:grid-cols-6;
 }
 
-.badge {
+.skill {
     @apply bg-neutral-800 text-white py-4 flex justify-center items-center flex-col gap-5 rounded-lg text-center h-full w-full;
 }
 
-.badge img {
+.skill img {
     @apply h-14;
 }
 
-.badges-header {
+.skills-header {
     @apply text-2xl font-medium tracking-tighter my-8;
 }
 

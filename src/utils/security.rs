@@ -104,10 +104,12 @@ pub struct TemplateValues {
 pub fn extract_for_template(req: &HttpRequest) -> TemplateValues {
     let nonce = {
         let extensions = req.extensions();
-        let csp_nonce = extensions
+        extensions
             .get::<crate::middleware::csp::CspNonce>()
-            .unwrap();
-        csp_nonce.get_nonce().to_string()
+            // usually happens on errors response for whitelisted routes like the static routes
+            .unwrap_or(&crate::middleware::csp::CspNonce::default())
+            .get_nonce()
+            .to_string()
     };
     TemplateValues {
         nonce,

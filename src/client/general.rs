@@ -12,7 +12,7 @@ use actix_web::{get, web::Path, HttpRequest, HttpResponse, Responder};
 use askama::Template;
 use futures_util::TryStreamExt;
 use mongodb::bson::doc;
-use mongodb::options::{FindOneAndUpdateOptions, ReturnDocument};
+use mongodb::options::{FindOneAndUpdateOptions, FindOptions, ReturnDocument};
 
 #[get("/")]
 async fn index(req: HttpRequest) -> impl Responder {
@@ -42,10 +42,13 @@ async fn skills(req: HttpRequest) -> impl Responder {
     }
 }
 
-#[get("/blog")]
-async fn blog(client: Data<db::DbClient>, req: HttpRequest) -> HttpResponse {
+#[get("/blogs")]
+async fn blogs(client: Data<db::DbClient>, req: HttpRequest) -> HttpResponse {
     // get all blogs
-    let mut blogs_cursor = match client.get_blog_collection().find(None, None).await {
+    let find_options = FindOptions::builder()
+        .sort(doc! { "_id": -1 }) // get by newest first
+        .build();
+    let mut blogs_cursor = match client.get_blog_collection().find(None, find_options).await {
         Ok(blogs) => blogs,
         Err(_) => {
             let html = ErrorTemplate {
@@ -74,6 +77,7 @@ async fn blog(client: Data<db::DbClient>, req: HttpRequest) -> HttpResponse {
                     title: blog_post.get_title().to_string(),
                     date: blog_post.get_date_string(),
                     views: blog_post.get_views(),
+                    tags: blog_post.get_tags_as_owned(),
                 };
                 blogs.push(blog_info);
             }
@@ -105,7 +109,7 @@ async fn blog(client: Data<db::DbClient>, req: HttpRequest) -> HttpResponse {
         .body(html)
 }
 
-#[get("/blog/{id}")]
+#[get("/blogs/{id}")]
 async fn blog_id(
     client: Data<db::DbClient>,
     req: HttpRequest,
@@ -126,26 +130,35 @@ async fn blog_id(
                 .body(html);
         }
     };
-    let query = doc! { "_id": blog_id };
-    let update = doc! { "$inc": { "views": 1 } };
-    let options = FindOneAndUpdateOptions::builder()
-        .return_document(ReturnDocument::After)
-        .build();
 
-    let blog_post = client
-        .get_blog_collection()
-        .find_one_and_update(query, update, Some(options))
-        .await;
+    let query = doc! { "_id": blog_id };
+    let common = extract_for_template(&req);
+    let blog_collection = client.get_blog_collection();
+    let blog_post = if common.is_logged_in {
+        blog_collection.find_one(query, None).await
+    } else {
+        let update = doc! { "$inc": { "views": 1 } };
+        let options = FindOneAndUpdateOptions::builder()
+            .return_document(ReturnDocument::After)
+            .build();
+
+        blog_collection
+            .find_one_and_update(query, update, Some(options))
+            .await
+    };
 
     match blog_post {
         Ok(Some(blog_post)) => {
             let html = BlogPost {
-                common: extract_for_template(&req),
-                title: blog_post.get_title(),
+                common,
+                id: &blog_post.get_id_string(),
+                title: &blog_post.get_title(),
                 date: &blog_post.get_date_string(),
                 readable_date: &blog_post.get_readable_date_diff(),
+                last_modified: &blog_post.get_last_modified_date_string(),
                 views: blog_post.get_views(),
                 content: &blog_post.get_html_content(),
+                tags: blog_post.get_tags(),
             }
             .render()
             .unwrap();

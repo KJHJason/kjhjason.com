@@ -6,6 +6,25 @@ pub fn get_dtnow_str() -> String {
     Utc::now().to_rfc3339()
 }
 
+pub fn get_readable_date_diff(timestamp: DateTime<Utc>) -> String {
+    let time_diff = Utc::now().signed_duration_since(timestamp);
+    if time_diff.num_days() >= 365 {
+        format!("{}y ago", time_diff.num_days() / 365)
+    } else if time_diff.num_days() >= 30 {
+        format!("{}mo ago", time_diff.num_days() / 30)
+    } else if time_diff.num_days() >= 1 {
+        format!("{}d ago", time_diff.num_days())
+    } else if time_diff.num_hours() >= 1 {
+        format!("{}h ago", time_diff.num_hours())
+    } else if time_diff.num_minutes() >= 1 {
+        format!("{}m ago", time_diff.num_minutes())
+    } else if time_diff.num_seconds() > 0 {
+        format!("{}s ago", time_diff.num_seconds())
+    } else {
+        "just now".to_string()
+    }
+}
+
 pub mod rfc3339 {
     use super::*;
 

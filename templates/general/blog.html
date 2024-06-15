@@ -1,6 +1,11 @@
 {% extends "base.html" %}
+{%- import "includes/tags.html" as tags -%}
 
-{% block title %}Blog{% endblock %}
+{% block title %}Blogs{% endblock %}
+
+{% block head %}
+    <link rel="canonical" href="https://kjhjason.com/blogs" />
+{% endblock %}
 
 {% block content %}
     <h1 class="font-medium text-2xl mb-8 tracking-tighter">My Blogs</h1>
@@ -9,15 +14,25 @@
     {% endif %}
 
     {% for blog in blogs %}
-        <a class="flex flex-col space-y-1 mb-4" href="/blog/{{ blog.id }}">
+        <a class="flex flex-col space-y-1 mb-4" href="/blogs/{{ blog.id }}">
             <div class="w-full flex flex-col">
-                <p class="!my-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
+                <p class="!my-0 text-neutral-900 dark:text-neutral-100 tracking-tight">
                     {{ blog.title }}
                 </p>
                 <p class="!my-0 text-neutral-600 dark:text-neutral-400">
-                    {{ blog.views }} views
+                    <span class="blog-date">{{ blog.date }}</span> ({{ blog.views }} views)
                 </p>
+                {% call tags::parse_tags(blog.tags.clone()) %}
             </div>
         </a>
     {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{ common.nonce }}" src="/static/js/date.js"></script>
+<script nonce="{{ common.nonce }}">
+    document.querySelectorAll(".blog-date").forEach((date) => {
+        date.innerText = parseDateToLocal(date.innerText);
+    });
+</script>
 {% endblock %}

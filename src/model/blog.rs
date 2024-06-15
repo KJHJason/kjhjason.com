@@ -1,5 +1,5 @@
 use crate::constants::constants::{MAX_FILE_SIZE, MAX_TAGS, TITLE_MAX_LENGTH};
-use crate::utils::md;
+use crate::utils::{datetime, md};
 use actix_web::{HttpResponse, ResponseError};
 use bson::oid::ObjectId;
 use chrono::Utc;
@@ -73,6 +73,9 @@ impl Blog {
     pub fn get_tags(&self) -> &Vec<String> {
         &self.tags
     }
+    pub fn get_tags_as_owned(self) -> Vec<String> {
+        self.tags
+    }
     pub fn get_files(&self) -> &Vec<FileInfo> {
         &self.files
     }
@@ -90,21 +93,12 @@ impl Blog {
         self.timestamp.to_rfc3339()
     }
     pub fn get_readable_date_diff(&self) -> String {
-        let time_diff = Utc::now().signed_duration_since(self.timestamp);
-        if time_diff.num_days() >= 365 {
-            format!("{}y ago", time_diff.num_days() / 365)
-        } else if time_diff.num_days() >= 30 {
-            format!("{}mo ago", time_diff.num_days() / 30)
-        } else if time_diff.num_days() >= 1 {
-            format!("{}d ago", time_diff.num_days())
-        } else if time_diff.num_hours() >= 1 {
-            format!("{}h ago", time_diff.num_hours())
-        } else if time_diff.num_minutes() >= 1 {
-            format!("{}m ago", time_diff.num_minutes())
-        } else if time_diff.num_seconds() > 0 {
-            format!("{}s ago", time_diff.num_seconds())
-        } else {
-            "just now".to_string()
+        datetime::get_readable_date_diff(self.timestamp)
+    }
+    pub fn get_last_modified_date_string(&self) -> String {
+        match self.last_modified {
+            Some(date) => date.to_rfc3339(),
+            None => "".to_string(),
         }
     }
 }

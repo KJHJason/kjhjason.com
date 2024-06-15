@@ -30,6 +30,7 @@ pub struct BlogPostInfo {
     pub title: String,
     pub date: String,
     pub views: i64,
+    pub tags: Vec<String>,
 }
 
 #[derive(Template)]
@@ -43,9 +44,12 @@ pub struct Blog {
 #[template(path = "general/blog_post.html")]
 pub struct BlogPost<'a> {
     pub common: TemplateValues,
+    pub id: &'a str,
     pub title: &'a str,
     pub date: &'a str,
+    pub last_modified: &'a str,
     pub readable_date: &'a str,
     pub views: i64,
     pub content: &'a str,
+    pub tags: &'a Vec<String>,
 }

@@ -73,6 +73,7 @@ pub fn configure_csp_middleware() -> middleware::csp::CspMiddleware {
             "https://unpkg.com/htmx.org@1.9.12/dist/ext/json-enc.js".to_string(),
         ],
         style_src: vec!["'self'".to_string()],
+        frame_src: vec!["'self'".to_string()],
         default_src: vec![],
         base_uri: vec![],
         img_src: vec![],

@@ -1,21 +1,40 @@
 {% extends "base.html" %}
+{%- import "includes/tags.html" as tags -%}
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block head %}
+    <link rel="canonical" href="https://kjhjason.com/blogs/{{ id }}" />
+{% endblock %}
+
 {% block content %}
-    <h1 class="title font-medium text-2xl tracking-tighter max-w-[650px]" id="blog-title">{{ title }}</h1>
-    <div class="flex justify-between items-center mt-2 mb-8 text-sm max-w-[650px]">
-        <p class="text-sm text-neutral-600 dark:text-neutral-400">{{ date }} ({{ readable_date }})</p>
-        <p class="text-neutral-600 dark:text-neutral-400">{{ views }} views</p>
+    <h1 class="font-medium text-2xl tracking-tighter max-w-[650px] !mb-1" id="blog-title">{{ title }}</h1>
+    <div class="flex justify-between items-center mt-2 text-sm max-w-[650px]">
+        <p class="!my-0 text-sm text-neutral-600 dark:text-neutral-400">
+            Published:
+            <span id="blog-date"></span>
+            ({{ readable_date }})
+        </p>
+        <p class="!my-0 text-neutral-600 dark:text-neutral-400">{{ views }} views</p>
     </div>
-    <div class="blog-content">
+    {% if last_modified != "" %}
+        <p class="!mt-0 !mb-1 text-sm text-neutral-600 dark:text-neutral-400">
+            Updated: <span id="last-modified">{{ last_modified }}</span>
+        </p>
+    {% endif %}
+    {% call tags::parse_tags(tags) %}
+    <div class="blog-content mt-8">
         {{ content|safe }}
     </div>
 {% endblock %}
 
 {% block scripts %}
+<script nonce="{{ common.nonce }}" src="/static/js/date.js"></script>
 <script nonce="{{ common.nonce }}">
-    
-    
+    document.getElementById("blog-date").innerText = parseDateToLocal("{{ date }}");
+    const lastModified = document.getElementById("last-modified");
+    if (lastModified) {
+        lastModified.innerText = parseDateToLocal(lastModified.innerText);
+    }
 </script>
 {% endblock %}

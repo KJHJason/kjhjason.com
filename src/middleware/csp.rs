@@ -13,6 +13,7 @@ use std::rc::Rc;
 pub struct ContentSecurityPolicies {
     pub script_src: Vec<String>,
     pub style_src: Vec<String>,
+    pub frame_src: Vec<String>,
     pub default_src: Vec<String>,
     pub base_uri: Vec<String>,
     pub img_src: Vec<String>,
@@ -31,6 +32,7 @@ impl Default for ContentSecurityPolicies {
                 "https:".to_string(),
                 "'unsafe-inline'".to_string(),
             ],
+            frame_src: vec!["'self'".to_string()],
             default_src: vec!["'self'".to_string()],
             base_uri: vec!["'self'".to_string()],
             img_src: vec!["'self'".to_string(), "data:".to_string()],
@@ -64,6 +66,7 @@ fn build_csp_header(csp: &ContentSecurityPolicies, nonce: &str) -> String {
         add_csp_header("default-src", &csp.default_src),
         add_csp_header(&format!("script-src 'nonce-{}'", nonce), &csp.script_src),
         add_csp_header(&format!("style-src 'nonce-{}'", nonce), &csp.style_src),
+        add_csp_header("frame-src", &csp.frame_src),
         add_csp_header("base-uri", &csp.base_uri),
         add_csp_header("img-src", &csp.img_src),
         add_csp_header("font-src", &csp.font_src),
@@ -83,6 +86,17 @@ fn build_csp_header(csp: &ContentSecurityPolicies, nonce: &str) -> String {
 
 pub struct CspNonce {
     nonce: String,
+}
+
+impl Default for CspNonce {
+    // Mainly in the event that the CspNonce is not set.
+    // which usually happens on errors for
+    // whitelisted routes like 404 in the static routes.
+    fn default() -> Self {
+        Self {
+            nonce: "".to_string(),
+        }
+    }
 }
 
 impl CspNonce {
@@ -188,7 +202,8 @@ where
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let mut csp_response_header = String::new();
-        if is_protected(&self.inner.whitelist, &self.inner.whitelist_regex, &req) {
+        let is_protected = is_protected(&self.inner.whitelist, &self.inner.whitelist_regex, &req);
+        if is_protected {
             let nonce = generate_nonce(self.inner.nonce_len);
             req.extensions_mut().insert(CspNonce::new(&nonce));
             csp_response_header = build_csp_header(&self.inner.csp_config, &nonce);
@@ -198,10 +213,12 @@ where
         let fut = self.service.call(req);
         Box::pin(async move {
             let mut res = fut.await?;
-            res.headers_mut().insert(
-                header::CONTENT_SECURITY_POLICY,
-                HeaderValue::from_str(&csp_response_header).unwrap(),
-            );
+            if !is_protected {
+                res.headers_mut().insert(
+                    header::CONTENT_SECURITY_POLICY,
+                    HeaderValue::from_str(&csp_response_header).unwrap(),
+                );
+            }
             Ok(res)
         })
     }

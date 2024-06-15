@@ -59,7 +59,9 @@ fn change_obj_prefix(obj: &str, old_prefix: &str, new_prefix: &str) -> String {
     }
 
     let mut obj = obj.to_string();
+    log::info!("Changing prefix from {} to {}", old_prefix, new_prefix);
     if &obj[0..old_prefix.len()] == old_prefix {
+        log::info!("Prefix found, changing prefix");
         obj.replace_range(0..old_prefix.len(), new_prefix);
     }
     return obj;
@@ -117,27 +119,27 @@ async fn publish_blog(
             continue;
         }
 
-        let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url(&signed_url);
+        let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url(&file.url);
         // replace the signed url with the actual url
+        let obj_name_with_changed_prefix = &change_obj_prefix(
+            &obj_name,
+            constants::TEMP_OBJ_PREFIX,
+            constants::BLOG_OBJ_PREFIX,
+        );
         content = content.replace(
             signed_url,
             &format!(
                 "https://storage.googleapis.com/{}/{}",
                 constants::BUCKET,
-                obj_name
+                obj_name_with_changed_prefix,
             ),
         );
-
         move_blob!(
             &gcs_client,
             &bucket,
             &obj_name,
             constants::BUCKET,
-            &change_obj_prefix(
-                &obj_name,
-                constants::TEMP_OBJ_PREFIX,
-                constants::BLOG_OBJ_PREFIX,
-            )
+            obj_name_with_changed_prefix
         );
     }
 
@@ -218,14 +220,19 @@ async fn update_blog(
                 continue;
             }
 
-            let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url(&signed_url);
+            let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url(&file.url);
             // replace the signed url with the actual url
+            let obj_name_with_changed_prefix = &change_obj_prefix(
+                &obj_name,
+                constants::TEMP_OBJ_PREFIX,
+                constants::BLOG_OBJ_PREFIX,
+            );
             content = content.replace(
                 signed_url,
                 &format!(
                     "https://storage.googleapis.com/{}/{}",
                     constants::BUCKET,
-                    obj_name
+                    obj_name_with_changed_prefix
                 ),
             );
             move_blob!(
@@ -233,11 +240,7 @@ async fn update_blog(
                 &bucket,
                 &obj_name,
                 constants::BUCKET,
-                &change_obj_prefix(
-                    &obj_name,
-                    constants::TEMP_OBJ_PREFIX,
-                    constants::BLOG_OBJ_PREFIX,
-                )
+                obj_name_with_changed_prefix
             );
         }
 
