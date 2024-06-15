@@ -29,6 +29,8 @@ pub const TEMP_OBJ_PREFIX: &str = "temp";
 pub const BLOG_OBJ_PREFIX: &str = "api";
 
 // env keys
+pub const CF_TURNSTILE_SITE_KEY: &str = "0x4AAAAAAAcnZh9gukmZdThg";
+pub const CF_TURNSTILE_SECRET_KEY: &str = "CF_TURNSTILE_SECRET_KEY";
 pub const SECRET_KEY: &str = "SECRET_KEY";
 pub const SECRET_KEY_SALT: &str = "SECRET_KEY_SALT";
 pub const CSRF_KEY_SALT: &str = "CSRF_KEY_SALT";

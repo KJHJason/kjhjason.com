@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+.cf-turnstile iframe {
+    @apply !w-full;
+}
+
 main p {
     @apply prose prose-neutral dark:prose-invert !max-w-none my-8;
 }

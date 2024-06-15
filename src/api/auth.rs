@@ -2,6 +2,7 @@ use crate::constants::constants;
 use crate::db;
 use crate::middleware::auth;
 use crate::model::auth as auth_model;
+use crate::security::cf_turnstile;
 use crate::security::pw_hasher;
 use crate::utils::security;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
@@ -12,8 +13,17 @@ use hmac_serialiser_rs::SignerLogic;
 use rand::Rng;
 use tokio::time as tokio_time;
 
+macro_rules! verify_captcha {
+    ($req:expr, $cf_turnstile_res:expr) => {
+        if !cf_turnstile::verify_request($req, $cf_turnstile_res).await {
+            return Err(auth_model::AuthError::CaptchaFailed);
+        }
+    };
+}
+
 #[post("/api/admin")]
 async fn admin_honeypot(
+    req: HttpRequest,
     login_data: Form<auth_model::LoginData>,
 ) -> Result<HttpResponse, auth_model::AuthError> {
     log::warn!(
@@ -21,6 +31,7 @@ async fn admin_honeypot(
         login_data.username,
         login_data.password
     );
+    verify_captcha!(&req, &login_data.cf_turnstile_res);
     let sleep_time = rand::thread_rng().gen_range(500..1500);
     tokio_time::sleep(tokio_time::Duration::from_millis(sleep_time)).await;
     Err(auth_model::AuthError::InvalidCredentials)
@@ -39,6 +50,7 @@ async fn login(
         None => {}
     }
 
+    verify_captcha!(&req, &login_data.cf_turnstile_res);
     web::block(move || async move {
         let user = client.get_user_by_username(&login_data.username).await?;
         let is_valid = match pw_hasher::verify_password(&login_data.password, user.get_password()) {

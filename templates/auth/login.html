@@ -4,6 +4,7 @@
 
 {% block head %}
     <link rel="canonical" href="https://kjhjason.com/{{ login_url }}" />
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
 
 {% block content %}
@@ -41,6 +42,7 @@
                     </div>
                 </div>
             </div>
+            <div class="cf-turnstile" data-sitekey="{{ crate::constants::constants::CF_TURNSTILE_SITE_KEY }}"></div>
             <button type="submit" class="w-full btn btn-primary">Sign in</button>
         </form>
     </div>

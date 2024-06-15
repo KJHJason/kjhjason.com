@@ -9,6 +9,8 @@ use serde::{Deserialize, Serialize};
 pub struct LoginData {
     pub username: String,
     pub password: String,
+    #[serde(rename = "cf-turnstile-response")]
+    pub cf_turnstile_res: String,
     pub remember: Option<checkbox::State>,
 }
 
@@ -58,6 +60,8 @@ pub enum AuthError {
     UserNotFound, // same as InvalidCredentials to avoid enumeration attacks
     #[display(fmt = "Invalid username or password")]
     InvalidCredentials,
+    #[display(fmt = "Captcha verification failed")]
+    CaptchaFailed,
     #[display(fmt = "Internal server error")]
     InternalServerError,
 }
@@ -84,6 +88,9 @@ impl ResponseError for AuthError {
                 .content_type(content_type)
                 .body(error_html),
             AuthError::InvalidCredentials => HttpResponse::Unauthorized()
+                .content_type(content_type)
+                .body(error_html),
+            AuthError::CaptchaFailed => HttpResponse::BadRequest()
                 .content_type(content_type)
                 .body(error_html),
             AuthError::InternalServerError => HttpResponse::InternalServerError()
