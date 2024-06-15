@@ -3,5 +3,21 @@
 {% block title %}Blog{% endblock %}
 
 {% block content %}
-    <p>TODO!</p>
+    <h1 class="font-medium text-2xl mb-8 tracking-tighter">My Blogs</h1>
+    {% if blogs.len() == 0 %}
+        <p class="text-neutral-900 dark:text-neutral-100">No blogs yet...</p>
+    {% endif %}
+
+    {% for blog in blogs %}
+        <a class="flex flex-col space-y-1 mb-4" href="/blog/{{ blog.id }}">
+            <div class="w-full flex flex-col">
+                <p class="!my-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
+                    {{ blog.title }}
+                </p>
+                <p class="!my-0 text-neutral-600 dark:text-neutral-400">
+                    {{ blog.views }} views
+                </p>
+            </div>
+        </a>
+    {% endfor %}
 {% endblock %}

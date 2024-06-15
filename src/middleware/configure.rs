@@ -5,16 +5,28 @@ pub fn configure_auth_middleware() -> middleware::auth::AuthMiddleware {
     let auth_whitelist = vec![
         (Method::GET, "/".to_string()),
         (Method::GET, "/favicon.ico".to_string()),
+        (Method::GET, "/experiences".to_string()),
+        (Method::GET, "/projects".to_string()),
+        (Method::GET, "/skills".to_string()),
+        (Method::GET, "/blog".to_string()),
+        (Method::GET, "/admin".to_string()),
+        (Method::GET, "/login".to_string()),
+        (Method::GET, "/auth/login".to_string()),
+        (Method::GET, "/api".to_string()),
         (Method::GET, "/api/csrf-token".to_string()),
         (Method::POST, "/api/admin".to_string()),
         (Method::POST, "/api/login".to_string()),
         (Method::POST, "/api/auth/login".to_string()),
-        (Method::POST, "/api/auth/logout".to_string()),
+        (Method::POST, "/api/logout".to_string()),
     ];
-    let auth_whitelist_regex = vec![(
-        Method::GET,
-        regex::Regex::new(r"^/api/[a-fA-F\d]{24}$").unwrap(),
-    )];
+    let auth_whitelist_regex = vec![
+        (Method::GET, regex::Regex::new(r"^/blog/[\w-]+$").unwrap()),
+        (
+            Method::GET,
+            regex::Regex::new(r"^/api/blog/[\w-]+$").unwrap(),
+        ),
+        (Method::GET, regex::Regex::new(r"^/static/.*$").unwrap()),
+    ];
     let auth_middleware = middleware::auth::AuthMiddleware::new(
         None,
         constants::AUTH_COOKIE_NAME,

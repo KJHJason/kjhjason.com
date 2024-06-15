@@ -5,7 +5,9 @@ use crate::model::auth as auth_model;
 use crate::security::pw_hasher;
 use crate::utils::security;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
+use actix_web::http::header::ContentType;
 use actix_web::{post, web, web::Data, web::Form, HttpRequest, HttpResponse};
+use askama::Template;
 use hmac_serialiser_rs::SignerLogic;
 use rand::Rng;
 use tokio::time as tokio_time;
@@ -74,17 +76,21 @@ async fn login(
             .secure(!constants::DEBUG_MODE)
             .expires(max_age)
             .finish();
-        let response = auth_model::LoginResponse {
-            username: user.get_username().to_string(),
+        let html = auth_model::AuthSucessTemplate {
+            msg: "You have logged in",
         };
-        return Ok(HttpResponse::Ok().cookie(c).json(response));
+        return Ok(HttpResponse::Ok()
+            .content_type(ContentType::html())
+            .cookie(c)
+            .insert_header(("HX-Redirect", "/"))
+            .body(html.render().unwrap()));
     })
     .await
     .unwrap()
     .await
 }
 
-#[post("/api/auth/logout")]
+#[post("/api/logout")]
 async fn logout(req: HttpRequest) -> HttpResponse {
     let msg = "you have logged out";
     match req.cookie(constants::AUTH_COOKIE_NAME) {

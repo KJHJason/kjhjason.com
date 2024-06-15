@@ -1,8 +1,5 @@
 use crate::model::checkbox;
-use actix_web::{
-    http::{header, header::ContentType},
-    HttpResponse, ResponseError,
-};
+use actix_web::{http::header::ContentType, HttpResponse, ResponseError};
 use askama_actix::Template;
 use bson::oid::ObjectId;
 use derive_more::{Display, Error};
@@ -42,17 +39,15 @@ impl User {
     pub fn get_id(&self) -> ObjectId {
         self._id.clone()
     }
-    pub fn get_username(&self) -> &str {
-        &self.username
-    }
     pub fn get_password(&self) -> &str {
         &self.password
     }
 }
 
-#[derive(Serialize)]
-pub struct LoginResponse {
-    pub username: String,
+#[derive(Template)]
+#[template(path = "components/auth_success.html")]
+pub(crate) struct AuthSucessTemplate<'a> {
+    pub(crate) msg: &'a str,
 }
 
 #[derive(Debug, Display, Error)]
@@ -75,7 +70,7 @@ struct AuthErrTemplate<'a> {
 
 impl ResponseError for AuthError {
     fn error_response(&self) -> HttpResponse {
-        let header = (header::CONTENT_TYPE, ContentType::html().to_string());
+        let content_type = ContentType::html();
         let error_html = AuthErrTemplate {
             err: &self.to_string(),
         }
@@ -83,16 +78,16 @@ impl ResponseError for AuthError {
         .unwrap();
         match self {
             AuthError::AlreadyLoggedIn => HttpResponse::Forbidden()
-                .insert_header(header)
+                .content_type(content_type)
                 .body(error_html),
             AuthError::UserNotFound => HttpResponse::Unauthorized()
-                .insert_header(header)
+                .content_type(content_type)
                 .body(error_html),
             AuthError::InvalidCredentials => HttpResponse::Unauthorized()
-                .insert_header(header)
+                .content_type(content_type)
                 .body(error_html),
             AuthError::InternalServerError => HttpResponse::InternalServerError()
-                .insert_header(header)
+                .content_type(content_type)
                 .body(error_html),
         }
     }

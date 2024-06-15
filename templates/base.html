@@ -66,7 +66,7 @@
                         </li>
                         <li id="logout-item" class="hidden">
                             <button type="button" 
-                                hx-post="/api/auth/logout" 
+                                hx-post="/api/logout" 
                                 hx-headers='{{ common.csrf_header_json|safe }}' 
                                 hx-swap="none" 
                                 hx-on::after-swap="handleLogout()"
@@ -129,7 +129,6 @@
     </div>
     <script nonce="{{ common.nonce }}">
         htmx.config.includeIndicatorStyles = false;
-        htmx.config.withCredentials = true;
 
         const logoutItem = document.getElementById("logout-item");
         const loginItem = document.getElementById("login-item");

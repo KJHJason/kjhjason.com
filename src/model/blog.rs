@@ -36,6 +36,7 @@ pub struct Blog {
     files: Vec<FileInfo>,
     content: String,
     is_public: bool,
+    views: i64,
     #[serde(with = "crate::utils::datetime::rfc3339")]
     timestamp: chrono::DateTime<Utc>,
     #[serde(with = "crate::utils::datetime::rfc3339::option")]
@@ -58,9 +59,13 @@ impl Blog {
             files: files.clone(),
             content,
             is_public,
+            views: 0,
             timestamp: Utc::now(),
             last_modified: None,
         }
+    }
+    pub fn get_id_string(&self) -> String {
+        self._id.to_hex()
     }
     pub fn get_title(&self) -> &str {
         &self.title
@@ -71,8 +76,36 @@ impl Blog {
     pub fn get_files(&self) -> &Vec<FileInfo> {
         &self.files
     }
+    pub fn get_views(&self) -> i64 {
+        self.views
+    }
+    pub fn get_html_content(&self) -> String {
+        md::convert_to_html(&self.content, None)
+    }
     pub fn get_is_public(&self) -> bool {
         self.is_public
+    }
+    pub fn get_date_string(&self) -> String {
+        // format for JavaScript to parse to the user's local timezone
+        self.timestamp.to_rfc3339()
+    }
+    pub fn get_readable_date_diff(&self) -> String {
+        let time_diff = Utc::now().signed_duration_since(self.timestamp);
+        if time_diff.num_days() >= 365 {
+            format!("{}y ago", time_diff.num_days() / 365)
+        } else if time_diff.num_days() >= 30 {
+            format!("{}mo ago", time_diff.num_days() / 30)
+        } else if time_diff.num_days() >= 1 {
+            format!("{}d ago", time_diff.num_days())
+        } else if time_diff.num_hours() >= 1 {
+            format!("{}h ago", time_diff.num_hours())
+        } else if time_diff.num_minutes() >= 1 {
+            format!("{}m ago", time_diff.num_minutes())
+        } else if time_diff.num_seconds() > 0 {
+            format!("{}s ago", time_diff.num_seconds())
+        } else {
+            "just now".to_string()
+        }
     }
 }
 

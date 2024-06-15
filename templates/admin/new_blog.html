@@ -5,7 +5,6 @@
 {% block content %}
     <div class="join grid grid-cols-2 mb-8">
         <button class="join-item btn btn-outline" hx-on:click="editBtnEvt()" type="button">Edit</button>
-
         <form 
             class="join-item btn btn-outline !p-0" 
             id="previewBtn" 
@@ -51,6 +50,22 @@
 {% block scripts %}
     <script nonce="{{ common.nonce }}" src="/static/js/blog.js"></script>
     <script nonce="{{ common.nonce }}">
+        // read from localstorage
+        const savedContent = localStorage.getItem("content");
+        if (savedContent) {
+            content.value = savedContent;
+            contentPreview.value = savedContent;
+        }
+        const savedTags = localStorage.getItem("tags");
+        if (savedTags) {
+            tags.value = savedTags;
+        }
+        const savedTitle = localStorage.getItem("title");
+        if (savedTitle) {
+            title.value = savedTitle;
+            titlePreivew.innerText = savedTitle;
+        }
+
         const files = loadFileInfo();
         const uploadImage = (file) => {
             const formData = new FormData();
@@ -117,6 +132,7 @@
                         localStorage.removeItem("content");
                         localStorage.removeItem("tags");
                         localStorage.removeItem("title");
+                        localStorage.removeItem("files");
                         window.location.href = "/admin/blog";
                     } else {
                         alert("Failed to create blog!");
@@ -125,22 +141,6 @@
                 .catch((error) => {
                     console.error("Error:", error);
                 });
-        }
-
-        // read from localstorage
-        const savedContent = localStorage.getItem("content");
-        if (savedContent) {
-            content.value = savedContent;
-            contentPreview.value = savedContent;
-        }
-        const savedTags = localStorage.getItem("tags");
-        if (savedTags) {
-            tags.value = savedTags;
-        }
-        const savedTitle = localStorage.getItem("title");
-        if (savedTitle) {
-            title.value = savedTitle;
-            titlePreivew.innerText = savedTitle;
         }
     </script>
 {% endblock %}

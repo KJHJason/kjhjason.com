@@ -9,11 +9,11 @@
         <p class="text-neutral-600 dark:text-neutral-400">{{ views }} views</p>
     </div>
     <div class="blog-content">
-        {{ content | safe }}
+        {{ content|safe }}
     </div>
 {% endblock %}
 
-{% scripts %}
+{% block scripts %}
 <script nonce="{{ common.nonce }}">
     
     

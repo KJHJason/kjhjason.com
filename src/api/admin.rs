@@ -11,9 +11,7 @@ use crate::utils::storage;
 use crate::utils::validations::validate_id;
 use actix_multipart::Multipart;
 use actix_web::http::header::{ContentType, CONTENT_LENGTH};
-use actix_web::{
-    delete, http::header, post, put, web::Data, web::Form, web::Json, HttpRequest, HttpResponse,
-};
+use actix_web::{delete, post, put, web::Data, web::Form, web::Json, HttpRequest, HttpResponse};
 use futures_util::TryStreamExt;
 use google_cloud_storage::client::Client as GcsClient;
 use mime::{Mime, IMAGE_GIF, IMAGE_JPEG, IMAGE_PNG};
@@ -75,7 +73,7 @@ async fn preview_blog(data: Form<BlogPreview>) -> HttpResponse {
     }
     let preview = convert_to_html(content, None);
     HttpResponse::Ok()
-        .insert_header((header::CONTENT_TYPE, ContentType::html().to_string()))
+        .content_type(ContentType::html())
         .body(preview)
 }
 
@@ -385,6 +383,7 @@ async fn upload_blog_files(
             get_temp_file_path(),
             file_ext
         );
+
         let mut data = Vec::new();
         while let Ok(Some(chunk)) = field.try_next().await {
             data.extend_from_slice(&chunk);

@@ -8,7 +8,7 @@ use askama_actix::Template;
 #[derive(Template)]
 #[template(path = "error.html")]
 pub struct ErrorTemplate<'a> {
-    common: TemplateValues,
+    pub common: TemplateValues,
     pub status: u16,
     pub message: &'a str,
 }
@@ -17,6 +17,17 @@ pub struct ErrorTemplate<'a> {
 pub fn render_error<B>(res: ServiceResponse<B>) -> Result<ErrorHandlerResponse<B>> {
     let request = res.request(); // Borrow the request part
     if request.path().starts_with("/api") {
+        return Ok(ErrorHandlerResponse::Response(res.map_into_left_body()));
+    }
+
+    // check if the response is already html to avoid double rendering
+    let html_content_type = ContentType::html().to_string();
+    if res
+        .headers()
+        .get("Content-Type")
+        .map(|v| v.to_str().unwrap_or("") == html_content_type)
+        .unwrap_or(false)
+    {
         return Ok(ErrorHandlerResponse::Response(res.map_into_left_body()));
     }
 
@@ -31,7 +42,7 @@ pub fn render_error<B>(res: ServiceResponse<B>) -> Result<ErrorHandlerResponse<B
     .unwrap_or(format!("error: {}", status.as_u16()));
 
     let new_response = HttpResponseBuilder::new(status)
-        .insert_header(ContentType::html())
+        .content_type(html_content_type)
         .body(html);
 
     Ok(ErrorHandlerResponse::Response(
