@@ -112,9 +112,11 @@ async fn main() -> std::io::Result<()> {
             .configure(add_client_routes)
             .configure(add_api_routes)
             .service(favicon)
-            // Note: index file is added here as an error will be thrown if the file in the static path is not found
-            // e.g. /static/test.png will return some error text which is not ideal.
-            .service(actix_files::Files::new("/static", "./static").index_file("index.html"))
+            // Note: due to the error middleware, the 404 html page will
+            // be rendered instead of the default actix error text response
+            // if the static path is not found. E.g. /static/test.png will
+            // return the 404 html page instead of the default error text response.
+            .service(actix_files::Files::new("/static", "./static"))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
