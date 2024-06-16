@@ -669,6 +669,7 @@ dependencies = [
  "ahash",
  "base64 0.13.1",
  "bitvec",
+ "chrono",
  "hex 0.4.3",
  "indexmap",
  "js-sys",

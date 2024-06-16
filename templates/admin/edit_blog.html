@@ -1,41 +1,37 @@
 {% extends "base.html" %}
 
-{% block title %}New Blog{% endblock %}
+{% block title %}Edit Blog - {{ title|truncate(10) }}{% endblock %}
 
 {% block head %}
-    <link rel="canonical" href="https://kjhjason.com/admin/new/blog" />
+    <link rel="canonical" href="https://kjhjason.com/admin/blogs/{{ id }}/edit" />
     <meta name="robots" content="noindex, nofollow">
 {% endblock %}
 
 {% block content %}
     {% include "components/blog_input_div.html" %}
+
+    <template id="title-template">{{ title }}</template>
+    <template id="tags-template">{{ tags }}</template>
+    <template id="content-template">{{ content }}</template>
 {% endblock %}
 
 {% block scripts %}
     <script nonce="{{ common.nonce }}" src="/static/js/blog.js"></script>
     <script nonce="{{ common.nonce }}">
-        // read from localstorage
-        const savedContent = localStorage.getItem("content");
-        if (savedContent) {
-            content.value = savedContent;
-            contentPreview.value = savedContent;
-        }
-        const savedTags = localStorage.getItem("tags");
-        if (savedTags) {
-            tags.value = savedTags;
-        }
-        const savedTitle = localStorage.getItem("title");
-        if (savedTitle) {
-            title.value = savedTitle;
-            titlePreivew.innerText = savedTitle;
-        }
+        useLocalStorage = false;
 
-        const files = loadFileInfo();
+        isPublic.checked = "{{ public }}" === "true";
+        content.value = document.getElementById("content-template").innerHTML;
+        contentPreview.value = content.value;
+        tags.value = document.getElementById("tags-template").innerHTML;
+        title.value = document.getElementById("title-template").innerHTML;
+        titlePreivew.innerText = title.value;
+
+        let newFiles = [];
         fileUploadResponseHandler = (file) => {
-            saveFileInfo(file, files);
+            newFiles.push(file);
         };
 
-        loadTags();
         const postBlog = () => {
             const tileVal = title.value;
             const contentVal = content.value;
@@ -58,41 +54,48 @@
                 return;
             }
 
-            fetch("/api/new/blog", {
-                method: "POST",
+            fetch("/api/blog/update", {
+                method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "{{ common.csrf_header }}": "{{ common.csrf_value }}",
                 },
                 body: JSON.stringify({
+                    id: "{{ id }}",
                     title: tileVal,
                     tags: tagsVal,
-                    files: parseFileSliceForUpload(files),
+                    new_files: newFiles,
                     content: contentVal,
                     is_public: isPublic.checked,
                 }),
             })
                 .then((response) => {
                     if (!response.ok) {
-                        throw new Error("Failed to create blog!", response);
+                        throw new Error("Failed to update blog!", response);
                     }
-                    localStorage.removeItem("content");
-                    localStorage.removeItem("tags");
-                    localStorage.removeItem("title");
-                    localStorage.removeItem("files");
-                    return response.text();
-                })
-                .then((blogId) => {
-                    window.location.href = `/blogs/${blogId}`;
+                    swal.fire({
+                        icon: "success",
+                        title: "Success!",
+                        text: "Blog updated!",
+                        confirmButtonText: "Continue Editing",
+                        cancelButtonText: "View Blog",
+                        showCancelButton: true,
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            newFiles = [];
+                            return;
+                        }
+                        window.location.href = "/blogs/{{ id }}";
+                    });
                 })
                 .catch((error) => {
+                    console.error("Error:", error);
                     Swal.fire({
                         icon: "error",
                         title: "Oops...",
-                        text: "Failed to create blog!",
+                        text: "Failed to update blog!",
                     });
-                    console.error("Error:", error);
                 });
-        }
+        };
     </script>
 {% endblock %}

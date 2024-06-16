@@ -1,6 +1,6 @@
 use crate::constants::constants;
 use crate::model::auth::{AuthError, User};
-use crate::model::blog::{Blog, BlogError};
+use crate::model::blog::{Blog, BlogError, BlogProjection};
 use crate::security::pw_hasher;
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
@@ -166,16 +166,8 @@ impl DbClient {
         }
     }
 
-    pub async fn get_blog_post(
-        &self,
-        id: &ObjectId,
-        options: Option<FindOneOptions>,
-    ) -> Result<Blog, BlogError> {
-        match self
-            .get_blog_collection()
-            .find_one(doc! {"_id": id}, options)
-            .await
-        {
+    fn handle_result<T>(result: Result<Option<T>, mongodb::error::Error>) -> Result<T, BlogError> {
+        match result {
             Ok(Some(blog)) => Ok(blog),
             Ok(None) => Err(BlogError::BlogNotFound),
             Err(err) => {
@@ -183,5 +175,30 @@ impl DbClient {
                 Err(BlogError::InternalServerError)
             }
         }
+    }
+
+    pub async fn get_blog_post_projection(
+        &self,
+        id: &ObjectId,
+        options: Option<FindOneOptions>,
+    ) -> Result<BlogProjection, BlogError> {
+        let blog_collection: Collection<BlogProjection> =
+            self.get_custom_collection(constants::BLOG_COLLECTION);
+        let result = blog_collection
+            .find_one(doc! {"_id": id}, options)
+            .await;
+        Self::handle_result(result)
+    }
+
+    pub async fn get_blog_post(
+        &self,
+        id: &ObjectId,
+        options: Option<FindOneOptions>,
+    ) -> Result<Blog, BlogError> {
+        let result = self
+            .get_blog_collection()
+            .find_one(doc! {"_id": id}, options)
+            .await;
+        Self::handle_result(result)
     }
 }

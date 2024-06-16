@@ -1,11 +1,11 @@
 use crate::database::db;
-use crate::middleware::errors::ErrorTemplate;
 use crate::model::blog::BlogIdentifier;
+use crate::templates::error::ErrorTemplate;
 use crate::templates::general::{
     Blog, BlogPost, BlogPostInfo, Experiences, Index, Projects, Skills,
 };
 use crate::utils::security::extract_for_template;
-use crate::utils::validations::validate_id;
+use crate::utils::validations::get_id_from_path;
 use actix_web::http::header::ContentType;
 use actix_web::web::Data;
 use actix_web::{get, web::Path, HttpRequest, HttpResponse, Responder};
@@ -130,24 +130,12 @@ macro_rules! blog_not_found {
 async fn blog_id(
     client: Data<db::DbClient>,
     req: HttpRequest,
-    blog_id: Path<BlogIdentifier>,
+    blog_identifier: Path<BlogIdentifier>,
 ) -> HttpResponse {
-    let blog_id = match validate_id(&blog_id.into_inner().id) {
+    let blog_id = match get_id_from_path(&req, blog_identifier) {
         Ok(blog_id) => blog_id,
-        Err(_) => {
-            let html = ErrorTemplate {
-                common: extract_for_template(&req),
-                status: 400,
-                message: "Invalid blog post ID",
-            }
-            .render()
-            .unwrap();
-            return HttpResponse::BadRequest()
-                .content_type(ContentType::html())
-                .body(html);
-        }
+        Err(response) => return response,
     };
-
     let query = doc! { "_id": blog_id };
     let common = extract_for_template(&req);
     let blog_collection = client.get_blog_collection();

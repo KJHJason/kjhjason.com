@@ -1,0 +1,47 @@
+<div class="join grid grid-cols-2 mb-8">
+    <button class="join-item btn btn-outline" hx-on:click="editBtnEvt()" type="button">Edit</button>
+    <form 
+        class="join-item btn btn-outline !p-0" 
+        id="previewBtn" 
+        hx-headers='{{ common.csrf_header_json|safe }}' 
+        hx-post="/api/admin/ws/blog/preview"
+        hx-target="#blog-content"
+    >
+        <button type="submit" class="w-full h-full" hx-on:click="previewBtnEvt()">Preview</button>
+        <input type="hidden" name="content" id="content-preview">
+    </form>
+</div>
+<div id="edit" class="gap-y-8 grid grid-cols-1">
+    <div>
+        <label for="title" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Title:</label>
+        <input type="text" name="title" id="title" class="input-theme" placeholder="Hello World!" required maxlength="150" autofocus>
+    </div>
+    <div>
+        <label for="tags" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Tags (Max 8):</label>
+        <input type="text" name="tags" id="tags" class="input-theme" placeholder="Rust, Web Dev">
+    </div>
+    <div>
+        <div class="flex mb-1">
+            <label for="is-public" class="block text-sm font-medium text-neutral-900 dark:text-white">Public:</label>
+            <input type="checkbox" name="is-public" id="is-public" class="ml-4 toggle toggle-success" checked>
+        </div>
+        <p class="!my-0 text-xs text-neutral-900 dark:text-white">
+            *Note: Assets like images that were uploaded will be publicly accessible after posting this blog regardless of this setting.
+        </p>
+    </div>
+    <div>
+        <label for="content" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Content:</label>
+        <textarea placeholder="Start typing the content for this blog in markdown!" name="content" id="content" class="input-theme" rows="25" spellcheck="true"></textarea>
+    </div>
+</div>
+<div id="preview" class="blog-content hidden">
+    <h1 id="blog-title"></h1>
+    <div id="blog-content"></div>
+</div>
+<button 
+    class="btn btn-primary my-8 w-full"
+    type="button" 
+    hx-on:click="postBlog()"
+>
+    {{ post_blog_btn_txt }}
+</button>

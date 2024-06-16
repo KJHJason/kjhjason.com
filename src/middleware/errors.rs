@@ -1,17 +1,10 @@
-use crate::utils::security::{extract_for_template, TemplateValues};
+use crate::templates::error::ErrorTemplate;
+use crate::utils::security::extract_for_template;
 use actix_web::dev::ServiceResponse;
 use actix_web::http::header::ContentType;
 use actix_web::middleware::ErrorHandlerResponse;
 use actix_web::{HttpResponseBuilder, Result};
-use askama_actix::Template;
-
-#[derive(Template)]
-#[template(path = "error.html")]
-pub struct ErrorTemplate<'a> {
-    pub common: TemplateValues,
-    pub status: u16,
-    pub message: &'a str,
-}
+use askama::Template;
 
 // mostly thanks to https://www.reddit.com/r/rust/comments/wu69kt/how_to_display_an_error_page_in_actix_web_using/
 pub fn render_error<B>(res: ServiceResponse<B>) -> Result<ErrorHandlerResponse<B>> {
@@ -25,7 +18,7 @@ pub fn render_error<B>(res: ServiceResponse<B>) -> Result<ErrorHandlerResponse<B
     if res
         .headers()
         .get("Content-Type")
-        .map(|v| v.to_str().unwrap_or("") == html_content_type)
+        .map(|v| v.to_str().unwrap_or_default() == html_content_type)
         .unwrap_or(false)
     {
         return Ok(ErrorHandlerResponse::Response(res.map_into_left_body()));

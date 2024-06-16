@@ -1,3 +1,5 @@
+const isPublic = document.getElementById("is-public");
+
 const parseUrlToMd = (file) => {
     if (!file.url.endsWith(".mp4")) {
         return `![${file.name}](${file.signed_url})\n`;
@@ -22,6 +24,7 @@ const checkFileSize = (file) => {
     return true;
 };
 
+let fileUploadResponseHandler = null;
 document.onpaste = (e) => {
     const items = (e.clipboardData || e.originalEvent.clipboardData).items;
     for (index in items) {
@@ -45,6 +48,36 @@ editDiv.addEventListener("drop", (e) => {
         uploadImage(file);
     }
 });
+const uploadImage = (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    fetch("/api/blog/upload/files", {
+        method: "POST",
+        body: formData,
+        headers: {
+            "{{ common.csrf_header }}": "{{ common.csrf_value }}",
+        },  
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            data.files.forEach((file) => {
+                if (fileUploadResponseHandler === null) {
+                    throw new Error("fileUploadResponseHandler is null");
+                }
+                responseHandlerFn(file);
+                content.value += parseUrlToMd(file);
+                content.dispatchEvent(new Event("input", {
+                    bubbles: true,
+                    cancelable: true,
+                }));
+            });
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        });
+}
+
+/* Fn mainly for the new blog route */
 
 const saveFileInfo = (file, fileSlice) => {
     fileSlice.push({"file": file, "time": new Date().getTime()});
@@ -64,6 +97,8 @@ const parseFileSliceForUpload = (fileSlice) => {
     return fileSlice.map((file) => file.file);
 };
 
+/* End of file fn for the new blog route */
+
 const previewDiv = document.getElementById("preview");
 const editBtnEvt = () => {
     editDiv.classList.remove("hidden");
@@ -74,11 +109,14 @@ const previewBtnEvt = () => {
     previewDiv.classList.remove("hidden");
 };
 
+let useLocalStorage = true;
 const content = document.getElementById("content");
 const contentPreview = document.getElementById("content-preview");
 content.addEventListener("input", () => {
     const value = content.value;
-    localStorage.setItem("content", value);
+    if (useLocalStorage) {
+        localStorage.setItem("content", value);
+    }
     contentPreview.value = value;
 });
 const title = document.getElementById("title");
@@ -86,16 +124,22 @@ const titlePreivew = document.getElementById("blog-title");
 title.addEventListener("input", () => {
     const value = title.value;
     titlePreivew.innerText = value;
+    if (useLocalStorage) {
+        localStorage.setItem("title", value);
+    }
     localStorage.setItem("title", value);
 });
 
+const maxTags = 8;
 const tagsInp = document.getElementById("tags");
 tagsInp.addEventListener("input", () => {
     tagsSlice = tags.value.split(",");
     if (tagsSlice.length > 8) {
         tagsSlice = tagsSlice.slice(0, 8);
     }
-    localStorage.setItem("tags", JSON.stringify(tagsSlice));
+    if (useLocalStorage) {
+        localStorage.setItem("tags", JSON.stringify(tagsSlice));
+    }
 });
 const loadTags = () => {
     const tagsSlice = localStorage.getItem("tags");
@@ -103,4 +147,9 @@ const loadTags = () => {
         return;
     }
     tags.value = JSON.parse(tagsSlice).join(",");
+};
+const parseTags = (tags) => {
+    return tags.split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
 };

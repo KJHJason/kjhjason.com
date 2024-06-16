@@ -22,7 +22,7 @@
                 <p class="!my-0 text-neutral-600 dark:text-neutral-400">
                     <span class="blog-date">{{ blog.date }}</span> ({{ blog.views }} views)
                 </p>
-                {% call tags::parse_tags(blog.tags.clone()) %}
+                {% call tags::parse_tags(blog.tags|as_ref) %}
             </div>
         </a>
     {% endfor %}

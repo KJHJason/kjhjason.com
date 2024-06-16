@@ -85,13 +85,77 @@ async fn preview_blog(data: Form<BlogPreview>) -> HttpResponse {
         .body(preview)
 }
 
+async fn process_file(
+    file: &mut FileInfo,
+    content: &str,
+    gcs_client: &GcsClient,
+) -> Result<String, BlogError> {
+    if file.url.is_empty() {
+        return Err(BlogError::FileIsEmpty);
+    }
+
+    let signed_url = match &file.signed_url {
+        Some(url) => &url.clone(),
+        None => {
+            return Ok("".to_string());
+        }
+    };
+
+    // check if the signed_url is in the content
+    let mut content = content.to_string();
+    if !content.contains(signed_url) {
+        storage::remove_file_from_md_content(&mut content, signed_url);
+        return Ok("".to_string());
+    }
+
+    let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url(&file.url);
+    // replace the signed url with the actual url
+    let obj_name_with_changed_prefix = &change_obj_prefix(
+        &obj_name,
+        constants::TEMP_OBJ_PREFIX,
+        constants::BLOG_OBJ_PREFIX,
+    );
+    let new_url = format!(
+        "https://storage.googleapis.com/{}/{}",
+        constants::BUCKET,
+        obj_name_with_changed_prefix,
+    );
+    content = content.replace(signed_url, &new_url);
+    file.signed_url = None;
+    file.url = new_url;
+
+    move_blob!(
+        &gcs_client,
+        &bucket,
+        &obj_name,
+        constants::BUCKET,
+        obj_name_with_changed_prefix
+    );
+    return Ok(content);
+}
+
+macro_rules! process_file {
+    ($file:expr, $content:expr, $gcs_client:expr) => {
+        match process_file($file, &$content, $gcs_client).await {
+            Ok(new_content) => {
+                if !new_content.is_empty() {
+                    $content = new_content;
+                }
+            }
+            Err(err) => {
+                return Err(err);
+            }
+        }
+    };
+}
+
 #[post("/api/new/blog")]
 async fn new_blog(
     client: Data<db::DbClient>,
     gcs_client: Data<GcsClient>,
     blog: Json<BlogPublishOperation>,
 ) -> Result<HttpResponse, BlogError> {
-    let blog_op = blog.into_inner();
+    let mut blog_op = blog.into_inner();
     let blog_col = client.into_inner().get_blog_collection();
 
     let title = blog_op.title;
@@ -106,52 +170,22 @@ async fn new_blog(
         return Err(BlogError::EmptyContent);
     }
 
-    let files = blog_op.files;
-    for file in files.iter() {
-        if file.url.is_empty() {
-            return Err(BlogError::FileIsEmpty);
-        }
-
-        let signed_url = match &file.signed_url {
-            Some(url) => url,
-            None => {
-                continue;
-            }
-        };
-
-        // check if the signed_url is in the content
-        if !content.contains(signed_url) {
-            storage::remove_file_from_md_content(&mut content, signed_url);
-            continue;
-        }
-
-        let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url(&file.url);
-        // replace the signed url with the actual url
-        let obj_name_with_changed_prefix = &change_obj_prefix(
-            &obj_name,
-            constants::TEMP_OBJ_PREFIX,
-            constants::BLOG_OBJ_PREFIX,
-        );
-        content = content.replace(
-            signed_url,
-            &format!(
-                "https://storage.googleapis.com/{}/{}",
-                constants::BUCKET,
-                obj_name_with_changed_prefix,
-            ),
-        );
-        move_blob!(
-            &gcs_client,
-            &bucket,
-            &obj_name,
-            constants::BUCKET,
-            obj_name_with_changed_prefix
-        );
+    for file in blog_op.files.iter_mut() {
+        process_file!(file, content, &gcs_client);
     }
 
-    let blog = Blog::new(title, content, &blog_op.tags, &files, blog_op.is_public);
+    let blog = Blog::new(
+        title,
+        content,
+        &blog_op.tags,
+        &blog_op.files,
+        blog_op.is_public,
+    );
     match blog_col.insert_one(blog, None).await {
-        Ok(_) => Ok(HttpResponse::Ok().body("Blog created successfully".to_string())),
+        Ok(result) => {
+            let id = result.inserted_id.as_object_id().unwrap();
+            Ok(HttpResponse::Ok().body(id.to_hex()))
+        },
         Err(err) => {
             log::error!("Failed to create api in database: {}", err);
             Err(BlogError::PublishBlogError)
@@ -165,12 +199,8 @@ async fn update_blog(
     gcs_client: Data<GcsClient>,
     update_blog: Json<BlogUpdateOperation>,
 ) -> Result<HttpResponse, BlogError> {
-    let blog = update_blog.into_inner();
-
-    let blog_op_id = blog.id;
-    if blog_op_id.is_empty() {
-        return Err(BlogError::InvalidObjectId);
-    }
+    let mut blog = update_blog.into_inner();
+    let blog_id = validate_id(&blog.id)?;
 
     let new_tags = blog.tags;
     if new_tags.len() > constants::MAX_TAGS {
@@ -180,9 +210,9 @@ async fn update_blog(
     let options = FindOneOptions::builder()
         .projection(doc! { "title": 1, "tags": 1, "files": 1, "is_public": 1 })
         .build();
-
-    let blog_id = validate_id(&blog_op_id)?;
-    let blog_in_db = client.get_blog_post(&blog_id, Some(options)).await?;
+    let blog_in_db = client
+        .get_blog_post_projection(&blog_id, Some(options))
+        .await?;
 
     let mut is_updating = false;
     let last_modified = bson::DateTime::parse_rfc3339_str(datetime::get_dtnow_str())
@@ -191,68 +221,30 @@ async fn update_blog(
         "last_modified": last_modified,
     };
 
+    let old_files = blog_in_db.files.unwrap_or(vec![]);
+    let mut files_to_put_in_db = Vec::with_capacity(blog.new_files.len() + old_files.len());
     let mut content = blog.content;
-    let old_files = blog_in_db.files;
-    let new_files = blog.files;
-    if new_files.iter().all(|file| old_files.contains(file)) {
+    if blog.new_files.len() > 0 {
         is_updating = true;
-
-        // get all files not in old_files for uploading
-        let files_to_upload: Vec<FileInfo> = new_files
-            .iter()
-            .filter(|file| !file.url.is_empty() && file.signed_url.is_some())
-            .map(|file| file.to_owned())
-            .collect();
-        for file in files_to_upload.iter() {
-            if file.url.is_empty() {
-                continue;
-            }
-            let signed_url = match &file.signed_url {
-                Some(url) => url,
-                None => {
-                    continue;
-                }
-            };
-
-            // check if the signed_url is in the content
-            if !content.contains(signed_url) {
-                storage::remove_file_from_md_content(&mut content, signed_url);
-                continue;
-            }
-
-            let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url(&file.url);
-            // replace the signed url with the actual url
-            let obj_name_with_changed_prefix = &change_obj_prefix(
-                &obj_name,
-                constants::TEMP_OBJ_PREFIX,
-                constants::BLOG_OBJ_PREFIX,
-            );
-            content = content.replace(
-                signed_url,
-                &format!(
-                    "https://storage.googleapis.com/{}/{}",
-                    constants::BUCKET,
-                    obj_name_with_changed_prefix
-                ),
-            );
-            move_blob!(
-                &gcs_client,
-                &bucket,
-                &obj_name,
-                constants::BUCKET,
-                obj_name_with_changed_prefix
-            );
+        for file in blog.new_files.iter_mut() {
+            process_file!(file, content, &gcs_client);
         }
+        files_to_put_in_db = blog.new_files;
+    }
 
-        // get all files not in new_files for deletion
-        let files_to_delete: Vec<FileInfo> = old_files
-            .iter()
-            .filter(|file| !new_files.contains(file))
-            .map(|file| file.to_owned())
-            .collect();
-        for file in files_to_delete.iter() {
+    // check if the old_files are in the content
+    let mut files_to_keep = Vec::with_capacity(old_files.len());
+    for file in old_files.into_iter() {
+        if !content.contains(&file.url) {
             delete_blob!(&gcs_client, constants::BUCKET, &file.url);
+        } else {
+            files_to_keep.push(file);
         }
+    }
+
+    if !files_to_put_in_db.is_empty() {
+        is_updating = true;
+        set_doc.insert("files", files_to_put_in_db);
     }
 
     if !content.is_empty() {
@@ -261,19 +253,17 @@ async fn update_blog(
     }
 
     let title = blog.title;
-    if !title.is_empty() && title != blog_in_db.title {
+    if !title.is_empty() && title != blog_in_db.title.unwrap_or_default() {
         is_updating = true;
         set_doc.insert("title", title);
     }
 
-    if let Some(is_public) = blog.is_public {
-        if is_public != blog_in_db.is_public {
-            is_updating = true;
-            set_doc.insert("is_public", is_public);
-        }
+    if blog.is_public != blog_in_db.is_public.unwrap_or(false) {
+        is_updating = true;
+        set_doc.insert("is_public", blog.is_public);
     }
 
-    let old_tags = blog_in_db.tags;
+    let old_tags = blog_in_db.tags.unwrap_or(vec![]);
     // O(n^2) algorithm but the no. of tags must be less than 8 so it's technically O(1)
     if new_tags.len() != old_tags.len() || new_tags.iter().all(|tag| old_tags.contains(tag)) {
         is_updating = true;
@@ -308,21 +298,9 @@ async fn delete_blog(
     let options = FindOneOptions::builder()
         .projection(doc! { "files": 1 })
         .build();
-    let blog_collection: mongodb::Collection<BlogProjection> =
-        client.get_custom_collection(constants::BLOG_COLLECTION);
-    let blog_data = match blog_collection
-        .find_one(doc! { "_id": blog_id }, Some(options))
-        .await
-    {
-        Ok(Some(blog_data)) => blog_data,
-        Ok(None) => {
-            return Err(BlogError::BlogNotFound);
-        }
-        Err(err) => {
-            log::error!("Failed to get blog from database: {}", err);
-            return Err(BlogError::InternalServerError);
-        }
-    };
+    let blog_data = client
+        .get_blog_post_projection(&blog_id, Some(options))
+        .await?;
 
     let files = blog_data.files.unwrap_or(vec![]);
     for file in files.iter() {

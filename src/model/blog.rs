@@ -2,6 +2,7 @@ use crate::constants::constants::{MAX_FILE_SIZE, MAX_TAGS, TITLE_MAX_LENGTH};
 use crate::utils::{datetime, md};
 use actix_web::{HttpResponse, ResponseError};
 use bson::oid::ObjectId;
+use bson::{doc, Bson};
 use chrono::Utc;
 use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
@@ -22,33 +23,31 @@ impl BlogPreview {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct BlogProjection {
-    pub _id: Option<ObjectId>,
+    #[serde(rename = "_id")]
+    pub id: Option<ObjectId>,
     pub title: Option<String>,
     pub tags: Option<Vec<String>>,
     pub files: Option<Vec<FileInfo>>,
     pub content: Option<String>,
     pub is_public: Option<bool>,
     pub views: Option<i64>,
-    #[serde(with = "crate::utils::datetime::rfc3339::option")]
-    pub timestamp: Option<chrono::DateTime<Utc>>,
-    #[serde(with = "crate::utils::datetime::rfc3339::option")]
-    pub last_modified: Option<chrono::DateTime<Utc>>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Blog {
-    pub _id: ObjectId,
+    #[serde(rename = "_id")]
+    pub id: ObjectId,
     pub title: String,
     pub tags: Vec<String>,
     pub files: Vec<FileInfo>,
     pub content: String,
     pub is_public: bool,
     pub views: i64,
-    #[serde(with = "crate::utils::datetime::rfc3339")]
+    #[serde(with = "bson::serde_helpers::chrono_datetime_as_bson_datetime")]
     pub timestamp: chrono::DateTime<Utc>,
-    #[serde(with = "crate::utils::datetime::rfc3339::option")]
+    #[serde(with = "crate::utils::datetime::opt_chrono_datetime_as_bson_datetime")]
     pub last_modified: Option<chrono::DateTime<Utc>>,
 }
 
@@ -62,7 +61,7 @@ impl Blog {
         is_public: bool,
     ) -> Blog {
         Blog {
-            _id: ObjectId::new(),
+            id: ObjectId::new(),
             title,
             tags: tags.clone(),
             files: files.clone(),
@@ -74,7 +73,7 @@ impl Blog {
         }
     }
     pub fn get_id_string(&self) -> String {
-        self._id.to_hex()
+        self.id.to_hex()
     }
     pub fn get_html_content(&self) -> String {
         md::convert_to_html(&self.content, None)
@@ -108,7 +107,7 @@ pub struct BlogResponse {
 impl From<Blog> for BlogResponse {
     fn from(blog: Blog) -> Self {
         BlogResponse {
-            id: blog._id.to_hex(),
+            id: blog.id.to_hex(),
             title: blog.title,
             content: md::convert_to_html(&blog.content, None),
             timestamp: blog.timestamp,
@@ -131,21 +130,26 @@ pub struct BlogUpdateOperation {
     pub id: String,
     pub title: String,
     pub tags: Vec<String>,
-    pub files: Vec<FileInfo>,
+    pub new_files: Vec<FileInfo>,
     pub content: String,
-    pub is_public: Option<bool>,
+    pub is_public: bool,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct FileInfo {
     pub name: String,
     pub url: String,
     pub signed_url: Option<String>,
 }
 
-impl PartialEq for FileInfo {
-    fn eq(&self, other: &Self) -> bool {
-        self.url == other.url
+impl From<FileInfo> for Bson {
+    fn from(file_info: FileInfo) -> Bson {
+        let doc = doc! {
+            "name": file_info.name,
+            "url": file_info.url,
+            "signed_url": file_info.signed_url.unwrap_or_default(),
+        };
+        Bson::Document(doc)
     }
 }
 
