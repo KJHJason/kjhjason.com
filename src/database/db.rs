@@ -184,9 +184,7 @@ impl DbClient {
     ) -> Result<BlogProjection, BlogError> {
         let blog_collection: Collection<BlogProjection> =
             self.get_custom_collection(constants::BLOG_COLLECTION);
-        let result = blog_collection
-            .find_one(doc! {"_id": id}, options)
-            .await;
+        let result = blog_collection.find_one(doc! {"_id": id}, options).await;
         Self::handle_result(result)
     }
 

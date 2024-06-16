@@ -185,7 +185,7 @@ async fn new_blog(
         Ok(result) => {
             let id = result.inserted_id.as_object_id().unwrap();
             Ok(HttpResponse::Ok().body(id.to_hex()))
-        },
+        }
         Err(err) => {
             log::error!("Failed to create api in database: {}", err);
             Err(BlogError::PublishBlogError)

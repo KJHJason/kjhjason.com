@@ -28,8 +28,8 @@ pub fn get_readable_date_diff(timestamp: DateTime<Utc>) -> String {
 // https://github.com/mongodb/bson-rust/issues/303
 pub mod opt_chrono_datetime_as_bson_datetime {
     use chrono::Utc;
-    use serde::{Deserialize, Deserializer, Serialize, Serializer};
     use mongodb::bson;
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
     #[derive(Serialize, Deserialize)]
     struct Helper(
@@ -41,15 +41,15 @@ pub mod opt_chrono_datetime_as_bson_datetime {
         value: &Option<chrono::DateTime<Utc>>,
         serializer: S,
     ) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         value.map(Helper).serialize(serializer)
     }
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<chrono::DateTime<Utc>>, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let helper: Option<Helper> = Option::deserialize(deserializer)?;
         Ok(helper.map(|Helper(external)| external))
