@@ -1,5 +1,5 @@
-use crate::client::templates::auth::Login;
 use crate::constants::constants;
+use crate::templates::auth::Login;
 use crate::utils::security::extract_for_template;
 use actix_web::http::header::{ContentType, LOCATION};
 use actix_web::{get, web, HttpRequest, HttpResponse};
@@ -20,6 +20,7 @@ async fn login_admin(req: HttpRequest) -> HttpResponse {
             let template = Login {
                 common: extract_for_template(&req),
                 login_url: "api/admin",
+                client_login_url: "admin",
             };
             HttpResponse::Ok()
                 .content_type(ContentType::html())
@@ -38,6 +39,7 @@ async fn login_auth(req: HttpRequest) -> HttpResponse {
             let template = Login {
                 common: extract_for_template(&req),
                 login_url: "api/auth/login",
+                client_login_url: "auth/login",
             };
             HttpResponse::Ok()
                 .content_type(ContentType::html())

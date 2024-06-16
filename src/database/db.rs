@@ -137,6 +137,10 @@ impl DbClient {
         }
     }
 
+    pub fn get_custom_collection<T>(&self, collection_name: &str) -> Collection<T> {
+        self.get_database(None).collection(collection_name)
+    }
+
     pub fn get_blog_collection(&self) -> Collection<Blog> {
         self.get_database(None)
             .collection(constants::BLOG_COLLECTION)
@@ -175,7 +179,7 @@ impl DbClient {
             Ok(Some(blog)) => Ok(blog),
             Ok(None) => Err(BlogError::BlogNotFound),
             Err(err) => {
-                log::error!("Failed to get api from database: {}", err);
+                log::error!("Failed to get blog from database: {}", err);
                 Err(BlogError::InternalServerError)
             }
         }

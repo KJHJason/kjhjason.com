@@ -5,6 +5,7 @@ mod database;
 mod middleware;
 mod model;
 mod security;
+mod templates;
 mod utils;
 
 use actix_files::NamedFile;

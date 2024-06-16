@@ -127,8 +127,18 @@
             </div>
         </footer>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script nonce="{{ common.nonce }}">
         htmx.config.includeIndicatorStyles = false;
+
+        // check if user is using dark mode
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            // add <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@5/dark.css" />
+            const darkTheme = document.createElement("link");
+            darkTheme.rel = "stylesheet";
+            darkTheme.href = "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@5/dark.css";
+            document.head.appendChild(darkTheme);
+        }
 
         const logoutItem = document.getElementById("logout-item");
         const loginItem = document.getElementById("login-item");

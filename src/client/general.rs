@@ -1,9 +1,9 @@
-use crate::client::templates::general::{
-    Blog, BlogPost, BlogPostInfo, Experiences, Index, Projects, Skills,
-};
 use crate::database::db;
 use crate::middleware::errors::ErrorTemplate;
 use crate::model::blog::BlogIdentifier;
+use crate::templates::general::{
+    Blog, BlogPost, BlogPostInfo, Experiences, Index, Projects, Skills,
+};
 use crate::utils::security::extract_for_template;
 use crate::utils::validations::validate_id;
 use actix_web::http::header::ContentType;
@@ -64,6 +64,8 @@ async fn blogs(client: Data<db::DbClient>, req: HttpRequest) -> HttpResponse {
         }
     };
 
+    let common = extract_for_template(&req);
+
     // could pre-allocate the vector size but not worth
     // the extra connection to the db which could be slower
     let mut blogs = Vec::new();
@@ -72,12 +74,17 @@ async fn blogs(client: Data<db::DbClient>, req: HttpRequest) -> HttpResponse {
         // while let Ok(Some(blog_post)) = blogs_cursor.try_next().await
         match blogs_cursor.try_next().await {
             Ok(Some(blog_post)) => {
+                if !blog_post.is_public && !common.is_logged_in {
+                    continue;
+                }
+                let id = blog_post.get_id_string();
+                let date = blog_post.get_date_string();
                 let blog_info = BlogPostInfo {
-                    id: blog_post.get_id_string(),
-                    title: blog_post.get_title().to_string(),
-                    date: blog_post.get_date_string(),
-                    views: blog_post.get_views(),
-                    tags: blog_post.get_tags_as_owned(),
+                    id,
+                    title: blog_post.title,
+                    date,
+                    views: blog_post.views,
+                    tags: blog_post.tags,
                 };
                 blogs.push(blog_info);
             }
@@ -98,15 +105,25 @@ async fn blogs(client: Data<db::DbClient>, req: HttpRequest) -> HttpResponse {
         }
     }
 
-    let html = Blog {
-        common: extract_for_template(&req),
-        blogs,
-    }
-    .render()
-    .unwrap();
+    let html = Blog { common, blogs }.render().unwrap();
     HttpResponse::Ok()
         .content_type(ContentType::html())
         .body(html)
+}
+
+macro_rules! blog_not_found {
+    ($req:expr) => {
+        let html = ErrorTemplate {
+            common: extract_for_template(&$req),
+            status: 404,
+            message: "Blog post not found",
+        }
+        .render()
+        .unwrap();
+        return HttpResponse::NotFound()
+            .content_type(ContentType::html())
+            .body(html);
+    };
 }
 
 #[get("/blogs/{id}")]
@@ -115,7 +132,7 @@ async fn blog_id(
     req: HttpRequest,
     blog_id: Path<BlogIdentifier>,
 ) -> HttpResponse {
-    let blog_id = match validate_id(&blog_id.into_inner().get_id()) {
+    let blog_id = match validate_id(&blog_id.into_inner().id) {
         Ok(blog_id) => blog_id,
         Err(_) => {
             let html = ErrorTemplate {
@@ -149,16 +166,21 @@ async fn blog_id(
 
     match blog_post {
         Ok(Some(blog_post)) => {
+            if !blog_post.is_public && !common.is_logged_in {
+                blog_not_found!(req);
+            }
+
             let html = BlogPost {
                 common,
                 id: &blog_post.get_id_string(),
-                title: &blog_post.get_title(),
+                title: &blog_post.title,
                 date: &blog_post.get_date_string(),
                 readable_date: &blog_post.get_readable_date_diff(),
                 last_modified: &blog_post.get_last_modified_date_string(),
-                views: blog_post.get_views(),
+                views: blog_post.views,
                 content: &blog_post.get_html_content(),
-                tags: blog_post.get_tags(),
+                public: blog_post.is_public,
+                tags: &blog_post.tags,
             }
             .render()
             .unwrap();
@@ -167,16 +189,7 @@ async fn blog_id(
                 .body(html)
         }
         Ok(None) => {
-            let html = ErrorTemplate {
-                common: extract_for_template(&req),
-                status: 404,
-                message: "Blog post not found",
-            }
-            .render()
-            .unwrap();
-            HttpResponse::NotFound()
-                .content_type(ContentType::html())
-                .body(html)
+            blog_not_found!(req);
         }
         Err(_) => {
             let html = ErrorTemplate {

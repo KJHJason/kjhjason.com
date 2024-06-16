@@ -6,4 +6,5 @@ use askama::Template;
 pub struct Login<'a> {
     pub common: TemplateValues,
     pub login_url: &'a str,
+    pub client_login_url: &'a str,
 }

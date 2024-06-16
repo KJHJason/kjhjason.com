@@ -1,9 +1,10 @@
 use crate::constants::constants;
 use crate::database::db;
 use crate::model::blog::{
-    Blog, BlogError, BlogIdentifier, BlogPreview, BlogPublishOperation, BlogUpdateOperation,
-    FileInfo, UploadedFiles,
+    Blog, BlogError, BlogIdentifier, BlogPreview, BlogProjection, BlogPublishOperation,
+    BlogUpdateOperation, FileInfo, UploadedFiles,
 };
+use crate::templates;
 use crate::utils::datetime;
 use crate::utils::io::get_temp_file_path;
 use crate::utils::md::convert_to_html;
@@ -11,7 +12,12 @@ use crate::utils::storage;
 use crate::utils::validations::validate_id;
 use actix_multipart::Multipart;
 use actix_web::http::header::{ContentType, CONTENT_LENGTH};
-use actix_web::{delete, post, put, web::Data, web::Form, web::Json, HttpRequest, HttpResponse};
+use actix_web::{
+    delete, post, put,
+    web::{Data, Form, Json, Path},
+    HttpRequest, HttpResponse,
+};
+use askama::Template;
 use futures_util::TryStreamExt;
 use google_cloud_storage::client::Client as GcsClient;
 use mime::{Mime, IMAGE_GIF, IMAGE_JPEG, IMAGE_PNG};
@@ -79,8 +85,8 @@ async fn preview_blog(data: Form<BlogPreview>) -> HttpResponse {
         .body(preview)
 }
 
-#[post("/api/publish/blog")]
-async fn publish_blog(
+#[post("/api/new/blog")]
+async fn new_blog(
     client: Data<db::DbClient>,
     gcs_client: Data<GcsClient>,
     blog: Json<BlogPublishOperation>,
@@ -88,19 +94,19 @@ async fn publish_blog(
     let blog_op = blog.into_inner();
     let blog_col = client.into_inner().get_blog_collection();
 
-    let title = blog_op.get_title();
+    let title = blog_op.title;
     if title.is_empty() {
         return Err(BlogError::EmptyTitle);
     } else if title.len() > constants::TITLE_MAX_LENGTH {
         return Err(BlogError::TitleTooLong);
     }
 
-    let mut content = blog_op.get_content().to_string();
+    let mut content = blog_op.content;
     if content.is_empty() {
         return Err(BlogError::EmptyContent);
     }
 
-    let files = blog_op.get_files();
+    let files = blog_op.files;
     for file in files.iter() {
         if file.url.is_empty() {
             return Err(BlogError::FileIsEmpty);
@@ -143,13 +149,7 @@ async fn publish_blog(
         );
     }
 
-    let blog = Blog::new(
-        title.to_string(),
-        content.to_string(),
-        blog_op.get_tags(),
-        files,
-        blog_op.get_is_public(),
-    );
+    let blog = Blog::new(title, content, &blog_op.tags, &files, blog_op.is_public);
     match blog_col.insert_one(blog, None).await {
         Ok(_) => Ok(HttpResponse::Ok().body("Blog created successfully".to_string())),
         Err(err) => {
@@ -167,12 +167,12 @@ async fn update_blog(
 ) -> Result<HttpResponse, BlogError> {
     let blog = update_blog.into_inner();
 
-    let blog_op_id = blog.get_id();
-    if blog_op_id == "" {
+    let blog_op_id = blog.id;
+    if blog_op_id.is_empty() {
         return Err(BlogError::InvalidObjectId);
     }
 
-    let new_tags = blog.get_tags();
+    let new_tags = blog.tags;
     if new_tags.len() > constants::MAX_TAGS {
         return Err(BlogError::TooManyTags);
     }
@@ -181,7 +181,7 @@ async fn update_blog(
         .projection(doc! { "title": 1, "tags": 1, "files": 1, "is_public": 1 })
         .build();
 
-    let blog_id = validate_id(blog_op_id)?;
+    let blog_id = validate_id(&blog_op_id)?;
     let blog_in_db = client.get_blog_post(&blog_id, Some(options)).await?;
 
     let mut is_updating = false;
@@ -191,9 +191,9 @@ async fn update_blog(
         "last_modified": last_modified,
     };
 
-    let mut content = blog.get_content().to_string();
-    let old_files = blog_in_db.get_files();
-    let new_files = blog.get_files();
+    let mut content = blog.content;
+    let old_files = blog_in_db.files;
+    let new_files = blog.files;
     if new_files.iter().all(|file| old_files.contains(file)) {
         is_updating = true;
 
@@ -260,20 +260,20 @@ async fn update_blog(
         set_doc.insert("content", content);
     }
 
-    let title = blog.get_title();
-    if !title.is_empty() && title != blog_in_db.get_title() {
+    let title = blog.title;
+    if !title.is_empty() && title != blog_in_db.title {
         is_updating = true;
         set_doc.insert("title", title);
     }
 
-    if let Some(is_public) = blog.get_is_public() {
-        if is_public != blog_in_db.get_is_public() {
+    if let Some(is_public) = blog.is_public {
+        if is_public != blog_in_db.is_public {
             is_updating = true;
             set_doc.insert("is_public", is_public);
         }
     }
 
-    let old_tags = blog_in_db.get_tags();
+    let old_tags = blog_in_db.tags;
     // O(n^2) algorithm but the no. of tags must be less than 8 so it's technically O(1)
     if new_tags.len() != old_tags.len() || new_tags.iter().all(|tag| old_tags.contains(tag)) {
         is_updating = true;
@@ -297,20 +297,35 @@ async fn update_blog(
     }
 }
 
-#[delete("/api/blog/delete")]
+#[delete("/api/blogs/{id}/delete")]
 async fn delete_blog(
     client: Data<db::DbClient>,
     gcs_client: Data<GcsClient>,
-    blog_identifier: Json<BlogIdentifier>,
+    blog_identifier: Path<BlogIdentifier>,
 ) -> Result<HttpResponse, BlogError> {
-    let blog_id = validate_id(&blog_identifier.into_inner().get_id())?;
+    let blog_id = validate_id(&blog_identifier.into_inner().id)?;
 
     let options = FindOneOptions::builder()
         .projection(doc! { "files": 1 })
         .build();
-    let blog_data = client.get_blog_post(&blog_id, Some(options)).await?;
+    let blog_collection: mongodb::Collection<BlogProjection> =
+        client.get_custom_collection(constants::BLOG_COLLECTION);
+    let blog_data = match blog_collection
+        .find_one(doc! { "_id": blog_id }, Some(options))
+        .await
+    {
+        Ok(Some(blog_data)) => blog_data,
+        Ok(None) => {
+            return Err(BlogError::BlogNotFound);
+        }
+        Err(err) => {
+            log::error!("Failed to get blog from database: {}", err);
+            return Err(BlogError::InternalServerError);
+        }
+    };
 
-    for file in blog_data.get_files() {
+    let files = blog_data.files.unwrap_or(vec![]);
+    for file in files.iter() {
         delete_blob!(&gcs_client, constants::BUCKET, &file.url);
     }
 
@@ -322,6 +337,49 @@ async fn delete_blog(
             Err(BlogError::InternalServerError)
         }
     }
+}
+
+async fn configure_blog_post_bool(
+    client: Data<db::DbClient>,
+    blog_id: &str,
+    is_public: bool,
+) -> Result<HttpResponse, BlogError> {
+    let blog_id = validate_id(blog_id)?;
+    let query = doc! { "_id": blog_id };
+    let update = doc! { "$set": { "is_public": is_public } };
+    let blog_col = client.into_inner().get_blog_collection();
+    match blog_col.update_one(query, update, None).await {
+        Ok(_) => {
+            let html = if is_public {
+                templates::admin::Unlocked.render().unwrap()
+            } else {
+                templates::admin::Locked.render().unwrap()
+            };
+            Ok(HttpResponse::Ok()
+                .content_type(ContentType::html())
+                .body(html))
+        }
+        Err(err) => {
+            log::error!("Failed to publish api in database: {}", err);
+            Err(BlogError::PublishBlogError)
+        }
+    }
+}
+
+#[put("/api/blogs/{id}/publish")]
+async fn publish_blog_post(
+    client: Data<db::DbClient>,
+    blog_identifier: Path<BlogIdentifier>,
+) -> Result<HttpResponse, BlogError> {
+    configure_blog_post_bool(client, &blog_identifier.into_inner().id, true).await
+}
+
+#[put("/api/blogs/{id}/unpublish")]
+async fn unpublish_blog_post(
+    client: Data<db::DbClient>,
+    blog_identifier: Path<BlogIdentifier>,
+) -> Result<HttpResponse, BlogError> {
+    configure_blog_post_bool(client, &blog_identifier.into_inner().id, false).await
 }
 
 #[post("/api/blog/upload/files")]

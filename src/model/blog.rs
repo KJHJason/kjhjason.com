@@ -8,13 +8,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Display, Debug)]
 pub struct BlogIdentifier {
-    id: String,
-}
-
-impl BlogIdentifier {
-    pub fn get_id(self) -> String {
-        self.id
-    }
+    pub id: String,
 }
 
 #[derive(Deserialize, Display, Debug)]
@@ -29,18 +23,33 @@ impl BlogPreview {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Blog {
-    _id: ObjectId,
-    title: String,
-    tags: Vec<String>,
-    files: Vec<FileInfo>,
-    content: String,
-    is_public: bool,
-    views: i64,
-    #[serde(with = "crate::utils::datetime::rfc3339")]
-    timestamp: chrono::DateTime<Utc>,
+pub struct BlogProjection {
+    pub _id: Option<ObjectId>,
+    pub title: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub files: Option<Vec<FileInfo>>,
+    pub content: Option<String>,
+    pub is_public: Option<bool>,
+    pub views: Option<i64>,
     #[serde(with = "crate::utils::datetime::rfc3339::option")]
-    last_modified: Option<chrono::DateTime<Utc>>,
+    pub timestamp: Option<chrono::DateTime<Utc>>,
+    #[serde(with = "crate::utils::datetime::rfc3339::option")]
+    pub last_modified: Option<chrono::DateTime<Utc>>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Blog {
+    pub _id: ObjectId,
+    pub title: String,
+    pub tags: Vec<String>,
+    pub files: Vec<FileInfo>,
+    pub content: String,
+    pub is_public: bool,
+    pub views: i64,
+    #[serde(with = "crate::utils::datetime::rfc3339")]
+    pub timestamp: chrono::DateTime<Utc>,
+    #[serde(with = "crate::utils::datetime::rfc3339::option")]
+    pub last_modified: Option<chrono::DateTime<Utc>>,
 }
 
 // api struct setter
@@ -67,26 +76,8 @@ impl Blog {
     pub fn get_id_string(&self) -> String {
         self._id.to_hex()
     }
-    pub fn get_title(&self) -> &str {
-        &self.title
-    }
-    pub fn get_tags(&self) -> &Vec<String> {
-        &self.tags
-    }
-    pub fn get_tags_as_owned(self) -> Vec<String> {
-        self.tags
-    }
-    pub fn get_files(&self) -> &Vec<FileInfo> {
-        &self.files
-    }
-    pub fn get_views(&self) -> i64 {
-        self.views
-    }
     pub fn get_html_content(&self) -> String {
         md::convert_to_html(&self.content, None)
-    }
-    pub fn get_is_public(&self) -> bool {
-        self.is_public
     }
     pub fn get_date_string(&self) -> String {
         // format for JavaScript to parse to the user's local timezone
@@ -128,60 +119,21 @@ impl From<Blog> for BlogResponse {
 
 #[derive(Deserialize)]
 pub struct BlogPublishOperation {
-    title: String,
-    tags: Vec<String>,
-    files: Vec<FileInfo>,
-    content: String,
-    is_public: bool,
-}
-
-impl BlogPublishOperation {
-    pub fn get_title(&self) -> &str {
-        &self.title
-    }
-    pub fn get_tags(&self) -> &Vec<String> {
-        &self.tags
-    }
-    pub fn get_files(&self) -> &Vec<FileInfo> {
-        &self.files
-    }
-    pub fn get_content(&self) -> &str {
-        &self.content
-    }
-    pub fn get_is_public(&self) -> bool {
-        self.is_public
-    }
+    pub title: String,
+    pub tags: Vec<String>,
+    pub files: Vec<FileInfo>,
+    pub content: String,
+    pub is_public: bool,
 }
 
 #[derive(Deserialize)]
 pub struct BlogUpdateOperation {
-    id: String,
-    title: String,
-    tags: Vec<String>,
-    files: Vec<FileInfo>,
-    content: String,
-    is_public: Option<bool>,
-}
-
-impl BlogUpdateOperation {
-    pub fn get_id(&self) -> &str {
-        &self.id
-    }
-    pub fn get_title(&self) -> &str {
-        &self.title
-    }
-    pub fn get_tags(&self) -> &Vec<String> {
-        &self.tags
-    }
-    pub fn get_files(&self) -> &Vec<FileInfo> {
-        &self.files
-    }
-    pub fn get_content(&self) -> &str {
-        &self.content
-    }
-    pub fn get_is_public(&self) -> Option<bool> {
-        self.is_public
-    }
+    pub id: String,
+    pub title: String,
+    pub tags: Vec<String>,
+    pub files: Vec<FileInfo>,
+    pub content: String,
+    pub is_public: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -221,7 +173,7 @@ pub enum BlogError {
     InvalidObjectId,
     #[display(fmt = "Blog not found")]
     BlogNotFound,
-    #[display(fmt = "Failed to publish api")]
+    #[display(fmt = "Failed to publish blog post")]
     PublishBlogError,
     #[display(fmt = "Title cannot be empty")]
     EmptyTitle,
@@ -229,7 +181,7 @@ pub enum BlogError {
     TitleTooLong,
     #[display(fmt = "Content cannot be empty")]
     EmptyContent,
-    #[display(fmt = "Failed to update api")]
+    #[display(fmt = "Failed to update blog post")]
     UpdateBlogError,
     #[display(fmt = "Too many tags, must be less than {} tags", MAX_TAGS)]
     TooManyTags,

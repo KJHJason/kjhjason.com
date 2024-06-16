@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{%- import "includes/tags.html" as tags -%}
+{%- import "components/tags.html" as tags -%}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -22,6 +22,57 @@
             Updated: <span id="last-modified">{{ last_modified }}</span>
         </p>
     {% endif %}
+    {% if common.is_logged_in %}
+        <p class="!my-0 text-sm text-neutral-600 dark:text-neutral-400 flex">
+            Public:
+            <span id="public-lock-icon" hx-on::after-swap="publishToggle()">
+                {% if public %}
+                    {% include "components/unlocked.html" %}
+                {% else %}
+                    {% include "components/locked.html" %}
+                {% endif %}
+            </span>
+        </p>
+        <div class="flex flex-wrap text-sm text-neutral-600 dark:text-neutral-400">
+            Actions: 
+            <div class="tooltip" data-tip="Edit Blog">
+                <!-- TODO: -->
+                <button class="btn-text-primary" type="button">
+                    <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.779 17.779 4.36 19.918 6.5 13.5m4.279 4.279 8.364-8.643a3.027 3.027 0 0 0-2.14-5.165 3.03 3.03 0 0 0-2.14.886L6.5 13.5m4.279 4.279L6.499 13.5m2.14 2.14 6.213-6.504M12.75 7.04 17 11.28"/>
+                    </svg>
+                </button>
+            </div>
+            {% let api_url_suffix -%}
+            {% if public %}
+                {% let api_url_suffix = "unpublish" %}
+            {% else %}
+                {% let api_url_suffix = "publish" %}
+            {% endif %}
+            <div class="tooltip" id="publish-btn-tooltip">
+                <button class="btn-text-danger"
+                    id="publish-btn"
+                    type="button"
+                    hx-put="/api/blogs/{{ id }}/{{ api_url_suffix }}" 
+                    hx-target="#public-lock-icon" 
+                    hx-headers='{{ common.csrf_header_json|safe }}'
+                >
+                    {% if public %}
+                        {% include "components/locked.html" %}
+                    {% else %}    
+                        {% include "components/unlocked.html" %}
+                    {% endif %}             
+                </button>
+            </div>
+            <div class="tooltip" data-tip="Delete Blog">
+                <button class="btn-text-danger" hx-on:click="deleteBlog()" type="button">
+                    <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M8.586 2.586A2 2 0 0 1 10 2h4a2 2 0 0 1 2 2v2h3a1 1 0 1 1 0 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a1 1 0 0 1 0-2h3V4a2 2 0 0 1 .586-1.414ZM10 6h4V4h-4v2Zm1 4a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Zm4 0a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Z" clip-rule="evenodd"/>
+                    </svg>                  
+                </button>
+            </div>
+        </div>
+    {% endif %}
     {% call tags::parse_tags(tags) %}
     <div class="blog-content mt-8">
         {{ content|safe }}
@@ -36,5 +87,61 @@
     if (lastModified) {
         lastModified.innerText = parseDateToLocal(lastModified.innerText);
     }
+
+    const publishApiUrl = "/api/blogs/{{ id }}/publish";
+    const unpublishApiUrl = "/api/blogs/{{ id }}/unpublish";
+    const publishBtn = document.getElementById("publish-btn");
+    const publishBtnTooltip = document.getElementById("publish-btn-tooltip");
+    const changeToolTip = (isPublic) => {
+        if (isPublic === "true") {
+            publishBtnTooltip.setAttribute("data-tip", "Make Blog Private");
+        } else {
+            publishBtnTooltip.setAttribute("data-tip", "Make Blog Public");
+        }
+    };
+    changeToolTip("{{ public }}")
+
+    const publishToggle = () => {
+        if (!publishBtn) {
+            console.error("Publish button not found");
+        }
+        if (publishBtn.getAttribute("hx-put") === publishApiUrl) {
+            publishBtn.setAttribute("hx-put", unpublishApiUrl);
+            changeToolTip("true");
+            publishBtn.innerHTML = `{% include "components/locked.html" %}`;
+        } else {
+            publishBtn.setAttribute("hx-put", publishApiUrl);
+            changeToolTip("false");
+            publishBtn.innerHTML = `{% include "components/unlocked.html" %}`;
+        }
+        htmx.process(publishBtn);
+    };
+
+    const deleteBlog = () => {
+        Swal.fire({
+            title: "Delete Blog?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch("/api/blogs/{{ id }}/delete", {
+                    method: "DELETE",
+                    headers: {
+                        "{{ common.csrf_header }}": "{{ common.csrf_value }}",
+                    }
+                }).then((response) => {
+                    if (response.ok) {
+                        window.location.href = "/blogs";
+                    } else {
+                        console.error("Failed to delete blog", response);
+                        throw new Error("Failed to delete blog");
+                    }
+                });
+            }
+        });
+    };
 </script>
 {% endblock %}

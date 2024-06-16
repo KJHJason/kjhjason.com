@@ -51,5 +51,6 @@ pub struct BlogPost<'a> {
     pub readable_date: &'a str,
     pub views: i64,
     pub content: &'a str,
+    pub public: bool,
     pub tags: &'a Vec<String>,
 }

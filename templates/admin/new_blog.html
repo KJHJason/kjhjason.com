@@ -32,6 +32,9 @@
         <div class="flex">
             <label for="is-public" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Public:</label>
             <input type="checkbox" name="is-public" id="is-public" class="ml-4 toggle toggle-success" checked>
+            <p class="!my-0 text-xs text-neutral-900 dark:text-white">
+                *Note: Assets like images that were uploaded will be public regardless of this setting.
+            </p>
         </div>
         <div>
             <label for="content" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Content:</label>
@@ -116,7 +119,7 @@
                 return;
             }
 
-            fetch("/api/publish/blog", {
+            fetch("/api/new/blog", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -69,9 +69,9 @@ struct SiteVerifyResponse {
     cdata: Option<String>,
 }
 
-pub async fn verify_request(req: &HttpRequest, cf_response: &str) -> bool {
+pub fn get_ip_addr(req: &HttpRequest) -> Option<String> {
     let cloudflare_proxy = req.headers().get("cf-connecting-ip");
-    let req_ip = match cloudflare_proxy {
+    match cloudflare_proxy {
         Some(ip) => Some(ip.to_str().unwrap().to_string()),
         None => match req.connection_info().realip_remote_addr() {
             Some(ip) => Some(ip.to_string()),
@@ -80,8 +80,11 @@ pub async fn verify_request(req: &HttpRequest, cf_response: &str) -> bool {
                 None
             }
         },
-    };
+    }
+}
 
+pub async fn verify_request(req: &HttpRequest, cf_response: &str) -> bool {
+    let req_ip = get_ip_addr(req);
     let client = Client::new();
     let request_values = SiteVerifyRequest {
         secret: std::env::var(constants::CF_TURNSTILE_SECRET_KEY).unwrap(),

@@ -9,4 +9,4 @@ const parseDateToLocal = (date, withTime = false) => {
         second: withTime ? "numeric" : undefined,
         hour12: true
     });
-}
+};

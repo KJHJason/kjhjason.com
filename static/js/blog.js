@@ -20,7 +20,7 @@ const checkFileSize = (file) => {
         return false;
     }
     return true;
-}
+};
 
 document.onpaste = (e) => {
     const items = (e.clipboardData || e.originalEvent.clipboardData).items;
@@ -34,7 +34,7 @@ document.onpaste = (e) => {
             uploadImage(file);
         }
     }
-}
+};
 editDiv.addEventListener("drop", (e) => {
     e.preventDefault();
     const files = e.dataTransfer.files;
@@ -49,7 +49,7 @@ editDiv.addEventListener("drop", (e) => {
 const saveFileInfo = (file, fileSlice) => {
     fileSlice.push({"file": file, "time": new Date().getTime()});
     localStorage.setItem("fileSlice", JSON.stringify(fileSlice));
-}
+};
 const maxAge = 7 * 24 * 60 * 60 * 1000;
 const loadFileInfo = () => {
     const fileSlice = localStorage.getItem("fileSlice");
@@ -59,10 +59,10 @@ const loadFileInfo = () => {
     const files = JSON.parse(fileSlice);
     const currentTime = new Date().getTime();
     return files.filter((file) => currentTime - file.time < maxAge);
-}
+};
 const parseFileSliceForUpload = (fileSlice) => {
     return fileSlice.map((file) => file.file);
-}
+};
 
 const previewDiv = document.getElementById("preview");
 const editBtnEvt = () => {

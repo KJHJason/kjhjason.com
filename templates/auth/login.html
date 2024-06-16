@@ -3,7 +3,8 @@
 {% block title %}Login{% endblock %}
 
 {% block head %}
-    <link rel="canonical" href="https://kjhjason.com/{{ login_url }}" />
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" href="https://kjhjason.com/{{ client_login_url }}" />
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
 
@@ -19,10 +20,9 @@
             hx-post="/{{ login_url }}"
             hx-headers='{{ common.csrf_header_json|safe }}'
             hx-target="#success-msg"
-            hx-on::after-swap="alert('test')"
+            hx-on::after-request="turnstile.reset()"
             hx-target-error="#error-alert"
             class="space-y-4 md:space-y-6"
-            action="#"
         >
             <div>
                 <label for="username" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Username/Email</label>

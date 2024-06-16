@@ -1,4 +1,4 @@
-use crate::client::templates::admin::NewBlog;
+use crate::templates::admin::NewBlog;
 use crate::utils::security::extract_for_template;
 use actix_web::{get, HttpRequest, Responder};
 

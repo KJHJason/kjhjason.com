@@ -4,6 +4,7 @@ use crate::middleware::auth;
 use crate::model::auth as auth_model;
 use crate::security::cf_turnstile;
 use crate::security::pw_hasher;
+use crate::templates;
 use crate::utils::security;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
 use actix_web::http::header::ContentType;
@@ -27,7 +28,8 @@ async fn admin_honeypot(
     login_data: Form<auth_model::LoginData>,
 ) -> Result<HttpResponse, auth_model::AuthError> {
     log::warn!(
-        "Honeypot triggered! Username: {} Password: {}",
+        "Honeypot triggered! Request IP: {} Username: {} Password: {}",
+        cf_turnstile::get_ip_addr(&req).unwrap_or("unknown".to_string()),
         login_data.username,
         login_data.password
     );
@@ -88,7 +90,7 @@ async fn login(
             .secure(!constants::DEBUG_MODE)
             .expires(max_age)
             .finish();
-        let html = auth_model::AuthSucessTemplate {
+        let html = templates::alerts::SucessAlert {
             msg: "You have logged in",
         };
         return Ok(HttpResponse::Ok()

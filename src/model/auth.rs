@@ -1,4 +1,5 @@
 use crate::model::checkbox;
+use crate::templates::alerts::ErrAlert;
 use actix_web::{http::header::ContentType, HttpResponse, ResponseError};
 use askama_actix::Template;
 use bson::oid::ObjectId;
@@ -46,12 +47,6 @@ impl User {
     }
 }
 
-#[derive(Template)]
-#[template(path = "components/auth_success.html")]
-pub(crate) struct AuthSucessTemplate<'a> {
-    pub(crate) msg: &'a str,
-}
-
 #[derive(Debug, Display, Error)]
 pub enum AuthError {
     #[display(fmt = "User already logged in")]
@@ -66,16 +61,10 @@ pub enum AuthError {
     InternalServerError,
 }
 
-#[derive(Template)]
-#[template(path = "components/auth_error.html")]
-struct AuthErrTemplate<'a> {
-    err: &'a str,
-}
-
 impl ResponseError for AuthError {
     fn error_response(&self) -> HttpResponse {
         let content_type = ContentType::html();
-        let error_html = AuthErrTemplate {
+        let error_html = ErrAlert {
             err: &self.to_string(),
         }
         .render()

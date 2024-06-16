@@ -10,13 +10,13 @@ async fn get_blog(
     client: Data<db::DbClient>,
     blog_identifier: Path<BlogIdentifier>,
 ) -> Result<Json<BlogResponse>, BlogError> {
-    let blog_id = validate_id(&blog_identifier.into_inner().get_id())?;
+    let blog_id = validate_id(&blog_identifier.into_inner().id)?;
 
     // get api from database
     let blog_col = client.into_inner().get_blog_collection();
     match blog_col.find_one(doc! { "_id": blog_id }, None).await {
         Ok(Some(blog)) => {
-            if !blog.get_is_public() {
+            if !blog.is_public {
                 return Err(BlogError::BlogNotFound);
             }
             Ok(Json(BlogResponse::from(blog)))
@@ -34,7 +34,7 @@ async fn blog_exists(
     client: Data<db::DbClient>,
     blog_identifier: Path<BlogIdentifier>,
 ) -> Result<HttpResponse, BlogError> {
-    let blog_id = validate_id(&blog_identifier.into_inner().get_id())?;
+    let blog_id = validate_id(&blog_identifier.into_inner().id)?;
 
     let options = FindOneOptions::builder()
         .projection(doc! { "_id": 1 })
