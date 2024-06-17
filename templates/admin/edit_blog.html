@@ -42,18 +42,16 @@
         csrfValue = "{{ common.csrf_value }}";
         useLocalStorage = false;
         isPublic.checked = "{{ public }}" === "true";
-        content.value = document.getElementById("content-template").innerHTML;
-        contentPreview.value = content.value;
+        updateContent(document.getElementById("content-template").innerHTML);
         tags.value = document.getElementById("tags-template").innerHTML;
-        title.value = document.getElementById("title-template").innerHTML;
-        titlePreivew.innerText = title.value;
+        updateTitle(document.getElementById("title-template").innerHTML);
 
         let newFiles = [];
         fileUploadResponseHandler = (file) => {
             newFiles.push(file);
         };
 
-        const postBlog = () => {
+        const postBlog = async () => {
             const tileVal = title.value;
             const contentVal = content.value;
             const tagsVal = parseTags(tagsInp.value);
@@ -75,48 +73,47 @@
                 return;
             }
 
-            fetch("/api/blog/update", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "{{ common.csrf_header }}": "{{ common.csrf_value }}",
-                },
-                body: JSON.stringify({
-                    id: "{{ id }}",
-                    title: tileVal,
-                    tags: tagsVal,
-                    new_files: newFiles,
-                    content: contentVal,
-                    is_public: isPublic.checked,
-                }),
-            })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error("Failed to update blog!", response);
-                    }
-                    swal.fire({
-                        icon: "success",
-                        title: "Success!",
-                        text: "Blog updated!",
-                        confirmButtonText: "Continue Editing",
-                        cancelButtonText: "View Blog",
-                        showCancelButton: true,
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            newFiles = [];
-                            return;
-                        }
-                        window.location.href = "/blogs/{{ id }}";
-                    });
-                })
-                .catch((error) => {
-                    console.error("Error:", error);
-                    Swal.fire({
-                        icon: "error",
-                        title: "Oops...",
-                        text: "Failed to update blog!",
-                    });
+            try {
+                const response = await fetch("/api/blog/update", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "{{ common.csrf_header }}": "{{ common.csrf_value }}",
+                    },
+                    body: JSON.stringify({
+                        id: "{{ id }}",
+                        title: tileVal,
+                        tags: tagsVal,
+                        new_files: newFiles,
+                        content: contentVal,
+                        is_public: isPublic.checked,
+                    }),
                 });
+                if (!response.ok) {
+                    throw new Error("Failed to update blog!", response);
+                }
+                const result = await Swal.fire({
+                    icon: "success",
+                    title: "Success!",
+                    text: "Blog updated!",
+                    confirmButtonText: "View Blog",
+                    cancelButtonText: "Continue Editing",
+                    showCancelButton: true,
+                });
+                if (result.isConfirmed) {
+                    window.location.href = "/blogs/{{ id }}";
+                    return;
+                }
+                newFiles = [];
+                updateContent(await response.text());
+            } catch (error) {
+                console.error("Error:", error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: "Failed to update blog!",
+                });
+            }
         };
     </script>
 {% endblock %}

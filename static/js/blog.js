@@ -119,6 +119,10 @@ const previewBtnEvt = () => {
 let useLocalStorage = true;
 const content = document.getElementById("content");
 const contentPreview = document.getElementById("content-preview");
+const updateContent = (value) => {
+    content.value = value;
+    contentPreview.value = value;
+}
 content.addEventListener("input", () => {
     const value = content.value;
     if (useLocalStorage) {
@@ -126,8 +130,13 @@ content.addEventListener("input", () => {
     }
     contentPreview.value = value;
 });
+
 const title = document.getElementById("title");
 const titlePreivew = document.getElementById("blog-title");
+const updateTitle = (value) => {
+    title.value = value;
+    titlePreivew.innerText = value;
+}
 title.addEventListener("input", () => {
     const value = title.value;
     titlePreivew.innerText = value;

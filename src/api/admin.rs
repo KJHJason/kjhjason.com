@@ -28,8 +28,9 @@ use std::path::Path as std_Path;
 use std::str::FromStr;
 
 macro_rules! delete_blob {
-    ($client:expr, $bucket:expr, $name:expr) => {
-        if !storage::delete_blob($client, $bucket, $name).await {
+    ($client:expr, $file_url:expr) => {
+        let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url($file_url);
+        if !storage::delete_blob($client, &bucket, &obj_name).await {
             return Err(BlogError::InternalServerError);
         }
     };
@@ -236,7 +237,7 @@ async fn update_blog(
     let mut files_to_keep = Vec::with_capacity(old_files.len());
     for file in old_files.into_iter() {
         if !blog.content.contains(&file.url) {
-            delete_blob!(&gcs_client, constants::BUCKET, &file.url);
+            delete_blob!(&gcs_client, &file.url);
         } else {
             files_to_keep.push(file);
         }
@@ -249,7 +250,7 @@ async fn update_blog(
 
     if !blog.content.is_empty() {
         is_updating = true;
-        set_doc.insert("content", blog.content);
+        set_doc.insert("content", &blog.content);
     }
 
     let title = blog.title;
@@ -270,16 +271,16 @@ async fn update_blog(
         set_doc.insert("tags", new_tags);
     }
 
-    let success_json = HttpResponse::Ok().body("Blog updated successfully".to_string());
+    let new_content_res = HttpResponse::Ok().body(blog.content.to_string());
     if !is_updating {
-        return Ok(success_json);
+        return Ok(new_content_res);
     }
 
     let query = doc! { "_id": blog_id };
     let update = doc! { "$set": set_doc };
     let blog_col = client.into_inner().get_blog_collection();
     match blog_col.update_one(query, update, None).await {
-        Ok(_) => Ok(success_json),
+        Ok(_) => Ok(new_content_res),
         Err(err) => {
             log::error!("Failed to update api in database: {}", err);
             Err(BlogError::UpdateBlogError)
@@ -304,7 +305,7 @@ async fn delete_blog(
 
     let files = blog_data.files.unwrap_or(vec![]);
     for file in files.iter() {
-        delete_blob!(&gcs_client, constants::BUCKET, &file.url);
+        delete_blob!(&gcs_client, &file.url);
     }
 
     let blog_col = client.into_inner().get_blog_collection();

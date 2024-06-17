@@ -17,8 +17,7 @@
         // read from localstorage
         const savedContent = localStorage.getItem("content");
         if (savedContent) {
-            content.value = savedContent;
-            contentPreview.value = savedContent;
+            updateContent(savedContent)
         }
         const savedTags = localStorage.getItem("tags");
         if (savedTags) {
@@ -26,8 +25,7 @@
         }
         const savedTitle = localStorage.getItem("title");
         if (savedTitle) {
-            title.value = savedTitle;
-            titlePreivew.innerText = savedTitle;
+            updateTitle(savedTitle);
         }
 
         csrfHeaderName = "{{ common.csrf_header }}";
