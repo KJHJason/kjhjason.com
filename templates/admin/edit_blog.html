@@ -8,8 +8,13 @@
 {% endblock %}
 
 {% block content %}
+    <button hx-on:click="goBackToBlog()" class="btn btn-primary mb-4">
+        <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12l4-4m-4 4 4 4"/>
+        </svg>
+        Back to Blog
+    </button>
     {% include "components/blog_input_div.html" %}
-
     <template id="title-template">{{ title }}</template>
     <template id="tags-template">{{ tags }}</template>
     <template id="content-template">{{ content }}</template>
@@ -18,8 +23,24 @@
 {% block scripts %}
     <script nonce="{{ common.nonce }}" src="/static/js/blog.js"></script>
     <script nonce="{{ common.nonce }}">
-        useLocalStorage = false;
+        const goBackToBlog = () => {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You will lose all unsaved changes!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes",
+                cancelButtonText: "No",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/blogs/{{ id }}";
+                }
+            });
+        };
 
+        csrfHeaderName = "{{ common.csrf_header }}";
+        csrfValue = "{{ common.csrf_value }}";
+        useLocalStorage = false;
         isPublic.checked = "{{ public }}" === "true";
         content.value = document.getElementById("content-template").innerHTML;
         contentPreview.value = content.value;
@@ -37,11 +58,11 @@
             const contentVal = content.value;
             const tagsVal = parseTags(tagsInp.value);
 
-            if (tileVal.length === 0 || contentVal.length === 0 || tagsVal.length === 0) {
+            if (tileVal.length === 0 || contentVal.length === 0) {
                 Swal.fire({
                     icon: "error",
                     title: "Oops...",
-                    text: "Title, content, and tags are required!",
+                    text: "Title and content are required!",
                 });
                 return;
             }

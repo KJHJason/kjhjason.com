@@ -1,8 +1,8 @@
 use crate::constants::constants;
 use crate::database::db;
 use crate::model::blog::{
-    Blog, BlogError, BlogIdentifier, BlogPreview, BlogProjection, BlogPublishOperation,
-    BlogUpdateOperation, FileInfo, UploadedFiles,
+    Blog, BlogError, BlogIdentifier, BlogPreview, BlogPublishOperation, BlogUpdateOperation,
+    FileInfo, UploadedFiles,
 };
 use crate::templates;
 use crate::utils::datetime;
@@ -87,9 +87,9 @@ async fn preview_blog(data: Form<BlogPreview>) -> HttpResponse {
 
 async fn process_file(
     file: &mut FileInfo,
-    content: &str,
+    content: &mut String,
     gcs_client: &GcsClient,
-) -> Result<String, BlogError> {
+) -> Result<(), BlogError> {
     if file.url.is_empty() {
         return Err(BlogError::FileIsEmpty);
     }
@@ -97,15 +97,14 @@ async fn process_file(
     let signed_url = match &file.signed_url {
         Some(url) => &url.clone(),
         None => {
-            return Ok("".to_string());
+            return Ok(());
         }
     };
 
     // check if the signed_url is in the content
-    let mut content = content.to_string();
     if !content.contains(signed_url) {
-        storage::remove_file_from_md_content(&mut content, signed_url);
-        return Ok("".to_string());
+        storage::remove_file_from_md_content(content, signed_url);
+        return Ok(());
     }
 
     let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url(&file.url);
@@ -120,7 +119,14 @@ async fn process_file(
         constants::BUCKET,
         obj_name_with_changed_prefix,
     );
-    content = content.replace(signed_url, &new_url);
+    let signed_url_idx = match content.find(signed_url) {
+        Some(idx) => idx,
+        None => {
+            log::warn!("Signed url not found in content");
+            return Ok(());
+        }
+    };
+    content.replace_range(signed_url_idx..signed_url_idx + signed_url.len(), &new_url);
     file.signed_url = None;
     file.url = new_url;
 
@@ -131,17 +137,13 @@ async fn process_file(
         constants::BUCKET,
         obj_name_with_changed_prefix
     );
-    return Ok(content);
+    return Ok(());
 }
 
 macro_rules! process_file {
     ($file:expr, $content:expr, $gcs_client:expr) => {
-        match process_file($file, &$content, $gcs_client).await {
-            Ok(new_content) => {
-                if !new_content.is_empty() {
-                    $content = new_content;
-                }
-            }
+        match process_file($file, $content, $gcs_client).await {
+            Ok(_) => {}
             Err(err) => {
                 return Err(err);
             }
@@ -165,18 +167,17 @@ async fn new_blog(
         return Err(BlogError::TitleTooLong);
     }
 
-    let mut content = blog_op.content;
-    if content.is_empty() {
+    if blog_op.content.is_empty() {
         return Err(BlogError::EmptyContent);
     }
 
     for file in blog_op.files.iter_mut() {
-        process_file!(file, content, &gcs_client);
+        process_file!(file, &mut blog_op.content, &gcs_client);
     }
 
     let blog = Blog::new(
         title,
-        content,
+        blog_op.content,
         &blog_op.tags,
         &blog_op.files,
         blog_op.is_public,
@@ -223,11 +224,10 @@ async fn update_blog(
 
     let old_files = blog_in_db.files.unwrap_or(vec![]);
     let mut files_to_put_in_db = Vec::with_capacity(blog.new_files.len() + old_files.len());
-    let mut content = blog.content;
     if blog.new_files.len() > 0 {
         is_updating = true;
         for file in blog.new_files.iter_mut() {
-            process_file!(file, content, &gcs_client);
+            process_file!(file, &mut blog.content, &gcs_client);
         }
         files_to_put_in_db = blog.new_files;
     }
@@ -235,7 +235,7 @@ async fn update_blog(
     // check if the old_files are in the content
     let mut files_to_keep = Vec::with_capacity(old_files.len());
     for file in old_files.into_iter() {
-        if !content.contains(&file.url) {
+        if !blog.content.contains(&file.url) {
             delete_blob!(&gcs_client, constants::BUCKET, &file.url);
         } else {
             files_to_keep.push(file);
@@ -247,9 +247,9 @@ async fn update_blog(
         set_doc.insert("files", files_to_put_in_db);
     }
 
-    if !content.is_empty() {
+    if !blog.content.is_empty() {
         is_updating = true;
-        set_doc.insert("content", content);
+        set_doc.insert("content", blog.content);
     }
 
     let title = blog.title;

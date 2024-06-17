@@ -1,4 +1,5 @@
 use crate::constants::constants;
+use crate::middleware::csrf;
 use actix_web::dev::ServiceRequest;
 use actix_web::http::Method;
 use actix_web::{HttpMessage, HttpRequest};
@@ -66,24 +67,11 @@ pub fn is_protected(
     true
 }
 
-pub fn get_csrf_value(req: &HttpRequest) -> String {
-    match req.cookie(constants::CSRF_COOKIE_NAME) {
-        Some(cookie) => cookie.value().to_string(),
-        None => "".to_string(),
-    }
-}
-
-pub fn parse_csrf_json(req: &HttpRequest) -> String {
-    match req.cookie(constants::CSRF_COOKIE_NAME) {
-        Some(cookie) => {
-            format!(
-                r#"{{"{}":"{}"}}"#,
-                constants::CSRF_HEADER_NAME,
-                cookie.value()
-            )
-        }
-        None => "".to_string(),
-    }
+pub fn get_csrf_token(req: &HttpRequest) -> String {
+    req.extensions()
+        .get::<csrf::CsrfValue>()
+        .unwrap()
+        .get_csrf_token()
 }
 
 pub fn is_logged_in(req: &HttpRequest) -> bool {
@@ -111,11 +99,13 @@ pub fn extract_for_template(req: &HttpRequest) -> TemplateValues {
             .get_nonce()
             .to_string()
     };
+    let csrf_value = get_csrf_token(req);
+    let csrf_header_json = format!(r#"{{"{}":"{}"}}"#, constants::CSRF_HEADER_NAME, &csrf_value);
     TemplateValues {
         nonce,
         csrf_header: constants::CSRF_HEADER_NAME.to_string(),
-        csrf_value: get_csrf_value(req),
-        csrf_header_json: parse_csrf_json(req),
+        csrf_value,
+        csrf_header_json,
         is_logged_in: is_logged_in(req),
     }
 }

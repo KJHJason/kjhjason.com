@@ -30,6 +30,8 @@
             titlePreivew.innerText = savedTitle;
         }
 
+        csrfHeaderName = "{{ common.csrf_header }}";
+        csrfValue = "{{ common.csrf_value }}";
         const files = loadFileInfo();
         fileUploadResponseHandler = (file) => {
             saveFileInfo(file, files);
@@ -41,11 +43,11 @@
             const contentVal = content.value;
             const tagsVal = parseTags(tagsInp.value);
 
-            if (tileVal.length === 0 || contentVal.length === 0 || tagsVal.length === 0) {
+            if (tileVal.length === 0 || contentVal.length === 0) {
                 Swal.fire({
                     icon: "error",
                     title: "Oops...",
-                    text: "Title, content, and tags are required!",
+                    text: "Title and content are required!",
                 });
                 return;
             }

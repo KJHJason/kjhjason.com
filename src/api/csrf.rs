@@ -18,7 +18,7 @@ async fn get_csrf_token(
         None => {
             // either the middleware has yet to add the CSRF token in the response or the token is missing which shouldn't happen
             req.extensions()
-                .get::<csrf::HasCsrfCookie>()
+                .get::<csrf::CsrfValue>()
                 .ok_or_else(|| Error::new("CSRF token not found".to_string()))?;
             Ok(web::Redirect::to(full_redirect).see_other())
         }

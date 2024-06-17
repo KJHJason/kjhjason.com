@@ -87,6 +87,7 @@ pub mod rfc3339 {
             }
         }
 
+        #[allow(dead_code)]
         pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<DateTime<Utc>>, D::Error>
         where
             D: Deserializer<'de>,

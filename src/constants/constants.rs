@@ -22,13 +22,20 @@ pub const MAX_TAGS: usize = 8;
 pub const MAX_FILE_SIZE: usize = 1024 * 1024 * 100;
 pub const TEMP_DIR: &str = "uploads";
 
-pub const BUCKET: &str = "kjhjason.com";
+pub const BUCKET: &str = if DEBUG_MODE {
+    "kjhjason"
+} else {
+    "kjhjason.com"
+};
 pub const BUCKET_FOR_TEMP: &str = "kjhjason";
 pub const SIGNED_URL_MAX_AGE: time::Duration = time::Duration::from_secs(60 * 60 * 24 * 7);
 pub const TEMP_OBJ_PREFIX: &str = "temp";
 pub const BLOG_OBJ_PREFIX: &str = "api";
 
 // env keys
+pub const MONGODB_URI: &str = "MONGODB_URI";
+pub const MONGODB_USERNAME: &str = "MONGODB_USERNAME";
+pub const MONGODB_PASSWORD: &str = "MONGODB_PASSWORD";
 pub const CF_TURNSTILE_SITE_KEY: &str = "0x4AAAAAAAcnZh9gukmZdThg";
 pub const CF_TURNSTILE_SECRET_KEY: &str = "CF_TURNSTILE_SECRET_KEY";
 pub const SECRET_KEY: &str = "SECRET_KEY";

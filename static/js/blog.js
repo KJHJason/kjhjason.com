@@ -1,3 +1,6 @@
+let csrfHeaderName = null;
+let csrfValue = null;
+
 const isPublic = document.getElementById("is-public");
 
 const parseUrlToMd = (file) => {
@@ -49,22 +52,26 @@ editDiv.addEventListener("drop", (e) => {
     }
 });
 const uploadImage = (file) => {
+    if (csrfValue === null || csrfHeaderName === null) {
+        throw new Error("csrf header name or value is null");
+    }
+    if (fileUploadResponseHandler === null) {
+        throw new Error("fileUploadResponseHandler is null");
+    }
+
     const formData = new FormData();
     formData.append("file", file);
     fetch("/api/blog/upload/files", {
         method: "POST",
         body: formData,
         headers: {
-            "{{ common.csrf_header }}": "{{ common.csrf_value }}",
+            [csrfHeaderName]: csrfValue,
         },  
     })
         .then((response) => response.json())
         .then((data) => {
             data.files.forEach((file) => {
-                if (fileUploadResponseHandler === null) {
-                    throw new Error("fileUploadResponseHandler is null");
-                }
-                responseHandlerFn(file);
+                fileUploadResponseHandler(file);
                 content.value += parseUrlToMd(file);
                 content.dispatchEvent(new Event("input", {
                     bubbles: true,

@@ -94,7 +94,11 @@ async fn init_blog_collection(client: &Client) {
 }
 
 pub async fn init_db() -> Result<DbClient, mongodb::error::Error> {
-    let uri = std::env::var("MONGODB_URI").unwrap_or_else(|_| constants::LOCAL_URI.into());
+    let uri = if constants::DEBUG_MODE {
+        constants::LOCAL_URI.to_string()
+    } else {
+        std::env::var(constants::MONGODB_URI).unwrap()
+    };
 
     let mut client_options = ClientOptions::parse(uri.clone()).await?;
     client_options.app_name = Some(constants::APP_NAME.to_string());
@@ -102,8 +106,8 @@ pub async fn init_db() -> Result<DbClient, mongodb::error::Error> {
         if uri == constants::LOCAL_URI {
             panic!("Cannot use local URI in production mode");
         }
-        let username = std::env::var("MONGODB_USERNAME").unwrap();
-        let password = std::env::var("MONGODB_PASSWORD").unwrap();
+        let username = std::env::var(constants::MONGODB_USERNAME).unwrap();
+        let password = std::env::var(constants::MONGODB_PASSWORD).unwrap();
         client_options.credential = Some(
             Credential::builder()
                 .username(username.to_string())
