@@ -4,6 +4,7 @@ use crate::templates::error::ErrorTemplate;
 use crate::templates::general::{
     Blog, BlogPost, BlogPostInfo, Experiences, Index, Projects, Skills,
 };
+use crate::utils::projects::get_projects;
 use crate::utils::security::extract_for_template;
 use crate::utils::validations::get_id_from_path;
 use actix_web::http::header::ContentType;
@@ -32,6 +33,7 @@ async fn experiences(req: HttpRequest) -> impl Responder {
 async fn projects(req: HttpRequest) -> impl Responder {
     Projects {
         common: extract_for_template(&req),
+        projects: get_projects(),
     }
 }
 

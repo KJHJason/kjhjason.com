@@ -13,10 +13,22 @@ pub struct Experiences {
     pub common: TemplateValues,
 }
 
+// title, img, img_alt, desc, tags, link
+pub struct ProjectInfo<'a> {
+    pub title: &'a str,
+    pub img: &'a str,
+    pub img_alt: &'a str,
+    pub desc: &'a str,
+    pub tags: Vec<&'a str>,
+    pub link: &'a str,
+    pub date: &'a str,
+}
+
 #[derive(Template)]
 #[template(path = "general/projects.html")]
-pub struct Projects {
+pub struct Projects<'a> {
     pub common: TemplateValues,
+    pub projects: Vec<ProjectInfo<'a>>,
 }
 
 #[derive(Template)]
