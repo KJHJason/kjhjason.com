@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{%- import "components/skill.html" as skill -%}
 
 {% block title %}Skills{% endblock %}
 
@@ -9,259 +10,220 @@
 {% block content %}
 <h3 class="skills-header !mt-0">Languages</h3>
 <div class="skills">
-    <div class="skill">
-        <a target="_blank" href="https://wikipedia.org/wiki/HTML">
-            <img src="/static/images/skills/html.png" alt="HTML5" />
-        </a>
-        HTML
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://wikipedia.org/wiki/CSS">
-            <img src="/static/images/skills/css.png" alt="CSS3" />
-        </a>
-        CSS
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://wikipedia.org/wiki/JavaScript">
-            <img src="/static/images/skills/js.png" alt="JavaScript" />
-        </a>
-        Javascript
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://www.python.org/">
-            <img src="/static/images/skills/python.png" alt="Python" />
-        </a>
-        Python
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://en.wikipedia.org/wiki/C%2B%2B">
-            <img src="/static/images/skills/cpp.png" alt="C++" />
-        </a>
-        C++
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://go.dev/">
-            <img class="!w-14 !h-auto" src="/static/images/skills/go.png" alt="Go" />
-        </a>
-        Go/Golang
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://learn.microsoft.com/en-us/dotnet/csharp/">
-            <img src="/static/images/skills/csharp.png" alt="C#" />
-        </a>
-        C#
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://www.typescriptlang.org/">
-            <img src="/static/images/skills/ts.png" alt="TypeScript" />
-        </a>
-        TypeScript
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://www.rust-lang.org/">
-            <img src="/static/images/skills/rust.png" alt="Rust" />
-        </a>
-        Rust
-    </div>
+    {% call skill::get(
+        link="https://wikipedia.org/wiki/HTML",
+        img_src="/static/images/skills/html.png",
+        name="HTML"
+    ) %}
+    {% call skill::get(
+        link="https://wikipedia.org/wiki/CSS",
+        img_src="/static/images/skills/css.png",
+        name="CSS"
+    ) %}
+    {% call skill::get(
+        link="https://wikipedia.org/wiki/JavaScript",
+        img_src="/static/images/skills/js.png",
+        name="JavaScript"
+    ) %}
+    {% call skill::get(
+        link="https://www.python.org/",
+        img_src="/static/images/skills/python.png",
+        name="Python"
+    ) %}
+    {% call skill::get(
+        link="https://en.wikipedia.org/wiki/C%2B%2B",
+        img_src="/static/images/skills/cpp.png",
+        name="C++"
+    ) %}
+    {% call skill::get(
+        link="https://go.dev/",
+        img_src="/static/images/skills/go.png",
+        name="Go/Golang"
+    ) %}
+    {% call skill::get(
+        link="https://learn.microsoft.com/en-us/dotnet/csharp/",
+        img_src="/static/images/skills/csharp.png",
+        name="C#"
+    ) %}
+    {% call skill::get(
+        link="https://www.typescriptlang.org/",
+        img_src="/static/images/skills/ts.png",
+        name="TypeScript"
+    ) %}
+    {% call skill::get(
+        link="https://www.rust-lang.org/",
+        img_src="/static/images/skills/rust.png",
+        name="Rust"
+    ) %}
 </div>
 
 <h3 class="skills-header">Backend</h3>
 <div class="skills">
-    <div class="skill">
-        <a target="_blank" href="https://flask.palletsprojects.com/">
-            <img src="/static/images/skills/py-flask.png" alt="Flask" />
-        </a>
-        Flask
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://fastapi.tiangolo.com/">
-            <img src="/static/images/skills/fastapi.png" alt="FastAPI" />
-        </a>
-        FastAPI
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://dotnet.microsoft.com/en-us/">
-            <img src="/static/images/skills/net-core.png" alt=".Net" />
-        </a>
-        .NET Core
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://actix.rs/">
-            <img src="/static/images/skills/actix.png" alt="Actix" />
-        </a>
-        Actix Web
-    </div>
+    {% call skill::get(
+        link="https://flask.palletsprojects.com/",
+        img_src="/static/images/skills/py-flask.png",
+        name="Flask"
+    ) %}
+    {% call skill::get(
+        link="https://fastapi.tiangolo.com/",
+        img_src="/static/images/skills/fastapi.png",
+        name="FastAPI"
+    ) %}
+    {% call skill::get(
+        link="https://dotnet.microsoft.com/en-us/",
+        img_src="/static/images/skills/net-core.png",
+        name=".NET Core"
+    ) %}
+    {% call skill::get(
+        link="https://actix.rs/",
+        img_src="/static/images/skills/actix.png",
+        name="Actix Web"
+    ) %}
 </div>
 
 <h3 class="skills-header">Frontend</h3>
 <div class="skills">
-    <div class="skill">
-        <a target="_blank" href="https://getbootstrap.com/">
-            <img src="/static/images/skills/bootstrap.png" alt="Bootstrap" />
-        </a>
-        Bootstrap
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://jquery.com/">
-            <img src="/static/images/skills/jquery.png" alt="jQuery" />
-        </a>
-        jQuery
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://jinja.palletsprojects.com/">
-            <img src="/static/images/skills/jinja.png" alt="Jinja" />
-        </a>
-        Jinja
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://tailwindcss.com/">
-            <img src="/static/images/skills/tailwindcss.png" alt="TailwindCSS" />
-        </a>
-        TailwindCSS
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor">
-            <img src="/static/images/skills/blazor.png" alt="Blazor" />
-        </a>
-        Blazor
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://svelte.dev/">
-            <img src="/static/images/skills/svelte.png" alt="Svelte" />
-        </a>
-        Svelte
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://react.dev/">
-            <img src="/static/images/skills/react.png" alt="React" />
-        </a>
-        React
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://pkg.go.dev/html/template">
-            <img src="/static/images/skills/go-template.png" alt="Go Template Logo by jinliming2" />
-        </a>
-        Go Template
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://djc.github.io/askama/askama.html">
-            <img src="/static/images/skills/rust.png" alt="Rust" />
-        </a>
-        Askama
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://htmx.org/">
-            <img src="/static/images/skills/htmx.png" alt="React" />
-        </a>
-        htmx
-    </div>
+    {% call skill::get(
+        link="https://getbootstrap.com/",
+        img_src="/static/images/skills/bootstrap.png",
+        name="Bootstrap"
+    ) %}
+    {% call skill::get(
+        link="https://jquery.com/",
+        img_src="/static/images/skills/jquery.png",
+        name="jQuery"
+    ) %}
+    {% call skill::get(
+        link="https://jinja.palletsprojects.com/",
+        img_src="/static/images/skills/jinja.png",
+        name="Jinja"
+    ) %}
+    {% call skill::get(
+        link="https://tailwindcss.com/",
+        img_src="/static/images/skills/tailwindcss.png",
+        name="TailwindCSS"
+    ) %}
+    {% call skill::get(
+        link="https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor",
+        img_src="/static/images/skills/blazor.png",
+        name="Blazor"
+    ) %}
+    {% call skill::get(
+        link="https://svelte.dev/",
+        img_src="/static/images/skills/svelte.png",
+        name="Svelte"
+    ) %}
+    {% call skill::get(
+        link="https://react.dev/",
+        img_src="/static/images/skills/react.png",
+        name="React"
+    ) %}
+    {% call skill::get(
+        link="https://pkg.go.dev/html/template",
+        img_src="/static/images/skills/go-template.png",
+        name="Go Template"
+    ) %}
+    {% call skill::get(
+        link="https://djc.github.io/askama/askama.html",
+        img_src="/static/images/skills/rust.png",
+        name="Askama"
+    ) %}
+    {% call skill::get(
+        link="https://htmx.org/",
+        img_src="/static/images/skills/htmx.png",
+        name="htmx"
+    ) %}
 </div>
 
 <h3 class="skills-header">Databases</h3>
 <div class="skills">
-    <div class="skill">
-        <a target="_blank" href="https://www.sqlite.org/">
-            <img src="/static/images/skills/sqlite.png" alt="SQLite" />
-        </a>
-        SQLite
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://www.mysql.com/">
-            <img src="/static/images/skills/mysql.png" alt="MySQL" />
-        </a>
-        MySQL
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://www.mongodb.com/">
-            <img src="/static/images/skills/mongodb.png" alt="MongoDB" />
-        </a>
-        MongoDB
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://www.microsoft.com/sql-server">
-            <img src="/static/images/skills/ms-sql-server.png" alt="Microsoft SQL Server" />
-        </a>
-        SQL Server
-    </div>
+    {% call skill::get(
+        link="https://www.sqlite.org/",
+        img_src="/static/images/skills/sqlite.png",
+        name="SQLite"
+    ) %}
+    {% call skill::get(
+        link="https://www.mysql.com/",
+        img_src="/static/images/skills/mysql.png",
+        name="MySQL"
+    ) %}
+    {% call skill::get(
+        link="https://www.mongodb.com/",
+        img_src="/static/images/skills/mongodb.png",
+        name="MongoDB"
+    ) %}
+    {% call skill::get(
+        link="https://www.microsoft.com/sql-server",
+        img_src="/static/images/skills/ms-sql-server.png",
+        name="SQL Server"
+    ) %}
 </div>
 
 <h3 class="skills-header">Deployment</h3>
 <div class="skills">
-    <div class="skill">
-        <a target="_blank" href="https://www.docker.com/">
-            <img src="/static/images/skills/docker.png" alt="Docker" />
-        </a>
-        Docker
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://cloud.google.com/">
-            <img src="/static/images/skills/gcp.png" alt="Google Cloud" />
-        </a>
-        Google Cloud
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://www.cloudflare.com/">
-            <img src="/static/images/skills/cloudflare.png" alt="Cloudflare" />
-        </a>
-        Cloudflare
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://www.alibabacloud.com/">
-            <img src="/static/images/skills/alibaba-cloud.png" alt="Alibaba Cloud" />
-        </a>
-        Alibaba Cloud
-    </div>
+    {% call skill::get(
+        link="https://www.docker.com/",
+        img_src="/static/images/skills/docker.png",
+        name="Docker"
+    ) %}
+    {% call skill::get(
+        link="https://cloud.google.com/",
+        img_src="/static/images/skills/gcp.png",
+        name="Google Cloud"
+    ) %}
+    {% call skill::get(
+        link="https://www.cloudflare.com/",
+        img_src="/static/images/skills/cloudflare.png",
+        name="Cloudflare"
+    ) %}
+    {% call skill::get(
+        link="https://www.alibabacloud.com/",
+        img_src="/static/images/skills/alibaba-cloud.png",
+        name="Alibaba Cloud"
+    ) %}
 </div>
 
 <h3 class="skills-header">General</h3>
 <div class="skills">
-    <div class="skill">
-        <a target="_blank" href="https://git-scm.com/">
-            <img src="/static/images/skills/git.png" alt="Git" />
-        </a>
-        Git
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://en.wikipedia.org/wiki/Regular_expression">
-            <img src="/static/images/skills/regex.png" alt="Regex" />
-        </a>
-        Regex
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://en.wikipedia.org/wiki/Markdown">
-            <img src="/static/images/skills/markdown.png" alt="Markdown" />
-        </a>
-        Markdown
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://www.selenium.dev/">
-            <img src="/static/images/skills/selenium.png" alt="Selenium" />
-        </a>
-        Selenium
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://en.wikipedia.org/wiki/Bash_(Unix_shell">
-            <img src="/static/images/skills/shell.png" alt="Shell Script" />
-        </a>
-        Shell Script
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://microsoft.com/powershell">
-            <img src="/static/images/skills/powershell.png" alt="PowerShell" />
-        </a>
-        PowerShell
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://en.wikipedia.org/wiki/Microsoft_Windows">
-            <img src="/static/images/skills/windows.png" alt="Windows" />
-        </a>
-        Windows
-    </div>
-    <div class="skill">
-        <a target="_blank" href="https://www.linux.org/">
-            <img src="/static/images/skills/linux.png" alt="Linux" />
-        </a>
-        Linux
-    </div>
+    {% call skill::get(
+        link="https://git-scm.com/",
+        img_src="/static/images/skills/git.png",
+        name="Git"
+    ) %}
+    {% call skill::get(
+        link="https://en.wikipedia.org/wiki/Regular_expression",
+        img_src="/static/images/skills/regex.png",
+        name="Regex"
+    ) %}
+    {% call skill::get(
+        link="https://en.wikipedia.org/wiki/Markdown",
+        img_src="/static/images/skills/markdown.png",
+        name="Markdown"
+    ) %}
+    {% call skill::get(
+        link="https://www.selenium.dev/",
+        img_src="/static/images/skills/selenium.png",
+        name="Selenium"
+    ) %}
+    {% call skill::get(
+        link="https://en.wikipedia.org/wiki/Bash_(Unix_shell)",
+        img_src="/static/images/skills/shell.png",
+        name="Shell Script"
+    ) %}
+    {% call skill::get(
+        link="https://microsoft.com/powershell",
+        img_src="/static/images/skills/powershell.png",
+        name="PowerShell"
+    ) %}
+    {% call skill::get(
+        link="https://en.wikipedia.org/wiki/Microsoft_Windows",
+        img_src="/static/images/skills/windows.png",
+        name="Windows"
+    ) %}
+    {% call skill::get(
+        link="https://www.linux.org/",
+        img_src="/static/images/skills/linux.png",
+        name="Linux"
+    ) %}
 </div>
 {% endblock %}
