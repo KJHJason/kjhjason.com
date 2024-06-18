@@ -21,6 +21,7 @@ pub struct ProjectInfo<'a> {
     pub desc: &'a str,
     pub tags: Vec<&'a str>,
     pub link: &'a str,
+    pub presentation_link: &'a str,
     pub date: &'a str,
 }
 
@@ -34,6 +35,18 @@ pub struct Projects<'a> {
 #[derive(Template)]
 #[template(path = "general/skills.html")]
 pub struct Skills {
+    pub common: TemplateValues,
+}
+
+#[derive(Template)]
+#[template(path = "general/certificates.html")]
+pub struct Certificates {
+    pub common: TemplateValues,
+}
+
+#[derive(Template)]
+#[template(path = "general/awards.html")]
+pub struct Awards {
     pub common: TemplateValues,
 }
 

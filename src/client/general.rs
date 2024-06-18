@@ -2,7 +2,7 @@ use crate::database::db;
 use crate::model::blog::BlogIdentifier;
 use crate::templates::error::ErrorTemplate;
 use crate::templates::general::{
-    Blog, BlogPost, BlogPostInfo, Experiences, Index, Projects, Skills,
+    Awards, Blog, BlogPost, BlogPostInfo, Certificates, Experiences, Index, Projects, Skills,
 };
 use crate::utils::html::render_template;
 use crate::utils::projects::get_projects;
@@ -43,6 +43,22 @@ async fn projects(req: HttpRequest) -> HttpResponse {
 #[get("/skills")]
 async fn skills(req: HttpRequest) -> HttpResponse {
     let template = Skills {
+        common: extract_for_template(&req),
+    };
+    render_template(template, StatusCode::OK)
+}
+
+#[get("/certificates")]
+async fn certificates(req: HttpRequest) -> HttpResponse {
+    let template = Certificates {
+        common: extract_for_template(&req),
+    };
+    render_template(template, StatusCode::OK)
+}
+
+#[get("/awards")]
+async fn awards(req: HttpRequest) -> HttpResponse {
+    let template = Awards {
         common: extract_for_template(&req),
     };
     render_template(template, StatusCode::OK)
