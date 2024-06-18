@@ -37,7 +37,7 @@ hmac-serialiser-rs = "0.1.2"
 regex = "1.10.5"
 askama = "0.12.1"
 askama_actix = "0.14.0"
-reqwest = "0.12.4"
+reqwest = "0.12.5"
 uuid = { version = "1.8.0", features = ["v4"] }
 thiserror = "1.0.61"
 minify-html = "0.15.0"
