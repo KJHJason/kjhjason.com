@@ -22,17 +22,15 @@ pub const MAX_TAGS: usize = 8;
 pub const MAX_FILE_SIZE: usize = 1024 * 1024 * 100;
 pub const TEMP_DIR: &str = "uploads";
 
-pub const BUCKET: &str = if DEBUG_MODE {
-    "kjhjason"
-} else {
-    "kjhjason.com"
-};
-pub const BUCKET_FOR_TEMP: &str = "kjhjason";
+pub const BUCKET: &str = "kjhjason";
+pub const BUCKET_FOR_TEMP: &str = "kjhjason-private";
+pub const PUBLIC_S3_URL: &str = "https://storage.kjhjason.com";
 pub const SIGNED_URL_MAX_AGE: time::Duration = time::Duration::from_secs(60 * 60 * 24 * 7);
 pub const TEMP_OBJ_PREFIX: &str = "temp";
-pub const BLOG_OBJ_PREFIX: &str = "api";
+pub const BLOG_OBJ_PREFIX: &str = if DEBUG_MODE { "blog-dev" } else { "blog" };
 
 // env keys
+pub const R2_ACCOUNT_ID: &str = "R2_ACCOUNT_ID";
 pub const MONGODB_URI: &str = "MONGODB_URI";
 pub const MONGODB_USERNAME: &str = "MONGODB_USERNAME";
 pub const MONGODB_PASSWORD: &str = "MONGODB_PASSWORD";

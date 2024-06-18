@@ -164,7 +164,7 @@ impl DbClient {
             Ok(Some(user)) => Ok(user),
             Ok(None) => Err(AuthError::UserNotFound),
             Err(err) => {
-                log::error!("Failed to get user from database: {}", err);
+                log::error!("Failed to get user from database: {:?}", err);
                 Err(AuthError::InternalServerError)
             }
         }
@@ -175,7 +175,7 @@ impl DbClient {
             Ok(Some(blog)) => Ok(blog),
             Ok(None) => Err(BlogError::BlogNotFound),
             Err(err) => {
-                log::error!("Failed to get blog from database: {}", err);
+                log::error!("Failed to get blog from database: {:?}", err);
                 Err(BlogError::InternalServerError)
             }
         }

@@ -6,7 +6,7 @@ use crate::model::blog::{
 };
 use crate::templates;
 use crate::utils::datetime;
-use crate::utils::html::render_template;
+use crate::utils::html::{minify_html, render_template};
 use crate::utils::io::get_temp_file_path;
 use crate::utils::md::convert_to_html;
 use crate::utils::storage;
@@ -19,8 +19,8 @@ use actix_web::{
     web::{Data, Form, Json, Path},
     HttpRequest, HttpResponse,
 };
+use aws_sdk_s3 as s3;
 use futures_util::TryStreamExt;
-use google_cloud_storage::client::Client as GcsClient;
 use mime::{Mime, IMAGE_GIF, IMAGE_JPEG, IMAGE_PNG};
 use mongodb::bson;
 use mongodb::bson::doc;
@@ -31,6 +31,9 @@ use std::str::FromStr;
 macro_rules! delete_blob {
     ($client:expr, $file_url:expr) => {
         let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url($file_url);
+        if bucket.is_empty() || obj_name.is_empty() {
+            return Err(BlogError::InternalServerError);
+        }
         if !storage::delete_blob($client, &bucket, &obj_name).await {
             return Err(BlogError::InternalServerError);
         }
@@ -61,18 +64,13 @@ macro_rules! upload_blob {
     };
 }
 
-fn change_obj_prefix(obj: &str, old_prefix: &str, new_prefix: &str) -> String {
-    if obj.len() < old_prefix.len() {
+fn change_obj_prefix(obj: &str, blog_id: &str, old_prefix: &str, new_prefix: &str) -> String {
+    if !obj.starts_with(old_prefix) {
+        log::error!("Object doesn't start with the old prefix");
         return obj.to_string();
     }
-
-    let mut obj = obj.to_string();
-    log::info!("Changing prefix from {} to {}", old_prefix, new_prefix);
-    if &obj[0..old_prefix.len()] == old_prefix {
-        log::info!("Prefix found, changing prefix");
-        obj.replace_range(0..old_prefix.len(), new_prefix);
-    }
-    return obj;
+    let obj_without_prefix = &obj[old_prefix.len()..];
+    format!("{}/{}{}", new_prefix, blog_id, obj_without_prefix)
 }
 
 #[post("/api/admin/ws/blog/preview")]
@@ -82,15 +80,17 @@ async fn preview_blog(data: Form<BlogPreview>) -> HttpResponse {
         return HttpResponse::Ok().body("");
     }
     let preview = convert_to_html(content, None);
+    let minified = minify_html(&preview);
     HttpResponse::Ok()
         .content_type(ContentType::html())
-        .body(preview)
+        .body(minified)
 }
 
 async fn process_file(
+    blog_id: &str,
     file: &mut FileInfo,
     content: &mut String,
-    gcs_client: &GcsClient,
+    s3_client: &s3::Client,
 ) -> Result<(), BlogError> {
     if file.url.is_empty() {
         return Err(BlogError::FileIsEmpty);
@@ -110,15 +110,20 @@ async fn process_file(
     }
 
     let (bucket, obj_name) = storage::extract_bucket_and_blob_from_url(&file.url);
+    if bucket.is_empty() || obj_name.is_empty() {
+        return Err(BlogError::InternalServerError);
+    }
+
     // replace the signed url with the actual url
     let obj_name_with_changed_prefix = &change_obj_prefix(
         &obj_name,
+        blog_id,
         constants::TEMP_OBJ_PREFIX,
         constants::BLOG_OBJ_PREFIX,
     );
     let new_url = format!(
-        "https://storage.googleapis.com/{}/{}",
-        constants::BUCKET,
+        "{}/{}",
+        constants::PUBLIC_S3_URL,
         obj_name_with_changed_prefix,
     );
     let signed_url_idx = match content.find(signed_url) {
@@ -133,7 +138,7 @@ async fn process_file(
     file.url = new_url;
 
     move_blob!(
-        &gcs_client,
+        &s3_client,
         &bucket,
         &obj_name,
         constants::BUCKET,
@@ -143,8 +148,8 @@ async fn process_file(
 }
 
 macro_rules! process_file {
-    ($file:expr, $content:expr, $gcs_client:expr) => {
-        match process_file($file, $content, $gcs_client).await {
+    ($blog_id:expr, $file:expr, $content:expr, $s3_client:expr) => {
+        match process_file($blog_id, $file, $content, $s3_client).await {
             Ok(_) => {}
             Err(err) => {
                 return Err(err);
@@ -156,7 +161,7 @@ macro_rules! process_file {
 #[post("/api/new/blog")]
 async fn new_blog(
     client: Data<db::DbClient>,
-    gcs_client: Data<GcsClient>,
+    s3_client: Data<s3::Client>,
     blog: Json<BlogPublishOperation>,
 ) -> Result<HttpResponse, BlogError> {
     let mut blog_op = blog.into_inner();
@@ -173,24 +178,28 @@ async fn new_blog(
         return Err(BlogError::EmptyContent);
     }
 
-    for file in blog_op.files.iter_mut() {
-        process_file!(file, &mut blog_op.content, &gcs_client);
-    }
-
-    let blog = Blog::new(
+    let mut blog = Blog::new(
         title,
-        blog_op.content,
+        String::new(),
         &blog_op.tags,
-        &blog_op.files,
+        &vec![],
         blog_op.is_public,
     );
+    let blog_id = blog.get_id_string();
+
+    for file in blog_op.files.iter_mut() {
+        process_file!(&blog_id, file, &mut blog_op.content, &s3_client);
+    }
+    blog.files = blog_op.files;
+    blog.content = blog_op.content;
+
     match blog_col.insert_one(blog, None).await {
         Ok(result) => {
             let id = result.inserted_id.as_object_id().unwrap();
             Ok(HttpResponse::Ok().body(id.to_hex()))
         }
         Err(err) => {
-            log::error!("Failed to create api in database: {}", err);
+            log::error!("Failed to create api in database: {:?}", err);
             Err(BlogError::PublishBlogError)
         }
     }
@@ -199,11 +208,12 @@ async fn new_blog(
 #[put("/api/blog/update")]
 async fn update_blog(
     client: Data<db::DbClient>,
-    gcs_client: Data<GcsClient>,
+    s3_client: Data<s3::Client>,
     update_blog: Json<BlogUpdateOperation>,
 ) -> Result<HttpResponse, BlogError> {
     let mut blog = update_blog.into_inner();
     let blog_id = validate_id(&blog.id)?;
+    let blog_id_str = blog_id.to_hex();
 
     let new_tags = blog.tags;
     if new_tags.len() > constants::MAX_TAGS {
@@ -211,7 +221,7 @@ async fn update_blog(
     }
 
     let options = FindOneOptions::builder()
-        .projection(doc! { "title": 1, "tags": 1, "files": 1, "is_public": 1 })
+        .projection(doc! { "title": 1, "content": 1, "tags": 1, "files": 1, "is_public": 1 })
         .build();
     let blog_in_db = client
         .get_blog_post_projection(&blog_id, Some(options))
@@ -224,37 +234,44 @@ async fn update_blog(
         "last_modified": last_modified,
     };
 
+    let mut update_file_flag = false;
     let old_files = blog_in_db.files.unwrap_or(vec![]);
     let mut files_to_put_in_db = Vec::with_capacity(blog.new_files.len() + old_files.len());
     if blog.new_files.len() > 0 {
-        is_updating = true;
+        update_file_flag = true;
         for file in blog.new_files.iter_mut() {
-            process_file!(file, &mut blog.content, &gcs_client);
+            process_file!(&blog_id_str, file, &mut blog.content, &s3_client);
         }
         files_to_put_in_db = blog.new_files;
     }
 
     // check if the old_files are in the content
-    let mut files_to_keep = Vec::with_capacity(old_files.len());
     for file in old_files.into_iter() {
-        if !blog.content.contains(&file.url) {
-            delete_blob!(&gcs_client, &file.url);
-        } else {
-            files_to_keep.push(file);
+        if blog.content.contains(&file.url) {
+            files_to_put_in_db.push(file);
+            continue;
         }
+        if !update_file_flag {
+            update_file_flag = true;
+        }
+        delete_blob!(&s3_client, &file.url);
     }
 
-    if !files_to_put_in_db.is_empty() {
+    if update_file_flag {
         is_updating = true;
         set_doc.insert("files", files_to_put_in_db);
     }
 
-    if !blog.content.is_empty() {
+    let old_blog_content = blog_in_db.content.unwrap_or_default();
+    let blog_content = blog.content;
+    // do an is_empty() check as the content shouldn't be empty
+    if !blog_content.is_empty() && blog_content != old_blog_content {
         is_updating = true;
-        set_doc.insert("content", &blog.content);
+        set_doc.insert("content", &blog_content);
     }
 
     let title = blog.title;
+    // do an is_empty() check as the title shouldn't be empty
     if !title.is_empty() && title != blog_in_db.title.unwrap_or_default() {
         is_updating = true;
         set_doc.insert("title", title);
@@ -266,24 +283,23 @@ async fn update_blog(
     }
 
     let old_tags = blog_in_db.tags.unwrap_or(vec![]);
-    // O(n^2) algorithm but the no. of tags must be less than 8 so it's technically O(1)
-    if new_tags.len() != old_tags.len() || new_tags.iter().all(|tag| old_tags.contains(tag)) {
+    if new_tags.len() != old_tags.len() || new_tags != old_tags {
         is_updating = true;
         set_doc.insert("tags", new_tags);
     }
 
-    let new_content_res = HttpResponse::Ok().body(blog.content.to_string());
     if !is_updating {
-        return Ok(new_content_res);
+        return Ok(HttpResponse::Ok().body(old_blog_content));
     }
 
+    log::info!("set doc: {:?}", set_doc);
     let query = doc! { "_id": blog_id };
     let update = doc! { "$set": set_doc };
     let blog_col = client.into_inner().get_blog_collection();
     match blog_col.update_one(query, update, None).await {
-        Ok(_) => Ok(new_content_res),
+        Ok(_) => Ok(HttpResponse::Ok().body(blog_content)),
         Err(err) => {
-            log::error!("Failed to update api in database: {}", err);
+            log::error!("Failed to update api in database: {:?}", err);
             Err(BlogError::UpdateBlogError)
         }
     }
@@ -292,7 +308,7 @@ async fn update_blog(
 #[delete("/api/blogs/{id}/delete")]
 async fn delete_blog(
     client: Data<db::DbClient>,
-    gcs_client: Data<GcsClient>,
+    s3_client: Data<s3::Client>,
     blog_identifier: Path<BlogIdentifier>,
 ) -> Result<HttpResponse, BlogError> {
     let blog_id = validate_id(&blog_identifier.into_inner().id)?;
@@ -306,14 +322,14 @@ async fn delete_blog(
 
     let files = blog_data.files.unwrap_or(vec![]);
     for file in files.iter() {
-        delete_blob!(&gcs_client, &file.url);
+        delete_blob!(&s3_client, &file.url);
     }
 
     let blog_col = client.into_inner().get_blog_collection();
     match blog_col.delete_one(doc! { "_id": blog_id }, None).await {
         Ok(_) => Ok(HttpResponse::Ok().body("Blog deleted successfully".to_string())),
         Err(err) => {
-            log::error!("Failed to delete api from database: {}", err);
+            log::error!("Failed to delete api from database: {:?}", err);
             Err(BlogError::InternalServerError)
         }
     }
@@ -338,7 +354,7 @@ async fn configure_blog_post_bool(
             Ok(response)
         }
         Err(err) => {
-            log::error!("Failed to publish api in database: {}", err);
+            log::error!("Failed to publish api in database: {:?}", err);
             Err(BlogError::PublishBlogError)
         }
     }
@@ -362,7 +378,7 @@ async fn unpublish_blog_post(
 
 #[post("/api/blog/upload/files")]
 async fn upload_blog_files(
-    gcs_client: Data<GcsClient>,
+    s3_client: Data<s3::Client>,
     mut payload: Multipart,
     req: HttpRequest,
 ) -> Result<Json<UploadedFiles>, BlogError> {
@@ -429,15 +445,11 @@ async fn upload_blog_files(
         }
 
         log::info!("Uploading file, {}", destination);
-        upload_blob!(
-            &gcs_client,
-            constants::BUCKET_FOR_TEMP,
-            destination.clone(),
-            data
-        );
+        upload_blob!(&s3_client, constants::BUCKET_FOR_TEMP, &destination, data);
         let url = format!(
-            "https://storage.googleapis.com/{}/{}",
+            "https://{}.{}.r2.cloudflarestorage.com/{}",
             constants::BUCKET_FOR_TEMP,
+            std::env::var(constants::R2_ACCOUNT_ID).unwrap(),
             destination
         );
         let file_name = std_Path::new(&destination)
@@ -446,7 +458,7 @@ async fn upload_blog_files(
             .to_str()
             .unwrap();
         let signed_url =
-            storage::get_signed_url(&gcs_client, constants::BUCKET_FOR_TEMP, &destination).await;
+            storage::get_signed_url(&s3_client, constants::BUCKET_FOR_TEMP, &destination).await;
         files.append(file_name.to_string(), url, signed_url);
     }
     return Ok(Json(files));

@@ -52,13 +52,8 @@ target/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
-# env files for private keys
+# env files for sensitive values like API keys
 .env
-
-# .json files for API keys
-*.json
-# except
-!cors.json
 
 # test files
 *test*

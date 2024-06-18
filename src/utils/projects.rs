@@ -7,7 +7,7 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             img: "/static/images/projects/kjhjason.com.png",
             img_alt: "Screenshot of the Blog Editing page of the kjhjason.com website",
             desc: "This project is the website you are currently viewing. It is a personal project that I have started to showcase my portfolio and blog posts.
-            <br /><br />It is developed using Actix Web, a Rust web framework, MongoDB as the database, and Google Cloud Platform for storing images.
+            <br /><br />It is developed using Actix Web, a Rust web framework, MongoDB as the database, and Cloudflare R2 for storing images.
             <br /><br />Moroever, it uses Askama for templating which is similar to Jinja2 in Python and TailwindCSS for the frontend.",
             tags: vec!["Web Dev", "Rust", "Actix", "Askama", "TailwindCSS", "MongoDB", "Cloud"],
             link: "https://github.com/KJHJason/kjhjason.com",

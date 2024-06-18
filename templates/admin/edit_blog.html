@@ -17,7 +17,9 @@
     {% include "components/blog_input_div.html" %}
     <template id="title-template">{{ title }}</template>
     <template id="tags-template">{{ tags }}</template>
-    <template id="content-template">{{ content }}</template>
+    <!-- using pre to avoid removing the whitespaces in the content
+        https://github.com/wilsonzlin/minify-html?tab=readme-ov-file#whitespace -->
+    <pre class="hidden" id="content-template">{{ content }}</pre>
 {% endblock %}
 
 {% block scripts %}

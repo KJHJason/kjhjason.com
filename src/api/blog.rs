@@ -23,7 +23,7 @@ async fn get_blog(
         }
         Ok(None) => Err(BlogError::BlogNotFound),
         Err(err) => {
-            log::error!("Failed to get api from database: {}", err);
+            log::error!("Failed to get api from database: {:?}", err);
             Err(BlogError::InternalServerError)
         }
     }

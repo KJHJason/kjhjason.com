@@ -50,5 +50,6 @@ async fn edit_blog(
         tags: &blog.tags.join(", "),
         post_blog_btn_txt: "Update Blog",
     };
+    // since the minification will not preserve the whitespace in the content
     render_template(template, StatusCode::OK)
 }

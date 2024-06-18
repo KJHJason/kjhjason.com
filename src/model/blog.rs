@@ -153,6 +153,12 @@ impl From<FileInfo> for Bson {
     }
 }
 
+impl PartialEq for FileInfo {
+    fn eq(&self, other: &Self) -> bool {
+        self.url == other.url
+    }
+}
+
 #[derive(Serialize)]
 pub struct UploadedFiles {
     files: Vec<FileInfo>,
