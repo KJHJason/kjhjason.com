@@ -4,44 +4,48 @@ use crate::templates::error::ErrorTemplate;
 use crate::templates::general::{
     Blog, BlogPost, BlogPostInfo, Experiences, Index, Projects, Skills,
 };
+use crate::utils::html::render_template;
 use crate::utils::projects::get_projects;
 use crate::utils::security::extract_for_template;
 use crate::utils::validations::get_id_from_path;
-use actix_web::http::header::ContentType;
+use actix_web::http::StatusCode;
 use actix_web::web::Data;
-use actix_web::{get, web::Path, HttpRequest, HttpResponse, Responder};
-use askama::Template;
+use actix_web::{get, web::Path, HttpRequest, HttpResponse};
 use futures_util::TryStreamExt;
 use mongodb::bson::doc;
 use mongodb::options::{FindOneAndUpdateOptions, FindOptions, ReturnDocument};
 
 #[get("/")]
-async fn index(req: HttpRequest) -> impl Responder {
-    Index {
+async fn index(req: HttpRequest) -> HttpResponse {
+    let template = Index {
         common: extract_for_template(&req),
-    }
+    };
+    render_template(template, StatusCode::OK)
 }
 
 #[get("/experiences")]
-async fn experiences(req: HttpRequest) -> impl Responder {
-    Experiences {
+async fn experiences(req: HttpRequest) -> HttpResponse {
+    let template = Experiences {
         common: extract_for_template(&req),
-    }
+    };
+    render_template(template, StatusCode::OK)
 }
 
 #[get("/projects")]
-async fn projects(req: HttpRequest) -> impl Responder {
-    Projects {
+async fn projects(req: HttpRequest) -> HttpResponse {
+    let template = Projects {
         common: extract_for_template(&req),
         projects: get_projects(),
-    }
+    };
+    render_template(template, StatusCode::OK)
 }
 
 #[get("/skills")]
-async fn skills(req: HttpRequest) -> impl Responder {
-    Skills {
+async fn skills(req: HttpRequest) -> HttpResponse {
+    let template = Skills {
         common: extract_for_template(&req),
-    }
+    };
+    render_template(template, StatusCode::OK)
 }
 
 #[get("/blogs")]
@@ -53,16 +57,12 @@ async fn blogs(client: Data<db::DbClient>, req: HttpRequest) -> HttpResponse {
     let mut blogs_cursor = match client.get_blog_collection().find(None, find_options).await {
         Ok(blogs) => blogs,
         Err(_) => {
-            let html = ErrorTemplate {
+            let template = ErrorTemplate {
                 common: extract_for_template(&req),
                 status: 500,
                 message: "Failed to get blog posts",
-            }
-            .render()
-            .unwrap();
-            return HttpResponse::InternalServerError()
-                .content_type(ContentType::html())
-                .body(html);
+            };
+            return render_template(template, StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
 
@@ -93,38 +93,28 @@ async fn blogs(client: Data<db::DbClient>, req: HttpRequest) -> HttpResponse {
             Ok(None) => break,
             Err(e) => {
                 log::error!("Failed to get blog post: {}", e);
-                let html = ErrorTemplate {
+                let template = ErrorTemplate {
                     common: extract_for_template(&req),
                     status: 500,
                     message: "Failed to get blog posts",
-                }
-                .render()
-                .unwrap();
-                return HttpResponse::InternalServerError()
-                    .content_type(ContentType::html())
-                    .body(html);
+                };
+                return render_template(template, StatusCode::INTERNAL_SERVER_ERROR);
             }
         }
     }
 
-    let html = Blog { common, blogs }.render().unwrap();
-    HttpResponse::Ok()
-        .content_type(ContentType::html())
-        .body(html)
+    let template = Blog { common, blogs };
+    render_template(template, StatusCode::OK)
 }
 
 macro_rules! blog_not_found {
     ($req:expr) => {
-        let html = ErrorTemplate {
+        let template = ErrorTemplate {
             common: extract_for_template(&$req),
             status: 404,
             message: "Blog post not found",
-        }
-        .render()
-        .unwrap();
-        return HttpResponse::NotFound()
-            .content_type(ContentType::html())
-            .body(html);
+        };
+        return render_template(template, StatusCode::NOT_FOUND);
     };
 }
 
@@ -160,7 +150,7 @@ async fn blog_id(
                 blog_not_found!(req);
             }
 
-            let html = BlogPost {
+            let template = BlogPost {
                 common,
                 id: &blog_post.get_id_string(),
                 title: &blog_post.title,
@@ -171,27 +161,19 @@ async fn blog_id(
                 content: &blog_post.get_html_content(),
                 public: blog_post.is_public,
                 tags: &blog_post.tags,
-            }
-            .render()
-            .unwrap();
-            HttpResponse::Ok()
-                .content_type(ContentType::html())
-                .body(html)
+            };
+            render_template(template, StatusCode::OK)
         }
         Ok(None) => {
             blog_not_found!(req);
         }
         Err(_) => {
-            let html = ErrorTemplate {
+            let template = ErrorTemplate {
                 common: extract_for_template(&req),
                 status: 500,
                 message: "Failed to get blog post",
-            }
-            .render()
-            .unwrap();
-            HttpResponse::InternalServerError()
-                .content_type(ContentType::html())
-                .body(html)
+            };
+            render_template(template, StatusCode::INTERNAL_SERVER_ERROR)
         }
     }
 }

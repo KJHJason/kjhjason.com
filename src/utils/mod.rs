@@ -1,4 +1,5 @@
 pub mod datetime;
+pub mod html;
 pub mod io;
 pub mod md;
 pub mod projects;

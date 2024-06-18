@@ -2,19 +2,20 @@ use crate::database::db;
 use crate::model::blog::BlogIdentifier;
 use crate::templates::admin::{EditBlog, NewBlog};
 use crate::templates::error::ErrorTemplate;
-use crate::utils::security::extract_for_template;
-use crate::utils::validations::get_id_from_path;
-use actix_web::http::header::ContentType;
+use crate::utils::{
+    html::render_template, security::extract_for_template, validations::get_id_from_path,
+};
+use actix_web::http::StatusCode;
 use actix_web::web::{Data, Path};
-use actix_web::{get, HttpRequest, HttpResponse, Responder};
-use askama::Template;
+use actix_web::{get, HttpRequest, HttpResponse};
 
 #[get("/admin/new/blog")]
-async fn new_blog(req: HttpRequest) -> impl Responder {
-    NewBlog {
+async fn new_blog(req: HttpRequest) -> HttpResponse {
+    let template = NewBlog {
         common: extract_for_template(&req),
         post_blog_btn_txt: "Publish Blog",
-    }
+    };
+    render_template(template, StatusCode::OK)
 }
 
 #[get("/admin/blogs/{id}/edit")]
@@ -31,20 +32,16 @@ async fn edit_blog(
     let blog = match blog {
         Ok(blog) => blog,
         Err(_) => {
-            let html = ErrorTemplate {
+            let template = ErrorTemplate {
                 common: extract_for_template(&req),
                 status: 500,
                 message: "Failed to get blog post",
-            }
-            .render()
-            .unwrap();
-            return HttpResponse::InternalServerError()
-                .content_type(ContentType::html())
-                .body(html);
+            };
+            return render_template(template, StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
 
-    let html = EditBlog {
+    let template = EditBlog {
         common: extract_for_template(&req),
         id: &blog_id.to_hex(),
         title: &blog.title,
@@ -52,10 +49,6 @@ async fn edit_blog(
         public: blog.is_public,
         tags: &blog.tags.join(", "),
         post_blog_btn_txt: "Update Blog",
-    }
-    .render()
-    .unwrap();
-    HttpResponse::Ok()
-        .content_type(ContentType::html())
-        .body(html)
+    };
+    render_template(template, StatusCode::OK)
 }

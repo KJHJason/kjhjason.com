@@ -9,6 +9,7 @@ mod templates;
 mod utils;
 
 use actix_files::NamedFile;
+use actix_web::middleware::Compress;
 use actix_web::{
     get,
     middleware::{ErrorHandlers, Logger},
@@ -76,6 +77,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(db_client.clone()))
             .app_data(web::Data::new(client.clone()))
             .wrap(Logger::default())
+            .wrap(Compress::default())
             .wrap(middleware::content_type::ContentTypeMiddleware)
             .wrap(configure_csrf_middleware())
             .wrap(configure_auth_middleware())

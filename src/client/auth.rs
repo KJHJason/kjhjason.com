@@ -1,9 +1,9 @@
 use crate::constants::constants;
 use crate::templates::auth::Login;
-use crate::utils::security::extract_for_template;
-use actix_web::http::header::{ContentType, LOCATION};
+use crate::utils::{html::render_template, security::extract_for_template};
+use actix_web::http::header::LOCATION;
+use actix_web::http::StatusCode;
 use actix_web::{get, web, HttpRequest, HttpResponse};
-use askama::Template;
 
 #[get("/login")]
 async fn login_redirect() -> web::Redirect {
@@ -22,9 +22,7 @@ async fn login_admin(req: HttpRequest) -> HttpResponse {
                 login_url: "api/admin",
                 client_login_url: "admin",
             };
-            HttpResponse::Ok()
-                .content_type(ContentType::html())
-                .body(template.render().unwrap())
+            render_template(template, StatusCode::OK)
         }
     }
 }
@@ -41,9 +39,7 @@ async fn login_auth(req: HttpRequest) -> HttpResponse {
                 login_url: "api/auth/login",
                 client_login_url: "auth/login",
             };
-            HttpResponse::Ok()
-                .content_type(ContentType::html())
-                .body(template.render().unwrap())
+            render_template(template, StatusCode::OK)
         }
     }
 }

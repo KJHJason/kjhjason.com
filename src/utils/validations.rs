@@ -1,10 +1,10 @@
 use crate::model::blog::{BlogError, BlogIdentifier};
 use crate::templates::error::ErrorTemplate;
+use crate::utils::html::render_template;
 use crate::utils::security::extract_for_template;
-use actix_web::http::header::ContentType;
+use actix_web::http::StatusCode;
 use actix_web::web::Path;
 use actix_web::{HttpRequest, HttpResponse};
-use askama::Template;
 use bson::oid::ObjectId;
 use std::str::FromStr;
 
@@ -22,18 +22,13 @@ pub fn get_id_from_path(
     match validate_id(&blog_identifier.into_inner().id) {
         Ok(blog_id) => Ok(blog_id),
         Err(_) => {
-            let html = ErrorTemplate {
+            let template = ErrorTemplate {
                 common: extract_for_template(&req),
                 status: 400,
                 message: "Invalid blog post ID",
-            }
-            .render()
-            .unwrap();
-
-            let err_response = HttpResponse::BadRequest()
-                .content_type(ContentType::html())
-                .body(html);
-            Err(err_response)
+            };
+            let response = render_template(template, StatusCode::BAD_REQUEST);
+            Err(response)
         }
     }
 }

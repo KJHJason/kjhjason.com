@@ -6,18 +6,19 @@ use crate::model::blog::{
 };
 use crate::templates;
 use crate::utils::datetime;
+use crate::utils::html::render_template;
 use crate::utils::io::get_temp_file_path;
 use crate::utils::md::convert_to_html;
 use crate::utils::storage;
 use crate::utils::validations::validate_id;
 use actix_multipart::Multipart;
 use actix_web::http::header::{ContentType, CONTENT_LENGTH};
+use actix_web::http::StatusCode;
 use actix_web::{
     delete, post, put,
     web::{Data, Form, Json, Path},
     HttpRequest, HttpResponse,
 };
-use askama::Template;
 use futures_util::TryStreamExt;
 use google_cloud_storage::client::Client as GcsClient;
 use mime::{Mime, IMAGE_GIF, IMAGE_JPEG, IMAGE_PNG};
@@ -329,14 +330,12 @@ async fn configure_blog_post_bool(
     let blog_col = client.into_inner().get_blog_collection();
     match blog_col.update_one(query, update, None).await {
         Ok(_) => {
-            let html = if is_public {
-                templates::admin::Unlocked.render().unwrap()
+            let response = if is_public {
+                render_template(templates::admin::Unlocked, StatusCode::OK)
             } else {
-                templates::admin::Locked.render().unwrap()
+                render_template(templates::admin::Locked, StatusCode::OK)
             };
-            Ok(HttpResponse::Ok()
-                .content_type(ContentType::html())
-                .body(html))
+            Ok(response)
         }
         Err(err) => {
             log::error!("Failed to publish api in database: {}", err);

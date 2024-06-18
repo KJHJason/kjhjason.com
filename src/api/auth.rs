@@ -5,11 +5,11 @@ use crate::model::auth as auth_model;
 use crate::security::cf_turnstile;
 use crate::security::pw_hasher;
 use crate::templates;
+use crate::utils::html::render_template;
 use crate::utils::security;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
-use actix_web::http::header::ContentType;
+use actix_web::http::StatusCode;
 use actix_web::{post, web, web::Data, web::Form, HttpRequest, HttpResponse};
-use askama::Template;
 use hmac_serialiser_rs::SignerLogic;
 use rand::Rng;
 use tokio::time as tokio_time;
@@ -90,14 +90,15 @@ async fn login(
             .secure(!constants::DEBUG_MODE)
             .expires(max_age)
             .finish();
-        let html = templates::alerts::SucessAlert {
+        let template = templates::alerts::SucessAlert {
             msg: "You have logged in",
         };
-        return Ok(HttpResponse::Ok()
-            .content_type(ContentType::html())
-            .cookie(c)
-            .insert_header(("HX-Redirect", "/"))
-            .body(html.render().unwrap()));
+        let mut response = render_template(template, StatusCode::OK);
+        response.add_cookie(&c).unwrap();
+        response
+            .headers_mut()
+            .insert("HX-Redirect".parse().unwrap(), "/".parse().unwrap());
+        return Ok(response);
     })
     .await
     .unwrap()
