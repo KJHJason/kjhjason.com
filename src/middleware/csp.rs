@@ -213,7 +213,7 @@ where
         let fut = self.service.call(req);
         Box::pin(async move {
             let mut res = fut.await?;
-            if !is_protected {
+            if is_protected {
                 res.headers_mut().insert(
                     header::CONTENT_SECURITY_POLICY,
                     HeaderValue::from_str(&csp_response_header).unwrap(),

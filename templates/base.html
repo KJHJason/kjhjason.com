@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="text-white bg-[#111010]">
+<html lang="en" class="dark:text-white dark:bg-[#111010] ">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,9 +12,10 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/logo/dark/apple-touch-icon.png" media="(prefers-color-scheme: dark)" />
     <link rel="icon" type="image/png" sizes="32x32" href="/static/images/logo/dark/favicon-32x32.png" media="(prefers-color-scheme: dark)" />
     <link rel="icon" type="image/png" sizes="16x16" href="/static/images/logo/dark/favicon-16x16.png" media="(prefers-color-scheme: dark)" />
-    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/client-side-templates.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/response-targets.js"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script> <!-- TODO: Change to @latest when htmx flags 2.0.0 as latest -->
+    <script src="https://unpkg.com/htmx-ext-response-targets@latest/response-targets.js"></script>
+    <script nonce="{{ common.nonce }}" src="/static/js/sweetalert2.min.js"></script>
+    <link nonce="{{ common.nonce }}" rel="stylesheet" href="/static/css/sweetalert2.min.css" />
     {% block head %}{% endblock %}
 </head>
 <body class="antialiased max-w-2xl mb-4 md:flex-row mx-4 mt-8 lg:mx-auto">
@@ -135,16 +136,14 @@
             </div>
         </footer>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script nonce="{{ common.nonce }}">
         htmx.config.includeIndicatorStyles = false;
 
         // check if user is using dark mode
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            // add <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@5/dark.css" />
             const darkTheme = document.createElement("link");
             darkTheme.rel = "stylesheet";
-            darkTheme.href = "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@5/dark.css";
+            darkTheme.href = "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@latest/dark.css";
             document.head.appendChild(darkTheme);
         }
 

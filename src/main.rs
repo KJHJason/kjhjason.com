@@ -40,6 +40,20 @@ async fn favicon() -> actix_web::Result<NamedFile> {
     Ok(NamedFile::open("./static/images/favicon.ico")?)
 }
 
+#[get("/static/js/sweetalert2.min.js")]
+async fn sweetalert_js() -> actix_web::Result<NamedFile> {
+    Ok(NamedFile::open(
+        "./node_modules/sweetalert2/dist/sweetalert2.min.js",
+    )?)
+}
+
+#[get("/static/css/sweetalert2.min.css")]
+async fn sweetalert_css() -> actix_web::Result<NamedFile> {
+    Ok(NamedFile::open(
+        "./node_modules/sweetalert2/dist/sweetalert2.min.css",
+    )?)
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
@@ -68,8 +82,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .wrap(Compress::default())
             .wrap(middleware::content_type::ContentTypeMiddleware)
-            .wrap(configure_csrf_middleware())
             .wrap(configure_auth_middleware())
+            .wrap(configure_csrf_middleware())
             .wrap(configure_csp_middleware())
             .wrap(configure_hsts_middleware())
             .wrap(configure_cache_control_middleware())
@@ -103,6 +117,8 @@ async fn main() -> std::io::Result<()> {
             .configure(add_client_routes)
             .configure(add_api_routes)
             .service(favicon)
+            .service(sweetalert_js)
+            .service(sweetalert_css)
             // Note: due to the error middleware, the 404 html page will
             // be rendered instead of the default actix error text response
             // if the static path is not found. E.g. /static/test.png will

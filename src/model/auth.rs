@@ -5,6 +5,7 @@ use askama_actix::Template;
 use bson::oid::ObjectId;
 use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
+use thiserror::Error as ThisError;
 
 #[derive(Deserialize)]
 pub struct LoginData {
@@ -24,9 +25,9 @@ impl LoginData {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct User {
-    _id: ObjectId,
+    pub _id: ObjectId,
     username: String,
     password: String,
 }
@@ -39,12 +40,41 @@ impl User {
             password,
         }
     }
-    pub fn get_id(&self) -> ObjectId {
-        self._id.clone()
-    }
     pub fn get_password(&self) -> &str {
         &self.password
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Session {
+    pub _id: ObjectId,
+    pub user_id: ObjectId,
+    #[serde(with = "bson::serde_helpers::chrono_datetime_as_bson_datetime")]
+    pub created: chrono::DateTime<chrono::Utc>,
+    #[serde(with = "bson::serde_helpers::chrono_datetime_as_bson_datetime")]
+    pub expiry: chrono::DateTime<chrono::Utc>,
+}
+
+impl Session {
+    pub fn new(user_id: ObjectId, exp: i64) -> Session {
+        Session {
+            _id: ObjectId::new(),
+            user_id,
+            created: chrono::Utc::now(),
+            expiry: chrono::Utc::now() + chrono::Duration::seconds(exp),
+        }
+    }
+    pub fn is_expired(&self) -> bool {
+        self.expiry < chrono::Utc::now()
+    }
+}
+
+#[derive(Debug, ThisError)]
+pub enum SessionError {
+    #[error("Session not found")]
+    NotFound,
+    #[error("Internal server error")]
+    InternalServerError,
 }
 
 #[derive(Debug, Display, Error)]

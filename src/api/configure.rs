@@ -3,7 +3,6 @@ use crate::api::admin::{
     upload_blog_files,
 };
 use crate::api::auth::{admin_honeypot, login, logout};
-use crate::api::blog::{blog_exists, get_blog};
 use crate::api::csrf::get_csrf_token;
 use crate::api::general::api_index;
 use actix_web::web;
@@ -30,9 +29,7 @@ fn add_auth_routes(cfg: &mut web::ServiceConfig) {
 }
 
 fn add_general_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(api_index)
-        .service(get_blog)
-        .service(blog_exists);
+    cfg.service(api_index);
 }
 
 fn add_csrf_routes(cfg: &mut web::ServiceConfig) {

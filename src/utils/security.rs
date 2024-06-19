@@ -27,14 +27,6 @@ pub fn get_default_key_info(salt: Vec<u8>, info: Vec<u8>) -> hmac_serialiser_rs:
     }
 }
 
-pub fn get_auth_signer() -> hmac_serialiser_rs::HmacSigner {
-    hmac_serialiser_rs::HmacSigner::new(
-        get_default_key_info(get_default_salt(), vec![]),
-        hmac_serialiser_rs::algorithm::Algorithm::SHA512,
-        hmac_serialiser_rs::Encoder::UrlSafeNoPadding,
-    )
-}
-
 // https://rust-random.github.io/book/guide-rngs.html
 pub fn generate_random_bytes(length: usize) -> Vec<u8> {
     let mut random_bytes = vec![0u8; length];
@@ -81,6 +73,7 @@ pub fn is_logged_in(req: &HttpRequest) -> bool {
     }
 }
 
+#[derive(Debug)]
 pub struct TemplateValues {
     pub nonce: String,
     pub csrf_header: String,

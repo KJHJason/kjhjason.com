@@ -12,13 +12,13 @@
         <h1 class="font-medium text-2xl mb-8 tracking-tighter">My Blogs</h1>
         {% if blogs.len() == 0 %}
             <article>
-                <h3 class="text-neutral-900 dark:text-neutral-100">No blogs yet...</h3>
+                <h3 class="!font-normal text-neutral-900 dark:text-neutral-100">No blogs yet...</h3>
             </article>
         {% endif %}
         {% for blog in blogs %}
             <a class="flex flex-col space-y-1 mb-4" href="/blogs/{{ blog.id }}">
                 <article class="w-full flex flex-col">
-                    <h3 class="!my-0 text-neutral-900 dark:text-neutral-100 tracking-tight">
+                    <h3 class="!my-0 !font-normal !text-base text-neutral-900 dark:text-neutral-100 tracking-tight">
                         {{ blog.title }}
                     </h3>
                     <p class="!my-0 text-neutral-600 dark:text-neutral-400">
@@ -32,10 +32,10 @@
 {% endblock %}
 
 {% block scripts %}
-<script nonce="{{ common.nonce }}" src="/static/js/date.js"></script>
-<script nonce="{{ common.nonce }}">
-    document.querySelectorAll(".blog-date").forEach((date) => {
-        date.innerText = parseDateToLocal(date.innerText);
-    });
-</script>
+    <script nonce="{{ common.nonce }}" src="/static/js/date.js"></script>
+    <script nonce="{{ common.nonce }}">
+        document.querySelectorAll(".blog-date").forEach((date) => {
+            date.innerText = parseDateToLocal(date.innerText);
+        });
+    </script>
 {% endblock %}

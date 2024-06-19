@@ -8,6 +8,9 @@ pub fn configure_auth_middleware() -> middleware::auth::AuthMiddleware {
         (Method::GET, "/experiences".to_string()),
         (Method::GET, "/projects".to_string()),
         (Method::GET, "/skills".to_string()),
+        (Method::GET, "/certifications".to_string()),
+        (Method::GET, "/awards".to_string()),
+        (Method::GET, "/resume".to_string()),
         (Method::GET, "/blogs".to_string()),
         (Method::GET, "/admin".to_string()),
         (Method::GET, "/login".to_string()),
@@ -21,11 +24,6 @@ pub fn configure_auth_middleware() -> middleware::auth::AuthMiddleware {
     ];
     let auth_whitelist_regex = vec![
         (Method::GET, regex::Regex::new(r"^/blogs/[\w-]+$").unwrap()),
-        // TODO: Check if the api blog route is needed
-        (
-            Method::GET,
-            regex::Regex::new(r"^/api/blogs/[\w-]+$").unwrap(),
-        ),
         (Method::GET, regex::Regex::new(r"^/static/.*$").unwrap()),
     ];
     let auth_middleware = middleware::auth::AuthMiddleware::new(
@@ -54,7 +52,6 @@ pub fn configure_csp_middleware() -> middleware::csp::CspMiddleware {
         (Method::GET, "/favicon.ico".to_string()),
         (Method::GET, "/csrf-token".to_string()),
     ];
-
     let api_regex = regex::Regex::new(r"^/api/.*$").unwrap();
     let csp_whitelist_regex = vec![
         (Method::GET, api_regex.clone()),
@@ -67,18 +64,19 @@ pub fn configure_csp_middleware() -> middleware::csp::CspMiddleware {
     let csp_options = middleware::csp::ContentSecurityPolicies {
         script_src: vec![
             "'self'".to_string(),
-            "'unsafe-eval'".to_string(), // needed for htmx to work
-            "https://unpkg.com/htmx.org@1.9.12".to_string(),
-            "https://unpkg.com/htmx.org@1.9.12/dist/ext/client-side-templates.js".to_string(),
-            "https://unpkg.com/htmx.org@1.9.12/dist/ext/response-targets.js".to_string(),
-            "https://unpkg.com/htmx.org@1.9.12/dist/ext/json-enc.js".to_string(),
-            "https://cdn.jsdelivr.net/npm/sweetalert2@11".to_string(),
+            "'unsafe-eval'".to_string(), // needed for htmx to work for events like hx-on:click
+            "https://challenges.cloudflare.com/turnstile/v0/api.js".to_string(),
+            "https://unpkg.com/htmx.org@2.0.0".to_string(),
+            "https://unpkg.com/htmx-ext-response-targets@latest/response-targets.js".to_string(),
         ],
         style_src: vec![
             "'self'".to_string(),
-            "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@5/dark.css".to_string(),
+            "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@latest/dark.css".to_string(),
         ],
-        frame_src: vec!["'self'".to_string()],
+        frame_src: vec![
+            "'self'".to_string(),
+            "https://challenges.cloudflare.com/".to_string(),
+        ],
         default_src: vec![],
         base_uri: vec![],
         img_src: vec![],

@@ -13,8 +13,9 @@ pub const CSRF_MAX_AGE: i64 = 60 * 60 * 24 * 1; // 1 day
 
 pub const LOCAL_URI: &str = "mongodb://localhost:27017";
 pub const DATABASE: &str = "kjhjason";
-pub const BLOG_COLLECTION: &str = "blog";
-pub const USER_COLLECTION: &str = "user";
+pub const BLOG_COLLECTION: &str = "blogs";
+pub const USER_COLLECTION: &str = "users";
+pub const SESSION_COLLECTION: &str = "sessions";
 
 pub const TITLE_MAX_LENGTH: usize = 150;
 pub const MAX_TAGS: usize = 8;

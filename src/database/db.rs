@@ -1,5 +1,5 @@
 use crate::constants::constants;
-use crate::model::auth::{AuthError, User};
+use crate::model::auth::{AuthError, Session, SessionError, User};
 use crate::model::blog::{Blog, BlogError, BlogProjection};
 use crate::security::pw_hasher;
 use bson::oid::ObjectId;
@@ -51,6 +51,34 @@ async fn init_user_collection(client: &Client) {
         Err(e) => panic!("Failed to create admin account: {}", e),
     }
     log::info!("User collection initialised");
+}
+
+async fn init_session_collection(client: &Client) {
+    let db = client.database(constants::DATABASE);
+    let collection: Collection<Session> = db.collection(constants::SESSION_COLLECTION);
+
+    // check if the collection already exists
+    let result = collection.find_one(None, None).await;
+    match result {
+        Ok(Some(_)) => return,
+        _ => {}
+    }
+
+    let opts = IndexOptions::builder()
+        .expire_after(std::time::Duration::from_secs(
+            constants::SESSION_TIMEOUT as u64,
+        ))
+        .build();
+    let index = IndexModel::builder()
+        .keys(doc! { "created": 1 })
+        .options(opts)
+        .build();
+    collection
+        .create_index(index, None)
+        .await
+        .expect("Failed to create session index for session collection");
+
+    log::info!("Session collection initialised");
 }
 
 async fn init_blog_collection(client: &Client) {
@@ -123,8 +151,9 @@ pub async fn init_db() -> Result<DbClient, mongodb::error::Error> {
 
     let client_ref = &client.client;
     let init_user_future = init_user_collection(client_ref);
+    let init_session_future = init_session_collection(client_ref);
     let init_blog_future = init_blog_collection(client_ref);
-    tokio::join!(init_user_future, init_blog_future);
+    tokio::join!(init_user_future, init_session_future, init_blog_future);
 
     Ok(client)
 }
@@ -153,6 +182,26 @@ impl DbClient {
     pub fn get_user_collection(&self) -> Collection<User> {
         self.get_database(None)
             .collection(constants::USER_COLLECTION)
+    }
+
+    pub fn get_session_collection(&self) -> Collection<Session> {
+        self.get_database(None)
+            .collection(constants::SESSION_COLLECTION)
+    }
+
+    pub async fn get_session_by_id(&self, id: &ObjectId) -> Result<Session, SessionError> {
+        match self
+            .get_session_collection()
+            .find_one(doc! {"_id": id}, None)
+            .await
+        {
+            Ok(Some(session)) => Ok(session),
+            Ok(None) => Err(SessionError::NotFound),
+            Err(err) => {
+                log::error!("Failed to get session from database: {:?}", err);
+                Err(SessionError::InternalServerError)
+            }
+        }
     }
 
     pub async fn get_user_by_username(&self, username: &str) -> Result<User, AuthError> {
