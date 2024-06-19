@@ -19,72 +19,74 @@
 </head>
 <body class="antialiased max-w-2xl mb-4 md:flex-row mx-4 mt-8 lg:mx-auto">
     <div class="min-w-0 mt-6 px-2 md:px-0">
-        <nav class="mb-8">
-            <div class="navbar rounded-lg">
-                <div class="flex-1">
-                    <a href="/" class="w-12 h-12">
-                        <picture >
-                            <source srcset="/static/images/logo/light/android-chrome-192x192.png" type="image/png" media="(prefers-color-scheme: light)" />
-                            <source srcset="/static/images/logo/dark/android-chrome-192x192.png" type="image/png" media="(prefers-color-scheme: dark)" />
-                            <img src="/static/images/logo/light/android-chrome-192x192.png" alt="KJHJason Logo" />
-                        </picture>
-                    </a>
-                </div>
-                <div class="flex-none">
-                    <ul class="menu menu-horizontal px-1">
-                        <li>
-                            <a href="/blogs">Blogs</a>
-                        </li>
-                        <li>
-                            <details>
-                                <summary>
-                                    Others
-                                </summary>
-                                <ul class="z-50 p-2 accent rounded-t-none">
-                                    <li>
-                                        <a href="/experiences">Experiences</a>
-                                    </li>
-                                    <li>
-                                        <a href="/certificates">Certificates</a>
-                                    </li>
-                                    <li>
-                                        <a href="/projects">Projects</a>
-                                    </li>
-                                    <li>
-                                        <a href="/skills">Skills</a>
-                                    </li>
-                                    <li>
-                                        <a href="/awards">Awards</a>
-                                    </li>
-                                    <li>
-                                        <a href="/resume">Resume (WIP)</a>
-                                    </li>
-                                    <li id="login-item" class="hidden">
-                                        <a href="/admin">Login</a>
-                                    </li>
-                                    <div id="admin-items" class="hidden">
+        <header>
+            <nav class="mb-8">
+                <div class="navbar rounded-lg">
+                    <div class="flex-1">
+                        <a href="/" class="w-12 h-12">
+                            <picture >
+                                <source srcset="/static/images/logo/light/android-chrome-192x192.png" type="image/png" media="(prefers-color-scheme: light)" />
+                                <source srcset="/static/images/logo/dark/android-chrome-192x192.png" type="image/png" media="(prefers-color-scheme: dark)" />
+                                <img src="/static/images/logo/light/android-chrome-192x192.png" alt="KJHJason Logo" />
+                            </picture>
+                        </a>
+                    </div>
+                    <div class="flex-none">
+                        <ul class="menu menu-horizontal px-1">
+                            <li>
+                                <a href="/blogs">Blogs</a>
+                            </li>
+                            <li>
+                                <details>
+                                    <summary>
+                                        Others
+                                    </summary>
+                                    <ul class="z-50 p-2 accent rounded-t-none">
                                         <li>
-                                            <a href="/admin/new/blog">New Blog</a>
+                                            <a href="/experiences">Experiences</a>
                                         </li>
-                                    </div>
-                                </ul>
-                            </details>
-                        </li>
-                        <li id="logout-item" class="hidden">
-                            <button type="button" 
-                                hx-post="/api/logout" 
-                                hx-headers='{{ common.csrf_header_json|safe }}' 
-                                hx-swap="none" 
-                                hx-on::after-swap="handleLogout()"
-                            >
-                                Logout
-                            </button>
-                        </li>
-                    </ul>
+                                        <li>
+                                            <a href="/certificates">Certificates</a>
+                                        </li>
+                                        <li>
+                                            <a href="/projects">Projects</a>
+                                        </li>
+                                        <li>
+                                            <a href="/skills">Skills</a>
+                                        </li>
+                                        <li>
+                                            <a href="/awards">Awards</a>
+                                        </li>
+                                        <li>
+                                            <a href="/resume">Resume (WIP)</a>
+                                        </li>
+                                        <li id="login-item" class="hidden">
+                                            <a href="/admin">Login</a>
+                                        </li>
+                                        <div id="admin-items" class="hidden">
+                                            <li>
+                                                <a href="/admin/new/blog">New Blog</a>
+                                            </li>
+                                        </div>
+                                    </ul>
+                                </details>
+                            </li>
+                            <li id="logout-item" class="hidden">
+                                <button type="button" 
+                                    hx-post="/api/logout" 
+                                    hx-headers='{{ common.csrf_header_json|safe }}' 
+                                    hx-swap="none" 
+                                    hx-on::after-swap="handleLogout()"
+                                >
+                                    Logout
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-            <hr class="mt-2" />
-        </nav>
+                <hr class="mt-2" />
+            </nav>
+        </header>
         <main>
             {% block content %}{% endblock %}
         </main>
