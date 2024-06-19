@@ -1,6 +1,5 @@
 use std::future::{ready, Ready};
 use std::rc::Rc;
-
 use actix_web::body::{BoxBody, EitherBody};
 use actix_web::cookie::Cookie;
 use actix_web::http::{header::ContentType, Method, StatusCode};
@@ -15,7 +14,6 @@ use futures_util::future::LocalBoxFuture;
 use hmac_serialiser_rs::{HmacSigner, SignerLogic};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-
 use crate::constants::constants;
 use crate::templates::error::ErrorTemplate;
 use crate::utils::security::{get_default_key_info, get_default_salt};
@@ -182,6 +180,9 @@ where
 
     forward_ready!(service);
 
+    // Implementations mostly thanks to suggestions from
+    // https://github.com/actix/actix-extras/issues/63
+    // https://github.com/actix/actix-web/discussions/2597
     fn call(&self, req: ServiceRequest) -> Self::Future {
         // Request method of OPTIONS is used for Cors preflight requests
         if req.method() == Method::OPTIONS || !self.inner.requires_auth(&req) {
