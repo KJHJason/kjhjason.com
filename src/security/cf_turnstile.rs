@@ -69,6 +69,7 @@ struct SiteVerifyResponse {
     cdata: Option<String>,
 }
 
+#[inline]
 pub fn get_ip_addr(req: &HttpRequest) -> Option<String> {
     let cloudflare_proxy = req.headers().get("cf-connecting-ip");
     match cloudflare_proxy {

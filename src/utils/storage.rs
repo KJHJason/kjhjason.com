@@ -103,21 +103,3 @@ pub fn extract_bucket_and_blob_from_url(url: &str) -> (String, String) {
         });
     (bucket.to_string(), obj_name.to_string())
 }
-
-pub fn remove_file_from_md_content(content: &mut String, file_url: &str) -> String {
-    let mut file_url = file_url.to_string();
-    if let Some(index) = file_url.find('?') {
-        // if ?x-id=GetObject&X-Amz-Algorithm=... is present, remove it
-        file_url = file_url[..index].to_string();
-    }
-
-    let escaped_url = regex::escape(&file_url);
-    let re = if file_url.ends_with(".mp4") {
-        // use regex to remove <video src="url" controls> from content
-        regex::Regex::new(&format!(r#"<video src="({})" controls>"#, escaped_url)).unwrap()
-    } else {
-        // use regex to remove ![alt](url) from content
-        regex::Regex::new(&format!(r"!\[.*\]\({}\)", escaped_url)).unwrap()
-    };
-    re.replace_all(content, "").to_string()
-}

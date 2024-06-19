@@ -69,6 +69,7 @@ impl CsrfSigner {
 
     // Cryptographically secure random token generator
     // Generates 32 random bytes base64-encoded string
+    #[inline]
     fn generate_csrf_token(&self) -> String {
         let random_bytes = security::generate_random_bytes(self.token_len);
         self.signer.sign(&CsrfToken::new(
@@ -77,6 +78,7 @@ impl CsrfSigner {
         ))
     }
 
+    #[inline]
     pub fn create_csrf_cookie(&self) -> Cookie<'_> {
         let csrf_token = self.generate_csrf_token();
         Cookie::build(&self.cookie_name, csrf_token)
@@ -89,6 +91,7 @@ impl CsrfSigner {
             .finish()
     }
 
+    #[inline]
     fn verify_token(&self, csrf_token: &str) -> Result<CsrfToken, csrf::CsrfError> {
         self.signer
             .unsign::<CsrfToken>(csrf_token)
@@ -121,6 +124,7 @@ impl CsrfSigner {
         Ok(csrf_token.token)
     }
 
+    #[inline]
     pub fn get_csrf_cookie_name(&self) -> &str {
         &self.cookie_name
     }

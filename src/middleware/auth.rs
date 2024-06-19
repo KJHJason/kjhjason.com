@@ -1,5 +1,6 @@
-use std::future::{ready, Ready};
-use std::rc::Rc;
+use crate::constants::constants;
+use crate::templates::error::ErrorTemplate;
+use crate::utils::security::{get_default_key_info, get_default_salt};
 use actix_web::body::{BoxBody, EitherBody};
 use actix_web::cookie::Cookie;
 use actix_web::http::{header::ContentType, Method, StatusCode};
@@ -14,9 +15,8 @@ use futures_util::future::LocalBoxFuture;
 use hmac_serialiser_rs::{HmacSigner, SignerLogic};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use crate::constants::constants;
-use crate::templates::error::ErrorTemplate;
-use crate::utils::security::{get_default_key_info, get_default_salt};
+use std::future::{ready, Ready};
+use std::rc::Rc;
 
 macro_rules! auth_failed {
     ($req:expr, $status:expr) => {

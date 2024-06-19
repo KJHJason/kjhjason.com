@@ -2,10 +2,12 @@ use chrono::{DateTime, Utc};
 use serde::{self, Deserialize, Deserializer, Serializer};
 use std::str::FromStr;
 
+#[inline]
 pub fn get_dtnow_str() -> String {
     Utc::now().to_rfc3339()
 }
 
+#[inline]
 pub fn get_readable_date_diff(timestamp: DateTime<Utc>) -> String {
     let time_diff = Utc::now().signed_duration_since(timestamp);
     if time_diff.num_days() >= 365 {

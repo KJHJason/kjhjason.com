@@ -8,6 +8,7 @@ use actix_web::{HttpRequest, HttpResponse};
 use bson::oid::ObjectId;
 use std::str::FromStr;
 
+#[inline]
 pub fn validate_id(id: &str) -> Result<ObjectId, BlogError> {
     match ObjectId::from_str(id) {
         Ok(id) => Ok(id),
@@ -15,6 +16,7 @@ pub fn validate_id(id: &str) -> Result<ObjectId, BlogError> {
     }
 }
 
+#[inline]
 pub fn get_id_from_path(
     req: &HttpRequest,
     blog_identifier: Path<BlogIdentifier>,

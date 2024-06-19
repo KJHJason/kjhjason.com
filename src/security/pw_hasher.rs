@@ -6,6 +6,7 @@ use argon2::{
 
 // follows the RFC 9106 recommendation for Argon2id
 // ref: https://github.com/hynek/argon2-cffi/blob/main/src/argon2/profiles.py#L30-L38
+#[inline]
 fn get_default_hasher() -> Argon2<'static> {
     let params = ParamsBuilder::new()
         .t_cost(3)
@@ -18,6 +19,7 @@ fn get_default_hasher() -> Argon2<'static> {
 }
 
 // generate a random salt (cryptographically secure)
+#[inline]
 fn generate_salt() -> SaltString {
     let salt = security::generate_random_bytes(32);
     SaltString::encode_b64(&salt).expect("Failed to encode salt")

@@ -128,11 +128,11 @@ pub struct BlogPublishOperation {
 #[derive(Deserialize)]
 pub struct BlogUpdateOperation {
     pub id: String,
-    pub title: String,
-    pub tags: Vec<String>,
-    pub new_files: Vec<FileInfo>,
-    pub content: String,
-    pub is_public: bool,
+    pub title: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub new_files: Option<Vec<FileInfo>>,
+    pub content: Option<String>,
+    pub is_public: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

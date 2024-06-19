@@ -1,3 +1,4 @@
+pub mod blog;
 pub mod datetime;
 pub mod html;
 pub mod io;

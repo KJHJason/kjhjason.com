@@ -43,10 +43,18 @@
         csrfHeaderName = "{{ common.csrf_header }}";
         csrfValue = "{{ common.csrf_value }}";
         useLocalStorage = false;
-        isPublic.checked = "{{ public }}" === "true";
-        updateContent(document.getElementById("content-template").innerHTML);
-        tags.value = document.getElementById("tags-template").innerHTML;
-        updateTitle(document.getElementById("title-template").innerHTML);
+
+        let initialPublicChecked = "{{ public }}" === "true";
+        isPublic.checked = initialPublicChecked;
+
+        let initialContent = document.getElementById("content-template").innerHTML;
+        updateContent(initialContent);
+
+        let initialTags = document.getElementById("tags-template").innerHTML;
+        tags.value = initialTags;
+
+        let initialTitle = document.getElementById("title-template").innerHTML;
+        updateTitle(initialTitle);
 
         let newFiles = [];
         fileUploadResponseHandler = (file) => {
@@ -56,7 +64,7 @@
         const postBlog = async () => {
             const tileVal = title.value;
             const contentVal = content.value;
-            const tagsVal = parseTags(tagsInp.value);
+            const tagsVal = tagsInp.value;
 
             if (tileVal.length === 0 || contentVal.length === 0) {
                 Swal.fire({
@@ -66,6 +74,8 @@
                 });
                 return;
             }
+
+            let tagsSlice = parseTags(tagsVal);
             if (tagsVal.length > maxTags) {
                 Swal.fire({
                     icon: "error",
@@ -75,21 +85,40 @@
                 return;
             }
 
+            const data = {
+                id: "{{ id }}",
+            };
+            if (tileVal !== initialTitle) {
+                data.title = tileVal;
+            }
+            if (tagsVal !== initialTags) {
+                data.tags = tagsSlice;
+            }
+            if (contentVal !== initialContent) {
+                data.content = contentVal;
+
+                // since the markdown link for the uploaded files will be 
+                // added to the content, the content will be different. Hence, the check here.
+                if (newFiles.length > 0) {
+                    data.new_files = newFiles;
+                }
+            }
+            if (isPublic.checked !== initialPublicChecked) {
+                data.is_public = isPublic.checked;
+            }
+
+            if (Object.keys(data).length === 1) {
+                return;
+            }
+
             try {
                 const response = await fetch("/api/blog/update", {
-                    method: "PUT",
+                    method: "PATCH",
                     headers: {
                         "Content-Type": "application/json",
                         "{{ common.csrf_header }}": "{{ common.csrf_value }}",
                     },
-                    body: JSON.stringify({
-                        id: "{{ id }}",
-                        title: tileVal,
-                        tags: tagsVal,
-                        new_files: newFiles,
-                        content: contentVal,
-                        is_public: isPublic.checked,
-                    }),
+                    body: JSON.stringify(data),
                 });
                 if (!response.ok) {
                     throw new Error("Failed to update blog!", response);
@@ -106,8 +135,14 @@
                     window.location.href = "/blogs/{{ id }}";
                     return;
                 }
+
                 newFiles = [];
-                updateContent(await response.text());
+                initialPublicChecked = isPublic.checked;
+                initialTags = tagsVal;
+                initialTitle = tileVal;
+                const newContent = await response.text();
+                initialContent = newContent;
+                updateContent(newContent);
             } catch (error) {
                 console.error("Error:", error);
                 Swal.fire({

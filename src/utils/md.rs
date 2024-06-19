@@ -1,5 +1,6 @@
 use pulldown_cmark::{html, Options, Parser};
 
+#[inline]
 pub fn get_default_options() -> Options {
     let mut options = Options::empty();
     options.insert(Options::ENABLE_TABLES);

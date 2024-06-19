@@ -24,6 +24,15 @@ impl CsrfValue {
     }
 }
 
+impl Default for CsrfValue {
+    fn default() -> Self {
+        Self {
+            csrf_token: "".to_string(),
+            csrf_cookie_value: None,
+        }
+    }
+}
+
 #[derive(Clone)]
 struct CsrfMiddlewareConfig {
     csrf_signer: CsrfSigner,

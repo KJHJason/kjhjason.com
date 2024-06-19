@@ -170,20 +170,24 @@ impl DbClient {
         }
     }
 
+    #[inline]
     pub fn get_custom_collection<T>(&self, collection_name: &str) -> Collection<T> {
         self.get_database(None).collection(collection_name)
     }
 
+    #[inline]
     pub fn get_blog_collection(&self) -> Collection<Blog> {
         self.get_database(None)
             .collection(constants::BLOG_COLLECTION)
     }
 
+    #[inline]
     pub fn get_user_collection(&self) -> Collection<User> {
         self.get_database(None)
             .collection(constants::USER_COLLECTION)
     }
 
+    #[inline]
     pub fn get_session_collection(&self) -> Collection<Session> {
         self.get_database(None)
             .collection(constants::SESSION_COLLECTION)
@@ -219,6 +223,7 @@ impl DbClient {
         }
     }
 
+    #[inline]
     fn handle_result<T>(result: Result<Option<T>, mongodb::error::Error>) -> Result<T, BlogError> {
         match result {
             Ok(Some(blog)) => Ok(blog),

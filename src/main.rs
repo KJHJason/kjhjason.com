@@ -82,11 +82,11 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .wrap(Compress::default())
             .wrap(middleware::content_type::ContentTypeMiddleware)
-            .wrap(configure_auth_middleware())
             .wrap(configure_csrf_middleware())
             .wrap(configure_csp_middleware())
             .wrap(configure_hsts_middleware())
             .wrap(configure_cache_control_middleware())
+            .wrap(configure_auth_middleware())
             .wrap(error_handler_many!(
                 render_error,
                 [

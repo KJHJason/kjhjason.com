@@ -12,6 +12,7 @@ macro_rules! render_askama_template {
     };
 }
 
+#[inline]
 pub fn minify_html(html: &str) -> Vec<u8> {
     let html_bytes = html.as_bytes().to_vec();
     let minify_cfg = Cfg {
@@ -21,6 +22,7 @@ pub fn minify_html(html: &str) -> Vec<u8> {
     minify(&html_bytes, &minify_cfg)
 }
 
+#[inline]
 pub fn render_template<T: Template>(template: T, status_code: StatusCode) -> HttpResponse {
     let html = render_askama_template!(template);
     let minified = minify_html(&html);

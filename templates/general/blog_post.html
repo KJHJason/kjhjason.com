@@ -56,7 +56,7 @@
                         <button class="btn-text-danger"
                             id="publish-btn"
                             type="button"
-                            hx-put="/api/blogs/{{ id }}/{{ api_url_suffix }}" 
+                            hx-patch="/api/blogs/{{ id }}/{{ api_url_suffix }}" 
                             hx-target="#public-lock-icon" 
                             hx-headers='{{ common.csrf_header_json|safe }}'
                         >

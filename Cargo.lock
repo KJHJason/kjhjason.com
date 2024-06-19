@@ -2067,17 +2067,17 @@ dependencies = [
 
 [[package]]
 name = "hmac-serialiser-rs"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a349cbabf071ac9edc624856ec138f6e3a62ea4eeae0ac604f8a17a43d0ee898"
+checksum = "61cbd7848cab80699e8460b1209b7b4c2bade5436fb19528160418b95825e06d"
 dependencies = [
  "base64 0.22.1",
  "chrono",
- "derive_more",
  "rand 0.8.5",
  "ring",
  "serde",
  "serde_json",
+ "thiserror",
 ]
 
 [[package]]

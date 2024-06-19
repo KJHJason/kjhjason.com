@@ -6,19 +6,23 @@ use actix_web::{HttpMessage, HttpRequest};
 use rand::Rng as _;
 
 /// This assumes that the environment variables are in hex format
+#[inline]
 pub fn get_bytes_from_env(key: &str) -> Vec<u8> {
     let hex = std::env::var(key).unwrap();
     hex::decode(hex).unwrap()
 }
 
+#[inline]
 pub fn get_default_secret_key() -> Vec<u8> {
     get_bytes_from_env(constants::SECRET_KEY)
 }
 
+#[inline]
 pub fn get_default_salt() -> Vec<u8> {
     get_bytes_from_env(constants::SECRET_KEY_SALT)
 }
 
+#[inline]
 pub fn get_default_key_info(salt: Vec<u8>, info: Vec<u8>) -> hmac_serialiser_rs::KeyInfo {
     hmac_serialiser_rs::KeyInfo {
         key: get_default_secret_key(),
@@ -28,6 +32,7 @@ pub fn get_default_key_info(salt: Vec<u8>, info: Vec<u8>) -> hmac_serialiser_rs:
 }
 
 // https://rust-random.github.io/book/guide-rngs.html
+#[inline]
 pub fn generate_random_bytes(length: usize) -> Vec<u8> {
     let mut random_bytes = vec![0u8; length];
     rand::thread_rng().fill(&mut random_bytes[..]);
@@ -59,13 +64,21 @@ pub fn is_protected(
     true
 }
 
+#[inline]
 pub fn get_csrf_token(req: &HttpRequest) -> String {
     req.extensions()
         .get::<csrf::CsrfValue>()
-        .unwrap()
-        .get_csrf_token()
+        .map(|csrf_value| csrf_value.get_csrf_token())
+        .unwrap_or_else(|| {
+            log::warn!(
+                "CSRF token not found in request extensions for {}",
+                req.path()
+            );
+            "".to_string()
+        })
 }
 
+#[inline]
 pub fn is_logged_in(req: &HttpRequest) -> bool {
     match req.cookie(constants::AUTH_COOKIE_NAME) {
         Some(_) => true,

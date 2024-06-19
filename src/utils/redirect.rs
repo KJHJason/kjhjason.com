@@ -6,6 +6,7 @@ pub struct RedirectParams {
     redirect: Option<String>,
 }
 
+#[inline]
 pub fn get_redirect_url(redirect: &web::Query<RedirectParams>) -> String {
     let redirect = match &redirect.redirect {
         Some(redirect) => {

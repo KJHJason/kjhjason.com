@@ -1,6 +1,7 @@
 use crate::constants::constants::TEMP_DIR;
 use fastuuid::Generator;
 
+#[inline]
 pub fn get_temp_file_path() -> String {
     let uuid = Generator::new().hex128_as_string().unwrap();
     let file_path = format!("/{}/{}", TEMP_DIR, uuid);
