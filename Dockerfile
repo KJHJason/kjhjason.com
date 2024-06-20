@@ -21,5 +21,7 @@ COPY --from=node $APP_DIR .
 # Note: cargo install will automatically build the project with the --release flag
 RUN cargo install --path . 
 
+EXPOSE 8080
+
 # Run the web service on container startup.
 CMD ["kjhjason-blog"]
