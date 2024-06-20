@@ -342,7 +342,7 @@ async fn upload_blog_files(
         let url = format!(
             "https://{}.{}.r2.cloudflarestorage.com/{}",
             constants::BUCKET_FOR_TEMP,
-            std::env::var(constants::R2_ACCOUNT_ID).unwrap(),
+            constants::get_r2_acc_id(),
             destination
         );
         let file_name = std_Path::new(&destination)

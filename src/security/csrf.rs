@@ -40,10 +40,7 @@ impl Default for CsrfSigner {
             constants::CSRF_COOKIE_NAME,
             constants::CSRF_HEADER_NAME,
             constants::CSRF_TOKEN_LENGTH,
-            security::get_default_key_info(
-                security::get_bytes_from_env(constants::CSRF_KEY_SALT),
-                vec![],
-            ),
+            security::get_default_key_info(constants::get_csrf_key_salt(), vec![]),
             hmac_serialiser_rs::algorithm::Algorithm::SHA1,
             hmac_serialiser_rs::Encoder::UrlSafeNoPadding,
         )
@@ -86,7 +83,7 @@ impl CsrfSigner {
             .domain(constants::get_domain())
             .same_site(SameSite::Lax)
             .path("/")
-            .secure(!constants::DEBUG_MODE)
+            .secure(!constants::get_debug_mode())
             .max_age(cookie_time::Duration::seconds(constants::CSRF_MAX_AGE))
             .finish()
     }

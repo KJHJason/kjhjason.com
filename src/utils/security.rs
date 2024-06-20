@@ -5,27 +5,10 @@ use actix_web::http::Method;
 use actix_web::{HttpMessage, HttpRequest};
 use rand::Rng as _;
 
-/// This assumes that the environment variables are in hex format
-#[inline]
-pub fn get_bytes_from_env(key: &str) -> Vec<u8> {
-    let hex = std::env::var(key).unwrap();
-    hex::decode(hex).unwrap()
-}
-
-#[inline]
-pub fn get_default_secret_key() -> Vec<u8> {
-    get_bytes_from_env(constants::SECRET_KEY)
-}
-
-#[inline]
-pub fn get_default_salt() -> Vec<u8> {
-    get_bytes_from_env(constants::SECRET_KEY_SALT)
-}
-
 #[inline]
 pub fn get_default_key_info(salt: Vec<u8>, info: Vec<u8>) -> hmac_serialiser_rs::KeyInfo {
     hmac_serialiser_rs::KeyInfo {
-        key: get_default_secret_key(),
+        key: constants::get_secret_key(),
         salt,
         info,
     }

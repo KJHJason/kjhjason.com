@@ -55,8 +55,5 @@ target/
 # env files for sensitive values like API keys
 .env
 
-# X.509 files
-*.pem
-
 # test files
 *test*

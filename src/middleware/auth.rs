@@ -1,6 +1,6 @@
 use crate::constants::constants;
 use crate::templates::error::ErrorTemplate;
-use crate::utils::security::{get_default_key_info, get_default_salt};
+use crate::utils::security::get_default_key_info;
 use actix_web::body::{BoxBody, EitherBody};
 use actix_web::cookie::Cookie;
 use actix_web::http::{header::ContentType, Method, StatusCode};
@@ -76,7 +76,7 @@ pub fn create_user_claim(user_id: ObjectId, id: ObjectId) -> UserClaim {
 
 pub fn get_default_auth_signer() -> HmacSigner {
     HmacSigner::new(
-        get_default_key_info(get_default_salt(), vec![]),
+        get_default_key_info(constants::get_secret_key_salt(), vec![]),
         hmac_serialiser_rs::algorithm::Algorithm::SHA512,
         hmac_serialiser_rs::Encoder::UrlSafeNoPadding,
     )
@@ -197,7 +197,6 @@ where
             Some(auth_cookie) => auth_cookie,
             None => {
                 return Box::pin(async {
-                    log::warn!("No auth cookie found");
                     auth_failed!(req, StatusCode::NOT_FOUND);
                 });
             }

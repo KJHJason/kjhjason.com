@@ -92,12 +92,12 @@ pub fn configure_csp_middleware() -> middleware::csp::CspMiddleware {
 
 pub fn configure_hsts_middleware() -> middleware::hsts::HstsMiddleware {
     let hsts_options = middleware::hsts::HstsOptions {
-        max_age: if constants::DEBUG_MODE {
+        max_age: if constants::get_debug_mode() {
             0
         } else {
             60 * 60 * 24 * 365
         },
-        include_subdomains: !constants::DEBUG_MODE,
+        include_subdomains: !constants::get_debug_mode(),
         preload: false,
     };
     let hsts_middleware = middleware::hsts::HstsMiddleware::new(hsts_options);
@@ -105,7 +105,7 @@ pub fn configure_hsts_middleware() -> middleware::hsts::HstsMiddleware {
 }
 
 pub fn configure_cache_control_middleware() -> middleware::cache_control::CacheControlMiddleware {
-    let cache_paths = if constants::DEBUG_MODE {
+    let cache_paths = if constants::get_debug_mode() {
         middleware::cache_control::CachePaths {
             strict_paths: vec![],
             regex_paths: vec![],

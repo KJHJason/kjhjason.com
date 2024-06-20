@@ -20,7 +20,7 @@ use api::configure::add_api_routes;
 use aws_config::{BehaviorVersion, Region};
 use aws_sdk_s3 as s3;
 use client::configure::add_client_routes;
-use database::db;
+use database::init as db;
 use dotenv::dotenv;
 use middleware::configure::{
     configure_auth_middleware, configure_cache_control_middleware, configure_csp_middleware,
@@ -60,22 +60,32 @@ async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
     log::info!("Initialising Blog Web App...");
 
-    dotenv().ok();
+    if constants::constants::get_debug_mode() {
+        log::info!("Debug mode enabled");
+        dotenv().ok();
+    }
+
     let db_future = async {
-        db::init_db()
+        let db_client = db::init_db()
             .await
-            .unwrap_or_else(|_| panic!("Failed to connect to database"))
+            .expect("Failed to initialise database client");
+        log::info!("Database client initialised");
+        db_client
     };
     let aws_future = async {
-        let r2_acc_id = std::env::var(constants::constants::R2_ACCOUNT_ID).unwrap();
+        let r2_acc_id = constants::constants::get_r2_acc_id();
         let config = aws_config::defaults(BehaviorVersion::latest())
             .endpoint_url(format!("https://{}.r2.cloudflarestorage.com/", r2_acc_id))
             .region(Region::new("auto"))
             .load()
             .await;
-        s3::Client::new(&config)
+
+        let s3_client = s3::Client::new(&config);
+        log::info!("AWS S3 client initialised");
+        s3_client
     };
     let (db_client, s3_client) = tokio::join!(db_future, aws_future);
+
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_client.clone()))

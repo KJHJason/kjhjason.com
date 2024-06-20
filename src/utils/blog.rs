@@ -85,7 +85,7 @@ pub mod file_utils {
             &obj_name,
             blog_id,
             constants::TEMP_OBJ_PREFIX,
-            constants::BLOG_OBJ_PREFIX,
+            &constants::get_blog_obj_prefix(),
         );
         let new_url = format!(
             "{}/{}",

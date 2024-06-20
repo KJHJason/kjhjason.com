@@ -88,7 +88,7 @@ pub async fn verify_request(req: &HttpRequest, cf_response: &str) -> bool {
     let req_ip = get_ip_addr(req);
     let client = Client::new();
     let request_values = SiteVerifyRequest {
-        secret: std::env::var(constants::CF_TURNSTILE_SECRET_KEY).unwrap(),
+        secret: constants::get_cf_turnstile_secret_key(),
         response: cf_response.to_string(),
         remote_ip: req_ip,
         idempotency_key: Some(uuid::Uuid::new_v4()),

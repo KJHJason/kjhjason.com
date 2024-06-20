@@ -1,5 +1,5 @@
 use crate::constants::constants;
-use crate::db;
+use crate::database::db;
 use crate::errors::auth::AuthError;
 use crate::middleware::auth;
 use crate::models::{login_data::LoginData, session::Session};
@@ -96,7 +96,7 @@ async fn login(
             .path("/")
             .same_site(SameSite::Lax)
             .http_only(true)
-            .secure(!constants::DEBUG_MODE)
+            .secure(!constants::get_debug_mode())
             .expires(max_age)
             .finish();
         let template = templates::alerts::SucessAlert {
@@ -124,7 +124,7 @@ async fn logout(req: HttpRequest) -> HttpResponse {
                 .path("/")
                 .http_only(true)
                 .same_site(SameSite::Lax)
-                .secure(!constants::DEBUG_MODE)
+                .secure(!constants::get_debug_mode())
                 .finish();
             auth_cookie.make_removal();
             HttpResponse::Ok().cookie(auth_cookie).body(msg)

@@ -16,9 +16,11 @@ pub struct CsrfValue {
 }
 
 impl CsrfValue {
+    #[inline]
     pub fn get_csrf_token(&self) -> String {
         self.csrf_token.clone()
     }
+    #[inline]
     pub fn get_csrf_cookie_string(&self) -> Option<String> {
         self.csrf_cookie_value.clone()
     }
@@ -52,15 +54,19 @@ impl CsrfMiddlewareConfig {
             whitelist_regex,
         }
     }
+    #[inline]
     pub fn set_whitelist(&mut self, whitelist: Vec<(Method, String)>) {
         self.whitelist = whitelist;
     }
+    #[inline]
     pub fn get_csrf_cookie_name(&self) -> &str {
         self.csrf_signer.get_csrf_cookie_name()
     }
+    #[inline]
     pub fn get_csrf_cookie(&self, req: &ServiceRequest) -> Result<String, csrf_errors::CsrfError> {
         self.csrf_signer.extract_csrf_cookie(req)
     }
+    #[inline]
     pub fn get_csrf_header(&self, req: &ServiceRequest) -> Result<String, csrf_errors::CsrfError> {
         self.csrf_signer.extract_csrf_header(req)
     }
@@ -139,7 +145,6 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let mut req_csrf_cookie_error = String::new();
         let req_csrf_csrf_token = self.inner.get_csrf_cookie(&req).unwrap_or_else(|e| {
-            log::warn!("CSRF cookie error: {}", e);
             req_csrf_cookie_error = e.to_string();
             "".to_string()
         });
@@ -156,7 +161,6 @@ where
             let csrf_header = match self.inner.get_csrf_header(&req) {
                 Ok(csrf_header) => csrf_header,
                 Err(e) => {
-                    log::warn!("CSRF header error: {}", e);
                     return Box::pin(async move {
                         Err(actix_web::error::ErrorUnauthorized(e.to_string()))
                     });
@@ -164,7 +168,6 @@ where
             };
             if req_csrf_csrf_token != csrf_header {
                 return Box::pin(async move {
-                    log::warn!("CSRF token mismatch");
                     Err(actix_web::error::ErrorUnauthorized(
                         csrf_errors::CsrfError::InvalidToken.to_string(),
                     ))
