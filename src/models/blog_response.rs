@@ -1,4 +1,4 @@
-use crate::model::blog::Blog;
+use crate::models::blog::Blog;
 use crate::utils::md;
 use chrono::Utc;
 use serde::Serialize;

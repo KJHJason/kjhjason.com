@@ -1,5 +1,5 @@
 use crate::errors::blog::BlogError;
-use crate::model::blog_identifier::BlogIdentifier;
+use crate::models::blog_identifier::BlogIdentifier;
 use crate::templates::error::ErrorTemplate;
 use crate::utils::html::render_template;
 use crate::utils::security::extract_for_template;

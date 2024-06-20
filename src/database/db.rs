@@ -1,6 +1,6 @@
 use crate::constants::constants;
 use crate::errors::{auth::AuthError, blog::BlogError, session::SessionError};
-use crate::model::{blog::Blog, projected_blog::ProjectedBlog, session::Session, user::User};
+use crate::models::{blog::Blog, projected_blog::ProjectedBlog, session::Session, user::User};
 use crate::security::pw_hasher;
 use bson::oid::ObjectId;
 use mongodb::bson::doc;

@@ -1,5 +1,5 @@
 use crate::database::db;
-use crate::model::blog_identifier::BlogIdentifier;
+use crate::models::blog_identifier::BlogIdentifier;
 use crate::templates::admin::{EditBlog, NewBlog};
 use crate::templates::error::ErrorTemplate;
 use crate::utils::{

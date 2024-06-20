@@ -1,7 +1,7 @@
 use crate::constants::constants;
 use crate::database::db;
 use crate::errors::blog::BlogError;
-use crate::model::{
+use crate::models::{
     blog::Blog, blog_identifier::BlogIdentifier, blog_preview::BlogPreview, new_blog::NewBlog,
     update_blog::UpdateBlog, uploaded_files::UploadedFiles,
 };

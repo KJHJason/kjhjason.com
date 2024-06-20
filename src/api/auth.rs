@@ -2,7 +2,7 @@ use crate::constants::constants;
 use crate::db;
 use crate::errors::auth::AuthError;
 use crate::middleware::auth;
-use crate::model::{login_data::LoginData, session::Session};
+use crate::models::{login_data::LoginData, session::Session};
 use crate::security::cf_turnstile;
 use crate::security::pw_hasher;
 use crate::templates;

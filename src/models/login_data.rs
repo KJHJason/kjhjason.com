@@ -1,4 +1,4 @@
-use crate::model::checkbox;
+use crate::models::checkbox;
 use serde::Deserialize;
 
 #[derive(Deserialize)]

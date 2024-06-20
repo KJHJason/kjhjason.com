@@ -1,4 +1,4 @@
-use crate::model::file_info::FileInfo;
+use crate::models::file_info::FileInfo;
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 

@@ -1,4 +1,4 @@
-use crate::model::index::Index;
+use crate::models::index::Index;
 use actix_web::{get, HttpResponse};
 
 #[get("/api")]
