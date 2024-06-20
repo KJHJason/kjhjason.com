@@ -35,7 +35,6 @@ pub const CF_TURNSTILE_SITE_KEY: &str = "0x4AAAAAAAcnZh9gukmZdThg";
 pub const MONGODB_URI: &str = "MONGODB_URI";
 pub const BLOG_ADMIN_USERNAME: &str = "BLOG_ADMIN_USERNAME";
 pub const BLOG_ADMIN_PASSWORD: &str = "BLOG_ADMIN_PASSWORD";
-pub const BLOG_ADMIN_TOTP_SECRET: &str = "BLOG_ADMIN_TOTP_SECRET";
 
 // env keys
 const __DEBUG_MODE: &str = "DEBUG_MODE";

@@ -8,11 +8,11 @@ pub struct User {
     pub _id: ObjectId,
     username: String,
     password: String,
-    totp_secret: Vec<u8>,
+    totp_secret: Option<Vec<u8>>,
 }
 
 impl User {
-    pub fn new(username: String, password: String, totp_secret: Vec<u8>) -> User {
+    pub fn new(username: String, password: String, totp_secret: Option<Vec<u8>>) -> User {
         User {
             _id: ObjectId::new(),
             username,
@@ -28,11 +28,14 @@ impl User {
 
     #[inline]
     pub fn has_totp(&self) -> bool {
-        !self.totp_secret.is_empty()
+        self.totp_secret.is_some()
     }
 
     #[inline]
     pub fn decrypt_totp_secret(&self) -> Result<Vec<u8>, CryptoError> {
-        decrypt_with_db_key(&self.totp_secret)
+        match &self.totp_secret {
+            Some(totp_secret) => decrypt_with_db_key(totp_secret),
+            None => Err(CryptoError::NoDataToEncrypt),
+        }
     }
 }
