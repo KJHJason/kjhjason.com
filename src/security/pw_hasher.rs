@@ -3,19 +3,24 @@ use argon2::{
     password_hash::SaltString, Algorithm, Argon2, ParamsBuilder, PasswordHash, PasswordHasher,
     PasswordVerifier, Version,
 };
+use once_cell::sync::Lazy;
 
 // follows the RFC 9106 recommendation for Argon2id
 // ref: https://github.com/hynek/argon2-cffi/blob/main/src/argon2/profiles.py#L30-L38
-#[inline]
-fn get_default_hasher() -> Argon2<'static> {
-    let params = ParamsBuilder::new()
-        .t_cost(3)
-        .m_cost(64 * 1024)
-        .p_cost(4)
-        .output_len(64)
-        .build()
-        .unwrap();
-    Argon2::new(Algorithm::Argon2id, Version::V0x13, params)
+macro_rules! get_default_hasher {
+    () => {
+        Argon2::new(
+            Algorithm::Argon2id,
+            Version::V0x13,
+            ParamsBuilder::new()
+                .t_cost(3)
+                .m_cost(64 * 1024)
+                .p_cost(4)
+                .output_len(64)
+                .build()
+                .unwrap(),
+        )
+    };
 }
 
 // generate a random salt (cryptographically secure)
@@ -26,9 +31,9 @@ fn generate_salt() -> SaltString {
 }
 
 pub fn hash_password(password: &str) -> Result<String, actix_web::Error> {
-    let argon2 = get_default_hasher();
+    static ARGON2: Lazy<Argon2> = Lazy::new(|| get_default_hasher!());
     let salt = generate_salt();
-    let output = match argon2.hash_password(password.as_bytes(), &salt) {
+    let output = match ARGON2.hash_password(password.as_bytes(), &salt) {
         Ok(output) => output,
         Err(err) => {
             log::error!("Failed to hash password: {:?}", err);
@@ -43,7 +48,7 @@ pub fn hash_password(password: &str) -> Result<String, actix_web::Error> {
 }
 
 pub fn verify_password(password: &str, hash: &str) -> Result<bool, actix_web::Error> {
-    let argon2 = get_default_hasher();
+    static ARGON2: Lazy<Argon2> = Lazy::new(|| get_default_hasher!());
     let password_hash = match PasswordHash::new(hash) {
         Ok(password_hash) => password_hash,
         Err(err) => {
@@ -54,8 +59,8 @@ pub fn verify_password(password: &str, hash: &str) -> Result<bool, actix_web::Er
         }
     };
 
-    match argon2.verify_password(password.as_bytes(), &password_hash) {
-        Ok(()) => Ok(true),
+    match ARGON2.verify_password(password.as_bytes(), &password_hash) {
+        Ok(_) => Ok(true),
         Err(_) => Ok(false),
     }
 }
