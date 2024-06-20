@@ -12,7 +12,7 @@ impl Index {
         Index {
             name: "KJHJason's Blog Backend API".to_string(),
             version: "0.1.0".to_string(),
-            frontend_url: "https://blog.kjhjason.com".to_string(),
+            frontend_url: "https://kjhjason.com".to_string(),
         }
     }
 }
