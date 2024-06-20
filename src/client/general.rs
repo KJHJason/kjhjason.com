@@ -1,5 +1,5 @@
 use crate::database::db;
-use crate::model::blog::BlogIdentifier;
+use crate::model::blog_identifier::BlogIdentifier;
 use crate::templates::error::ErrorTemplate;
 use crate::templates::general::{
     Awards, Blog, BlogPost, BlogPostInfo, Certificates, Experiences, Index, Projects, Skills,

@@ -1,8 +1,9 @@
 use crate::constants::constants;
 use crate::database::db;
-use crate::model::blog::{
-    Blog, BlogError, BlogIdentifier, BlogPreview, BlogPublishOperation, BlogUpdateOperation,
-    UploadedFiles,
+use crate::errors::blog::BlogError;
+use crate::model::{
+    blog::Blog, blog_identifier::BlogIdentifier, blog_preview::BlogPreview, new_blog::NewBlog,
+    update_blog::UpdateBlog, uploaded_files::UploadedFiles,
 };
 use crate::utils::blog::file_utils;
 use crate::utils::blog::file_utils::process_file_logic;
@@ -46,7 +47,7 @@ async fn preview_blog(data: Form<BlogPreview>) -> HttpResponse {
 async fn new_blog(
     client: Data<db::DbClient>,
     s3_client: Data<s3::Client>,
-    blog: Json<BlogPublishOperation>,
+    blog: Json<NewBlog>,
 ) -> Result<HttpResponse, BlogError> {
     let mut blog_op = blog.into_inner();
     let blog_col = client.into_inner().get_blog_collection();
@@ -93,9 +94,9 @@ async fn new_blog(
 async fn update_blog(
     client: Data<db::DbClient>,
     s3_client: Data<s3::Client>,
-    update_blog: Json<BlogUpdateOperation>,
+    update_blog: Json<UpdateBlog>,
 ) -> Result<HttpResponse, BlogError> {
-    let blog: BlogUpdateOperation = update_blog.into_inner();
+    let blog: UpdateBlog = update_blog.into_inner();
     let blog_id = validate_id(&blog.id)?;
     let blog_id_str = blog_id.to_hex();
 

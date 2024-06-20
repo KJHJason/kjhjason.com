@@ -1,4 +1,4 @@
-use crate::model::csrf as csrf_model;
+use crate::errors::csrf as csrf_errors;
 use crate::security::csrf::CsrfSigner;
 use crate::utils::security::is_protected;
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
@@ -58,10 +58,10 @@ impl CsrfMiddlewareConfig {
     pub fn get_csrf_cookie_name(&self) -> &str {
         self.csrf_signer.get_csrf_cookie_name()
     }
-    pub fn get_csrf_cookie(&self, req: &ServiceRequest) -> Result<String, csrf_model::CsrfError> {
+    pub fn get_csrf_cookie(&self, req: &ServiceRequest) -> Result<String, csrf_errors::CsrfError> {
         self.csrf_signer.extract_csrf_cookie(req)
     }
-    pub fn get_csrf_header(&self, req: &ServiceRequest) -> Result<String, csrf_model::CsrfError> {
+    pub fn get_csrf_header(&self, req: &ServiceRequest) -> Result<String, csrf_errors::CsrfError> {
         self.csrf_signer.extract_csrf_header(req)
     }
 }
@@ -166,7 +166,7 @@ where
                 return Box::pin(async move {
                     log::warn!("CSRF token mismatch");
                     Err(actix_web::error::ErrorUnauthorized(
-                        csrf_model::CsrfError::InvalidToken.to_string(),
+                        csrf_errors::CsrfError::InvalidToken.to_string(),
                     ))
                 });
             }

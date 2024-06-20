@@ -1,6 +1,6 @@
 use crate::constants::constants;
-use crate::model::auth::{AuthError, Session, SessionError, User};
-use crate::model::blog::{Blog, BlogError, BlogProjection};
+use crate::errors::{auth::AuthError, blog::BlogError, session::SessionError};
+use crate::model::{blog::Blog, projected_blog::ProjectedBlog, session::Session, user::User};
 use crate::security::pw_hasher;
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
@@ -239,8 +239,8 @@ impl DbClient {
         &self,
         id: &ObjectId,
         options: Option<FindOneOptions>,
-    ) -> Result<BlogProjection, BlogError> {
-        let blog_collection: Collection<BlogProjection> =
+    ) -> Result<ProjectedBlog, BlogError> {
+        let blog_collection: Collection<ProjectedBlog> =
             self.get_custom_collection(constants::BLOG_COLLECTION);
         let result = blog_collection.find_one(doc! {"_id": id}, options).await;
         Self::handle_result(result)

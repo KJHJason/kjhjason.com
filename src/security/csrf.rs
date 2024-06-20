@@ -1,5 +1,5 @@
 use crate::constants::constants;
-use crate::model::csrf;
+use crate::errors::csrf;
 use crate::utils::security;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
 use base64::{engine::general_purpose, Engine as _};

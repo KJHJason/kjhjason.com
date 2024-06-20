@@ -2,6 +2,7 @@ mod api;
 mod client;
 mod constants;
 mod database;
+mod errors;
 mod middleware;
 mod model;
 mod security;

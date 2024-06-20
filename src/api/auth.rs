@@ -1,7 +1,8 @@
 use crate::constants::constants;
 use crate::db;
+use crate::errors::auth::AuthError;
 use crate::middleware::auth;
-use crate::model::auth as auth_model;
+use crate::model::{login_data::LoginData, session::Session};
 use crate::security::cf_turnstile;
 use crate::security::pw_hasher;
 use crate::templates;
@@ -15,7 +16,7 @@ use tokio::time as tokio_time;
 macro_rules! verify_captcha {
     ($req:expr, $cf_turnstile_res:expr) => {
         if !cf_turnstile::verify_request($req, $cf_turnstile_res).await {
-            return Err(auth_model::AuthError::CaptchaFailed);
+            return Err(AuthError::CaptchaFailed);
         }
     };
 }
@@ -23,8 +24,8 @@ macro_rules! verify_captcha {
 #[post("/api/admin")]
 async fn admin_honeypot(
     req: HttpRequest,
-    login_data: Form<auth_model::LoginData>,
-) -> Result<HttpResponse, auth_model::AuthError> {
+    login_data: Form<LoginData>,
+) -> Result<HttpResponse, AuthError> {
     log::warn!(
         "Honeypot triggered! Request IP: {} Username: {} Password: {}",
         cf_turnstile::get_ip_addr(&req).unwrap_or("unknown".to_string()),
@@ -34,18 +35,18 @@ async fn admin_honeypot(
     verify_captcha!(&req, &login_data.cf_turnstile_res);
     let sleep_time = rand::thread_rng().gen_range(2000..4000);
     tokio_time::sleep(tokio_time::Duration::from_millis(sleep_time)).await;
-    Err(auth_model::AuthError::InvalidCredentials)
+    Err(AuthError::InvalidCredentials)
 }
 
 #[post("/api/auth/login")]
 async fn login(
     req: HttpRequest,
     client: Data<db::DbClient>,
-    login_data: Form<auth_model::LoginData>,
-) -> Result<HttpResponse, auth_model::AuthError> {
+    login_data: Form<LoginData>,
+) -> Result<HttpResponse, AuthError> {
     match req.cookie(constants::AUTH_COOKIE_NAME) {
         Some(_) => {
-            return Err(auth_model::AuthError::AlreadyLoggedIn);
+            return Err(AuthError::AlreadyLoggedIn);
         }
         None => {}
     }
@@ -56,11 +57,11 @@ async fn login(
         let is_valid = match pw_hasher::verify_password(&login_data.password, user.get_password()) {
             Ok(is_valid) => is_valid,
             Err(_) => {
-                return Err(auth_model::AuthError::InternalServerError);
+                return Err(AuthError::InternalServerError);
             }
         };
         if !is_valid {
-            return Err(auth_model::AuthError::InvalidCredentials);
+            return Err(AuthError::InvalidCredentials);
         }
 
         let exp_sec = if login_data.remember_session() {
@@ -69,13 +70,13 @@ async fn login(
             constants::SESSION_TIMEOUT
         };
         let session_col = client.get_session_collection();
-        let session = auth_model::Session::new(user._id, exp_sec);
+        let session = Session::new(user._id, exp_sec);
         let session_expiry = session.expiry.timestamp_millis();
         let result = match session_col.insert_one(session, None).await {
             Ok(result) => result,
             Err(e) => {
                 log::error!("Failed to insert session into db: {:?}", e);
-                return Err(auth_model::AuthError::InternalServerError);
+                return Err(AuthError::InternalServerError);
             }
         };
 

@@ -1,6 +1,7 @@
 pub mod file_utils {
     use crate::constants::constants;
-    use crate::model::blog::{BlogError, FileInfo};
+    use crate::errors::blog::BlogError;
+    use crate::model::file_info::FileInfo;
     use crate::utils::storage;
     use aws_sdk_s3 as s3;
 
@@ -142,7 +143,7 @@ pub mod file_utils {
 
 pub mod publish_utils {
     use crate::database::db;
-    use crate::model::blog::BlogError;
+    use crate::errors::blog::BlogError;
     use crate::templates;
     use crate::utils::html::render_template;
     use crate::utils::validations::validate_id;
