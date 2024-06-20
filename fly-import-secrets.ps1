@@ -3,6 +3,9 @@ $secretsCommand = "flyctl secrets set "
 
 foreach ($line in $envFile) {
     $key, $value = $line -split '=', 2
+    if ($key -eq "DEBUG_MODE") {
+        $value = "false"
+    }
     $secretsCommand += "$key=$value "
 }
 
