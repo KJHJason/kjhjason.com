@@ -29,19 +29,23 @@ pub const PUBLIC_S3_URL: &str = "https://storage.kjhjason.com";
 pub const SIGNED_URL_MAX_AGE: time::Duration = time::Duration::from_secs(60 * 60 * 24 * 7);
 pub const TEMP_OBJ_PREFIX: &str = "temp";
 
+pub const CF_TURNSTILE_SITE_KEY: &str = "0x4AAAAAAAcnZh9gukmZdThg";
+
 // env keys called once only on startup
 pub const MONGODB_URI: &str = "MONGODB_URI";
 pub const BLOG_ADMIN_USERNAME: &str = "BLOG_ADMIN_USERNAME";
 pub const BLOG_ADMIN_PASSWORD: &str = "BLOG_ADMIN_PASSWORD";
+pub const BLOG_ADMIN_TOTP_SECRET: &str = "BLOG_ADMIN_TOTP_SECRET";
 
 // env keys
 const __DEBUG_MODE: &str = "DEBUG_MODE";
 const __R2_ACCOUNT_ID: &str = "R2_ACCOUNT_ID";
-const __CF_TURNSTILE_SITE_KEY: &str = "0x4AAAAAAAcnZh9gukmZdThg";
 const __CF_TURNSTILE_SECRET_KEY: &str = "CF_TURNSTILE_SECRET_KEY";
 const __SECRET_KEY: &str = "SECRET_KEY";
 const __SECRET_KEY_SALT: &str = "SECRET_KEY_SALT";
 const __CSRF_KEY_SALT: &str = "CSRF_KEY_SALT";
+const __DB_ENCRYPTION_KEY: &str = "DB_ENCRYPTION_KEY";
+const __DB_ENCRYPTION_KEY_AD: &str = "DB_ENCRYPTION_KEY_AD";
 
 #[inline(always)]
 fn get_env_var(var_name: &str) -> String {
@@ -77,8 +81,9 @@ macro_rules! generate_env_hex_to_bytes_getter {
 generate_env_hex_to_bytes_getter!(get_secret_key, __R2_ACCOUNT_ID);
 generate_env_hex_to_bytes_getter!(get_secret_key_salt, __SECRET_KEY_SALT);
 generate_env_hex_to_bytes_getter!(get_csrf_key_salt, __CSRF_KEY_SALT);
+generate_env_hex_to_bytes_getter!(get_db_encryption_key, __DB_ENCRYPTION_KEY);
+generate_env_hex_to_bytes_getter!(get_db_encryption_key_ad, __DB_ENCRYPTION_KEY_AD);
 generate_env_getter!(get_r2_acc_id, __R2_ACCOUNT_ID);
-generate_env_getter!(get_cf_turnstile_site_key, __CF_TURNSTILE_SITE_KEY);
 generate_env_getter!(get_cf_turnstile_secret_key, __CF_TURNSTILE_SECRET_KEY);
 
 macro_rules! generate_debug_dependent_val_getter {

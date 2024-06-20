@@ -3,6 +3,7 @@ use crate::database::db::DbClient;
 use crate::models::blog::Blog;
 use crate::models::session::Session;
 use crate::models::user::User;
+use crate::security::chacha_crypto::encrypt_with_db_key;
 use crate::security::pw_hasher;
 use bson::doc;
 use mongodb::options::{ClientOptions, IndexOptions, ServerApi, ServerApiVersion};
@@ -13,7 +14,11 @@ async fn init_user_collection(client: &Client) {
     let collection: Collection<User> = db.collection(constants::USER_COLLECTION);
 
     // check if the collection already exists
-    let result = collection.find_one(None, None).await;
+    let admin_username =
+        std::env::var(constants::BLOG_ADMIN_USERNAME).expect("admin username not set");
+    let result = collection
+        .find_one(doc! { "username": &admin_username }, None)
+        .await;
     match result {
         Ok(Some(_)) => return,
         _ => {}
@@ -30,17 +35,21 @@ async fn init_user_collection(client: &Client) {
         .await
         .expect("Failed to create username index for user collection");
 
-    let admin_username =
-        std::env::var(constants::BLOG_ADMIN_USERNAME).expect("admin username not set");
+    let admin_totp = std::env::var(constants::BLOG_ADMIN_TOTP_SECRET).expect("admin totp not set");
     let admin_password =
         std::env::var(constants::BLOG_ADMIN_PASSWORD).expect("admin password not set");
-    let hashed_admin_password = tokio::task::spawn_blocking(move || {
-        pw_hasher::hash_password(&admin_password).expect("Failed to hash password")
-    })
-    .await
-    .expect("Failed to hash password");
 
-    let user = User::new(admin_username, hashed_admin_password);
+    let encrypt_totp_future =
+        tokio::task::spawn_blocking(move || encrypt_with_db_key(admin_totp.as_bytes()).unwrap());
+    let hash_admin_pass_future =
+        tokio::task::spawn_blocking(move || pw_hasher::hash_password(&admin_password).unwrap());
+
+    let (admin_totp, hashed_admin_password) =
+        tokio::join!(encrypt_totp_future, hash_admin_pass_future);
+    let admin_totp = admin_totp.expect("failed to encrypt admin totp");
+    let hashed_admin_password = hashed_admin_password.expect("failed to hash admin password");
+
+    let user = User::new(admin_username, hashed_admin_password, admin_totp);
     match collection.insert_one(user, None).await {
         Ok(_) => log::info!("Admin account created"),
         Err(e) => panic!("Failed to create admin account: {}", e),

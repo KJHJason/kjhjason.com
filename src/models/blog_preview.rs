@@ -7,6 +7,7 @@ pub struct BlogPreview {
 }
 
 impl BlogPreview {
+    #[inline]
     pub fn get_content(&self) -> &str {
         &self.content
     }

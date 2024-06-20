@@ -8,7 +8,7 @@ pub fn configure_auth_middleware() -> middleware::auth::AuthMiddleware {
         (Method::GET, "/experiences".to_string()),
         (Method::GET, "/projects".to_string()),
         (Method::GET, "/skills".to_string()),
-        (Method::GET, "/certifications".to_string()),
+        (Method::GET, "/certificates".to_string()),
         (Method::GET, "/awards".to_string()),
         (Method::GET, "/resume".to_string()),
         (Method::GET, "/blogs".to_string()),
@@ -97,7 +97,7 @@ pub fn configure_hsts_middleware() -> middleware::hsts::HstsMiddleware {
         } else {
             60 * 60 * 24 * 365
         },
-        include_subdomains: !constants::get_debug_mode(),
+        include_subdomains: false,
         preload: false,
     };
     let hsts_middleware = middleware::hsts::HstsMiddleware::new(hsts_options);

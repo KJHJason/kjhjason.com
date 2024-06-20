@@ -41,19 +41,29 @@ impl Blog {
             last_modified: None,
         }
     }
+
+    #[inline]
     pub fn get_id_string(&self) -> String {
         self.id.to_hex()
     }
+
+    #[inline]
     pub fn get_html_content(&self) -> String {
         md::convert_to_html(&self.content, None)
     }
+
+    #[inline]
     pub fn get_date_string(&self) -> String {
         // format for JavaScript to parse to the user's local timezone
         self.timestamp.to_rfc3339()
     }
+
+    #[inline]
     pub fn get_readable_date_diff(&self) -> String {
         datetime::get_readable_date_diff(self.timestamp)
     }
+
+    #[inline]
     pub fn get_last_modified_date_string(&self) -> String {
         match self.last_modified {
             Some(date) => date.to_rfc3339(),

@@ -20,6 +20,8 @@ impl Session {
             expiry: chrono::Utc::now() + chrono::Duration::seconds(exp),
         }
     }
+
+    #[inline]
     pub fn is_expired(&self) -> bool {
         self.expiry < chrono::Utc::now()
     }

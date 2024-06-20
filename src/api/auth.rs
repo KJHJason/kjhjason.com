@@ -5,6 +5,7 @@ use crate::middleware::auth;
 use crate::models::{login_data::LoginData, session::Session};
 use crate::security::cf_turnstile;
 use crate::security::pw_hasher;
+use crate::security::totp;
 use crate::templates;
 use crate::utils::html::render_template;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
@@ -50,10 +51,10 @@ async fn login(
         }
         None => {}
     }
-
     verify_captcha!(&req, &login_data.cf_turnstile_res);
+
+    let user = client.get_user_by_username(&login_data.username).await?;
     web::block(move || async move {
-        let user = client.get_user_by_username(&login_data.username).await?;
         let is_valid = match pw_hasher::verify_password(&login_data.password, user.get_password()) {
             Ok(is_valid) => is_valid,
             Err(_) => {
@@ -62,6 +63,26 @@ async fn login(
         };
         if !is_valid {
             return Err(AuthError::InvalidCredentials);
+        }
+
+        if user.has_totp() {
+            let decrypted_totp = match user.decrypt_totp_secret() {
+                Ok(decrypted_totp) => {
+                    String::from_utf8(decrypted_totp).expect("totp secret is not valid utf-8")
+                }
+                Err(e) => {
+                    log::error!("Failed to decrypt TOTP: {:?}", e);
+                    return Err(AuthError::InternalServerError);
+                }
+            };
+
+            let totp_input = match login_data.totp_input.as_ref() {
+                Some(totp_input) => totp_input,
+                None => return Err(AuthError::MissingTotp),
+            };
+            if !totp::verify_totp(&totp_input, &decrypted_totp) {
+                return Err(AuthError::InvalidTotp);
+            }
         }
 
         let exp_sec = if login_data.remember_session() {

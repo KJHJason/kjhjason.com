@@ -10,6 +10,8 @@ impl UploadedFiles {
     pub fn new(files: Vec<FileInfo>) -> UploadedFiles {
         UploadedFiles { files }
     }
+
+    #[inline]
     pub fn append(&mut self, name: String, url: String, signed_url: String) {
         self.files.push(FileInfo {
             name,

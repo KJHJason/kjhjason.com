@@ -6,3 +6,4 @@ res/
 
 convert-images-to-webp.ps1
 .env
+*test*

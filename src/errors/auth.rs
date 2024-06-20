@@ -12,6 +12,10 @@ pub enum AuthError {
     UserNotFound, // same as InvalidCredentials to avoid enumeration attacks
     #[display(fmt = "Invalid username or password")]
     InvalidCredentials,
+    #[display(fmt = "Missing Time-based One-Time Password (TOTP)")]
+    MissingTotp,
+    #[display(fmt = "Invalid Time-based One-Time Password (TOTP)")]
+    InvalidTotp,
     #[display(fmt = "Captcha verification failed")]
     CaptchaFailed,
     #[display(fmt = "Internal server error")]
@@ -34,6 +38,12 @@ impl ResponseError for AuthError {
                 .content_type(content_type)
                 .body(error_html),
             AuthError::InvalidCredentials => HttpResponse::Unauthorized()
+                .content_type(content_type)
+                .body(error_html),
+            AuthError::MissingTotp => HttpResponse::BadRequest()
+                .content_type(content_type)
+                .body(error_html),
+            AuthError::InvalidTotp => HttpResponse::BadRequest()
                 .content_type(content_type)
                 .body(error_html),
             AuthError::CaptchaFailed => HttpResponse::BadRequest()
