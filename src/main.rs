@@ -60,9 +60,9 @@ async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
     log::info!("Initialising Blog Web App...");
 
+    dotenv().ok();
     if constants::constants::get_debug_mode() {
         log::info!("Debug mode enabled");
-        dotenv().ok();
     }
 
     let db_future = async {
@@ -85,6 +85,12 @@ async fn main() -> std::io::Result<()> {
         s3_client
     };
     let (db_client, s3_client) = tokio::join!(db_future, aws_future);
+
+    let address = if constants::constants::get_debug_mode() {
+        ("127.0.0.1", 8080)
+    } else {
+        ("0.0.0.0", 8080)
+    };
 
     HttpServer::new(move || {
         App::new()
@@ -136,7 +142,7 @@ async fn main() -> std::io::Result<()> {
             // return the 404 html page instead of the default error text response.
             .service(actix_files::Files::new("/static", "./static"))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(address)?
     .run()
     .await
 }

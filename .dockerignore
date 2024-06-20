@@ -1,0 +1,8 @@
+.github/
+idea/
+node_modules/
+target/
+res/
+
+convert-images-to-webp.ps1
+.env

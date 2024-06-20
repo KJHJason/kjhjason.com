@@ -310,20 +310,18 @@ async fn upload_blog_files(
             log::info!("Invalid content type found for file");
             continue;
         }
-        let mut file_ext = "";
         let content_type_clone = content_type.clone();
-        if content_type_clone == image_webp {
-            file_ext = "webp";
+        let file_ext = if content_type_clone == image_webp {
+            "webp"
         } else if content_type_clone == IMAGE_PNG {
-            file_ext = "png";
+            "png"
         } else if content_type_clone == IMAGE_JPEG {
-            file_ext = "jpeg";
+            "jpeg"
         } else if content_type_clone == IMAGE_GIF {
-            file_ext = "gif";
+            "gif"
         } else {
-            // video_mp4
-            file_ext = "mp4";
-        }
+            "mp4"
+        };
 
         let destination = format!(
             "{}{}.{}",

@@ -6,8 +6,7 @@
   },
   "scripts": {
     "watch": "tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css --watch",
-    "minify": "tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css --minify",
-    "build": "tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css"
+    "build": "tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css --minify"
   },
   "dependencies": {
     "sweetalert2": "^11.12.0"

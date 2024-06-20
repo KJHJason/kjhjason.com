@@ -175,16 +175,16 @@ where
             }
         }
 
-        let mut csrf_token = String::new();
+        let mut _csrf_token = String::new();
         let mut csrf_cookie_value: Option<String> = None;
         let req_has_csrf_cookie = req.cookie(self.inner.get_csrf_cookie_name()).is_some();
         if !req_has_csrf_cookie || (req_has_csrf_cookie && req_csrf_csrf_token.is_empty()) {
             let csrf_cookie = self.inner.csrf_signer.create_csrf_cookie();
-            csrf_token = csrf_cookie.value().to_string();
+            _csrf_token = csrf_cookie.value().to_string();
             csrf_cookie_value = Some(csrf_cookie.to_string());
         } else {
             // safe to unwrap since the cookie is guaranteed to exist and has been validated
-            csrf_token = req
+            _csrf_token = req
                 .cookie(self.inner.get_csrf_cookie_name())
                 .unwrap()
                 .value()
@@ -194,7 +194,7 @@ where
         // inject the CSRF cookie into the request for the handler to use
         req.extensions_mut().insert(CsrfValue {
             csrf_cookie_value,
-            csrf_token,
+            csrf_token: _csrf_token,
         });
         let fut = self.service.call(req);
         Box::pin(async move {
