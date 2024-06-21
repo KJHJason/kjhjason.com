@@ -8,22 +8,22 @@
         hx-target="#blog-content"
     >
         <button type="submit" class="w-full h-full" hx-on:click="previewBtnEvt()">Preview</button>
-        <input type="hidden" name="content" id="content-preview">
+        <input type="hidden" name="content" id="content-preview" />
     </form>
 </div>
 <div id="edit" class="gap-y-8 grid grid-cols-1">
     <div>
         <label for="title" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Title:</label>
-        <input type="text" name="title" id="title" class="input-theme" placeholder="Hello World!" required maxlength="150" autofocus>
+        <input type="text" name="title" id="title" class="input-theme" placeholder="Hello World!" required maxlength="150" autofocus />
     </div>
     <div>
         <label for="tags" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Tags (Max 8):</label>
-        <input type="text" name="tags" id="tags" class="input-theme" placeholder="Rust, Web Dev">
+        <input type="text" name="tags" id="tags" class="input-theme" placeholder="Rust, Web Dev" />
     </div>
     <div>
         <div class="flex mb-1">
             <label for="is-public" class="block text-sm font-medium text-neutral-900 dark:text-white">Public:</label>
-            <input type="checkbox" name="is-public" id="is-public" class="ml-4 toggle toggle-success" checked>
+            <input type="checkbox" name="is-public" id="is-public" class="ml-4 toggle toggle-success" checked />
         </div>
         <p class="!my-0 text-xs text-neutral-900 dark:text-white">
             *Note: Assets like images that were uploaded will be publicly accessible after posting this blog regardless of this setting.

@@ -1,4 +1,5 @@
 use crate::database::db;
+use crate::middleware::auth::get_user_claim;
 use crate::models::blog_identifier::BlogIdentifier;
 use crate::templates::admin::{EditBlog, NewBlog, Profile};
 use crate::templates::error::ErrorTemplate;
@@ -8,6 +9,8 @@ use crate::utils::{
 use actix_web::http::StatusCode;
 use actix_web::web::{Data, Path};
 use actix_web::{get, HttpRequest, HttpResponse};
+use bson::doc;
+use mongodb::options::FindOneOptions;
 
 #[get("/admin/new/blog")]
 async fn new_blog(req: HttpRequest) -> HttpResponse {
@@ -55,9 +58,30 @@ async fn edit_blog(
 }
 
 #[get("/admin/profile")]
-async fn profile(req: HttpRequest) -> HttpResponse {
+async fn profile(client: Data<db::DbClient>, req: HttpRequest) -> HttpResponse {
+    let user_info = get_user_claim(&req);
+    let options = FindOneOptions::builder()
+        .projection(doc! {"totp_secret": 1})
+        .build();
+    let user = client
+        .get_projected_user_by_id(&user_info.user_id, Some(options))
+        .await
+        .map_err(|_| {
+            let template = ErrorTemplate {
+                common: extract_for_template(&req),
+                status: 500,
+                message:
+                    "Something went wrong while fetching your profile. Please try again later.",
+            };
+            render_template(template, StatusCode::INTERNAL_SERVER_ERROR)
+        });
+    if user.is_err() {
+        return user.unwrap_err();
+    }
+
     let template = Profile {
         common: extract_for_template(&req),
+        has_2fa: !user.unwrap().totp_secret.unwrap_or_default().is_empty(),
     };
     render_template(template, StatusCode::OK)
 }

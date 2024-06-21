@@ -14,7 +14,7 @@ use actix_web::middleware::Compress;
 use actix_web::{
     get,
     middleware::{ErrorHandlers, Logger},
-    web, App, HttpServer,
+    web, App, HttpServer, Responder,
 };
 use api::configure::add_api_routes;
 use aws_config::{BehaviorVersion, Region};
@@ -37,22 +37,24 @@ macro_rules! error_handler_many {
 }
 
 #[get("/favicon.ico")]
-async fn favicon() -> actix_web::Result<NamedFile> {
-    Ok(NamedFile::open("./static/images/favicon.ico")?)
+async fn favicon() -> impl Responder {
+    NamedFile::open_async("./static/images/favicon.ico")
+        .await
+        .expect("failed to open favicon.ico file")
 }
 
 #[get("/static/js/sweetalert2.min.js")]
-async fn sweetalert_js() -> actix_web::Result<NamedFile> {
-    Ok(NamedFile::open(
-        "./node_modules/sweetalert2/dist/sweetalert2.min.js",
-    )?)
+async fn sweetalert_js() -> impl Responder {
+    NamedFile::open_async("./node_modules/sweetalert2/dist/sweetalert2.min.js")
+        .await
+        .expect("failed to open sweetalert2.min.js file")
 }
 
 #[get("/static/css/sweetalert2.min.css")]
-async fn sweetalert_css() -> actix_web::Result<NamedFile> {
-    Ok(NamedFile::open(
-        "./node_modules/sweetalert2/dist/sweetalert2.min.css",
-    )?)
+async fn sweetalert_css() -> impl Responder {
+    NamedFile::open_async("./node_modules/sweetalert2/dist/sweetalert2.min.css")
+        .await
+        .expect("failed to open sweetalert2.min.css file")
 }
 
 #[actix_web::main]
@@ -136,11 +138,13 @@ async fn main() -> std::io::Result<()> {
             .service(favicon)
             .service(sweetalert_js)
             .service(sweetalert_css)
-            // Note: due to the error middleware, the 404 html page will
-            // be rendered instead of the default actix error text response
-            // if the static path is not found. E.g. /static/test.png will
-            // return the 404 html page instead of the default error text response.
-            .service(actix_files::Files::new("/static", "./static"))
+            .service(
+                // Note: due to the error middleware, the 404 html page will
+                // be rendered instead of the default actix error text response
+                // if the static path is not found. E.g. /static/test.png will
+                // return the 404 html page instead of the default error text response.
+                actix_files::Files::new("/static", "./static"),
+            )
     })
     .bind(address)?
     .run()

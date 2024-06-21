@@ -1,0 +1,38 @@
+<div class="collapse collapse-arrow accent">
+    <input type="radio" name="profile-accordion" hx-on:click="get2FaSecretFromServer()" /> 
+    <div class="collapse-title text-xl font-medium">
+        Setup Two-Factor Authentication
+    </div>
+    <form class="collapse-content"
+        hx-post="/api/admin/setup-2fa"
+        hx-headers='{{ csrf_header_json|safe }}'
+        hx-target="#two-fa-setting"
+        hx-target-error="#two-fa-alert"
+        hx-ext="response-targets"
+    > 
+        <div id="two-fa-alert" class="my-4"></div>
+
+        <img id="two-fa-content-qr" class="mx-auto w-[70%] sm:w-[50%] h-auto" src="https://storage.kjhjason.com/images/misc/loading.webp" alt="animated loading Bocchi the slug image" />
+        <div class="collapse accent">
+            <input type="checkbox" hx-on:click="toggleShowHideSecretText()" /> 
+            <div class="collapse-title text-center !px-6">
+                <span id="two-fa-showhide-text">Show</span> Secret
+            </div>
+            <div class="collapse-content text-left sm:text-center"> 
+                <button class="btn-text-link break-words break-all" 
+                    id="two-fa-content-secret"
+                    type="button"
+                    hx-on:click="copySecretToClipboard()"
+                ></button>
+                <input type="hidden" name="secret" id="two-fa-content-secret-input" />
+            </div>
+        </div>
+
+        <label for="totp_code" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Code:</label>
+        <input type="text" name="totp_code" id="totp_code" class="input-theme mb-4" placeholder="123456" required minlength="6" maxlength="6" pattern="[0-9]{6}" />
+
+        <div class="w-full text-right">
+            <button type="submit" class="btn btn-success">Enable 2FA</button>
+        </div>
+    </form>
+</div>

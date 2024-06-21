@@ -24,6 +24,7 @@ pub struct EditBlog<'a> {
 #[template(path = "admin/profile.html")]
 pub struct Profile {
     pub common: TemplateValues,
+    pub has_2fa: bool,
 }
 
 #[derive(Template)]

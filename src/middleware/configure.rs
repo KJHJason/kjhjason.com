@@ -78,10 +78,10 @@ pub fn configure_csp_middleware() -> middleware::csp::CspMiddleware {
             "https://challenges.cloudflare.com/".to_string(),
         ],
         default_src: vec![],
-        base_uri: vec![],
+        base_uri: vec!["self".to_string()],
         img_src: vec![],
         font_src: vec![],
-        object_src: vec![],
+        object_src: vec!["none".to_string()],
         form_action: vec![],
         frame_ancestors: vec![],
     };

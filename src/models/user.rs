@@ -7,15 +7,22 @@ use serde::{Deserialize, Serialize};
 pub struct User {
     pub _id: ObjectId,
     username: String,
+    email: String,
     password: String,
     totp_secret: Option<Vec<u8>>,
 }
 
 impl User {
-    pub fn new(username: String, password: String, totp_secret: Option<Vec<u8>>) -> User {
+    pub fn new(
+        username: String,
+        email: String,
+        password: String,
+        totp_secret: Option<Vec<u8>>,
+    ) -> User {
         User {
             _id: ObjectId::new(),
             username,
+            email,
             password,
             totp_secret,
         }

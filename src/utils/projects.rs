@@ -21,7 +21,7 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             img_alt: "Screenshot of some of the code in the hmac-serialiser-rs project",
             desc: "Similar to the HMACSerialiser project, this is a Rust implementation as I wanted to create shorter but secure tokens for the website you are currently viewing.",
             tags: vec!["Security", "Cryptography", "Rust"],
-            link: "https://github.com/KJHJason/hmac-serialiser-rs",
+            link: "https://github.com/KJHJason/hmac-serialiser/tree/master/rust",
             presentation_link: "",
             date: "Jun 2024 - Jun 2024",
         },
@@ -33,7 +33,7 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             I was attached to during my internship which is susceptible to length extension attacks.
             <br /><br />This project is heavily inspired by the itsdangerous serialiser used in Python web frameworks like Flask.",
             tags: vec!["Security", "Cryptography", "C#"],
-            link: "https://github.com/KJHJason/HMACSerialiser",
+            link: "https://github.com/KJHJason/hmac-serialiser/tree/master/csharp",
             presentation_link: "",
             date: "Feb 2024 - May 2024",
         },

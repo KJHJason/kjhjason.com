@@ -7,7 +7,7 @@ use actix_web::http::{header::ContentType, Method, StatusCode};
 use actix_web::web::Data;
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    Error, HttpMessage, HttpResponse,
+    Error, HttpMessage, HttpRequest, HttpResponse,
 };
 use askama::Template;
 use bson::oid::ObjectId;
@@ -41,16 +41,12 @@ macro_rules! auth_failed {
     };
 }
 
-// pub fn get_user_claim(req: &HttpRequest) -> Result<UserClaim, Error> {
-//     match req.extensions().get::<UserClaim>() {
-//         Some(user_claim) => Ok(user_claim.clone()),
-//         None => {
-//             // Shouldn't happen if the middleware is working correctly
-//             log::error!("UserClaim not found in request extensions");
-//             Err(actix_web::error::ErrorNotFound(""))
-//         }
-//     }
-// }
+pub fn get_user_claim(req: &HttpRequest) -> UserClaim {
+    req.extensions()
+        .get::<UserClaim>()
+        .expect("UserClaim should be in the request extension")
+        .clone()
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct UserClaim {

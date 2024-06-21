@@ -1,5 +1,6 @@
 use crate::constants::constants;
 use crate::errors::{auth::AuthError, blog::BlogError, session::SessionError};
+use crate::models::projected_user::ProjectedUser;
 use crate::models::{blog::Blog, projected_blog::ProjectedBlog, session::Session, user::User};
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
@@ -67,12 +68,11 @@ impl DbClient {
         }
     }
 
-    pub async fn get_user_by_username(&self, username: &str) -> Result<User, AuthError> {
-        match self
-            .get_user_collection()
-            .find_one(doc! {"username": username}, None)
-            .await
-        {
+    #[inline]
+    fn handle_user_result<T>(
+        result: Result<Option<T>, mongodb::error::Error>,
+    ) -> Result<T, AuthError> {
+        match result {
             Ok(Some(user)) => Ok(user),
             Ok(None) => Err(AuthError::UserNotFound),
             Err(err) => {
@@ -82,8 +82,34 @@ impl DbClient {
         }
     }
 
+    pub async fn get_projected_user_by_id(
+        &self,
+        id: &ObjectId,
+        options: Option<FindOneOptions>,
+    ) -> Result<ProjectedUser, AuthError> {
+        let col: Collection<ProjectedUser> = self.get_custom_collection(constants::USER_COLLECTION);
+        let result = col.find_one(doc! {"_id": id}, options).await;
+        Self::handle_user_result(result)
+    }
+
+    pub async fn get_user_by_username_or_email(
+        &self,
+        username_or_email: &str,
+    ) -> Result<User, AuthError> {
+        let result = self
+            .get_user_collection()
+            .find_one(
+                doc! {"$or": [{"username": username_or_email}, {"email": username_or_email}]},
+                None,
+            )
+            .await;
+        Self::handle_user_result(result)
+    }
+
     #[inline]
-    fn handle_result<T>(result: Result<Option<T>, mongodb::error::Error>) -> Result<T, BlogError> {
+    fn handle_blog_result<T>(
+        result: Result<Option<T>, mongodb::error::Error>,
+    ) -> Result<T, BlogError> {
         match result {
             Ok(Some(blog)) => Ok(blog),
             Ok(None) => Err(BlogError::BlogNotFound),
@@ -94,7 +120,7 @@ impl DbClient {
         }
     }
 
-    pub async fn get_blog_post_projection(
+    pub async fn get_projected_blog_post(
         &self,
         id: &ObjectId,
         options: Option<FindOneOptions>,
@@ -102,7 +128,7 @@ impl DbClient {
         let blog_collection: Collection<ProjectedBlog> =
             self.get_custom_collection(constants::BLOG_COLLECTION);
         let result = blog_collection.find_one(doc! {"_id": id}, options).await;
-        Self::handle_result(result)
+        Self::handle_blog_result(result)
     }
 
     pub async fn get_blog_post(
@@ -114,6 +140,6 @@ impl DbClient {
             .get_blog_collection()
             .find_one(doc! {"_id": id}, options)
             .await;
-        Self::handle_result(result)
+        Self::handle_blog_result(result)
     }
 }

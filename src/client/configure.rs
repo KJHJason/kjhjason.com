@@ -5,12 +5,14 @@ use crate::client::general::{
 };
 use actix_web::web;
 
+#[inline]
 pub fn add_client_routes(cfg: &mut web::ServiceConfig) {
     add_general_routes(cfg);
     add_auth_routes(cfg);
     add_admin_routes(cfg);
 }
 
+#[inline]
 fn add_general_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(index)
         .service(experiences)
@@ -22,12 +24,14 @@ fn add_general_routes(cfg: &mut web::ServiceConfig) {
         .service(blog_id);
 }
 
+#[inline]
 fn add_auth_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(login_redirect)
         .service(login_admin)
         .service(login_auth);
 }
 
+#[inline]
 fn add_admin_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(new_blog).service(edit_blog).service(profile);
 }

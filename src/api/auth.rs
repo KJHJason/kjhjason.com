@@ -55,7 +55,9 @@ async fn login(
     }
     verify_captcha!(&req, &login_data.cf_turnstile_res);
 
-    let user = client.get_user_by_username(&login_data.username).await?;
+    let user = client
+        .get_user_by_username_or_email(&login_data.username)
+        .await?;
     web::block(move || async move {
         let is_valid = match pw_hasher::verify_password(&login_data.password, user.get_password()) {
             Ok(is_valid) => is_valid,

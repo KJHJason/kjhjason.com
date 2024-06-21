@@ -1,15 +1,15 @@
 use crate::constants::constants;
+use crate::models::generated_totp::GeneratedTotp;
 use crate::utils::security::generate_random_bytes;
 use totp_rs::{Algorithm, Secret, TOTP};
 
+const TOTP_SECRET_LEN: usize = 34; // bytes (16 bytes minimum but >=20 bytes recommended by RFC-4226)
 const TOTP_DIGITS: usize = 6;
 const TOTP_SKEW: u8 = 1;
 const TOTP_STEP: u64 = 30; // recommended to be 30 seconds by RFC-6238
 
-// TODO: Implement the route to set-up TOTP
-#[allow(dead_code)]
-pub fn generate_totp(username: &str) -> (String, String) {
-    let secret_bytes = generate_random_bytes(34);
+pub fn generate_totp(username: &str) -> GeneratedTotp {
+    let secret_bytes = generate_random_bytes(TOTP_SECRET_LEN);
     let encoded_secret = Secret::Raw(secret_bytes.clone()).to_encoded().to_string();
     let totp = TOTP::new(
         Algorithm::SHA1,
@@ -21,8 +21,12 @@ pub fn generate_totp(username: &str) -> (String, String) {
         username.to_string(),
     )
     .expect("Failed to create TOTP instance");
+
     let qr_code_data = totp.get_qr_base64().expect("failed to generate QR code");
-    (encoded_secret, qr_code_data)
+    GeneratedTotp {
+        secret: encoded_secret,
+        qr_code_data,
+    }
 }
 
 pub fn verify_totp(totp_input: &str, secret: &str) -> bool {

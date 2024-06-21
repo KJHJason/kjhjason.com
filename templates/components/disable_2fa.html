@@ -1,0 +1,21 @@
+<div class="collapse collapse-arrow accent">
+    <input type="radio" name="profile-accordion" /> 
+    <div class="collapse-title text-xl font-medium">
+        Disable Two-Factor Authentication
+    </div>
+    <form class="collapse-content"
+        hx-post="/api/admin/remove-2fa"
+        hx-headers='{{ csrf_header_json|safe }}'
+        hx-target="#two-fa-setting"
+        hx-target-error="#two-fa-alert"
+        hx-ext="response-targets"
+    > 
+        <div id="two-fa-alert" class="my-4"></div>
+
+        <p id="two-fa-content-secret" class="!mt-2 !mb-4">You currently have Two-Factor Authentication Enabled</p>
+
+        <div class="w-full text-right">
+            <button type="submit" class="btn btn-success">Disable 2FA</button>
+        </div>
+    </form>
+</div>

@@ -1,3 +1,4 @@
+use crate::constants::constants;
 use actix_web::http::StatusCode;
 use actix_web::{http::header::ContentType, HttpResponse};
 use askama::Template;
@@ -25,7 +26,11 @@ pub fn minify_html(html: &str) -> Vec<u8> {
 #[inline]
 pub fn render_template<T: Template>(template: T, status_code: StatusCode) -> HttpResponse {
     let html = render_askama_template!(template);
-    let minified = minify_html(&html);
+    let minified = if constants::get_debug_mode() {
+        html.as_bytes().to_vec()
+    } else {
+        minify_html(&html)
+    };
     HttpResponse::build(status_code)
         .content_type(ContentType::html())
         .body(minified)

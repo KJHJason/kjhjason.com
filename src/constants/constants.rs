@@ -34,6 +34,7 @@ pub const CF_TURNSTILE_SITE_KEY: &str = "0x4AAAAAAAcnZh9gukmZdThg";
 // env keys called once only on startup
 pub const MONGODB_URI: &str = "MONGODB_URI";
 pub const BLOG_ADMIN_USERNAME: &str = "BLOG_ADMIN_USERNAME";
+pub const BLOG_ADMIN_EMAIL: &str = "BLOG_ADMIN_EMAIL";
 pub const BLOG_ADMIN_PASSWORD: &str = "BLOG_ADMIN_PASSWORD";
 
 // env keys

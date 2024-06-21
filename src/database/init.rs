@@ -23,6 +23,8 @@ async fn init_user_collection(client: &Client) {
         _ => {}
     }
 
+    let admin_email = std::env::var(constants::BLOG_ADMIN_EMAIL).expect("admin email not set");
+
     // although there will only be one account, just do this for future-proofing
     let opts = IndexOptions::builder().unique(true).build();
     let index = IndexModel::builder()
@@ -34,6 +36,16 @@ async fn init_user_collection(client: &Client) {
         .await
         .expect("Failed to create username index for user collection");
 
+    let opts = IndexOptions::builder().unique(true).build();
+    let index = IndexModel::builder()
+        .keys(doc! {"email": 1})
+        .options(opts)
+        .build();
+    collection
+        .create_index(index, None)
+        .await
+        .expect("Failed to create email index for user collection");
+
     let admin_password =
         std::env::var(constants::BLOG_ADMIN_PASSWORD).expect("admin password not set");
 
@@ -43,7 +55,7 @@ async fn init_user_collection(client: &Client) {
         .await
         .expect("failed to hash admin password");
 
-    let user = User::new(admin_username, hashed_admin_password, None);
+    let user = User::new(admin_username, admin_email, hashed_admin_password, None);
     match collection.insert_one(user, None).await {
         Ok(_) => log::info!("Admin account created"),
         Err(e) => panic!("Failed to create admin account: {}", e),

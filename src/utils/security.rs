@@ -69,6 +69,14 @@ pub fn is_logged_in(req: &HttpRequest) -> bool {
     }
 }
 
+#[inline]
+pub fn get_csrf_header_json(req: &HttpRequest, csrf_token: Option<&str>) -> String {
+    let csrf_token = csrf_token
+        .map(|csrf_token| csrf_token.to_string())
+        .unwrap_or_else(|| get_csrf_token(req));
+    format!(r#"{{"{}":"{}"}}"#, constants::CSRF_HEADER_NAME, csrf_token,)
+}
+
 #[derive(Debug)]
 pub struct TemplateValues {
     pub nonce: String,
@@ -89,7 +97,7 @@ pub fn extract_for_template(req: &HttpRequest) -> TemplateValues {
             .to_string()
     };
     let csrf_value = get_csrf_token(req);
-    let csrf_header_json = format!(r#"{{"{}":"{}"}}"#, constants::CSRF_HEADER_NAME, &csrf_value);
+    let csrf_header_json = get_csrf_header_json(req, Some(csrf_value.as_str()));
     TemplateValues {
         nonce,
         csrf_header: constants::CSRF_HEADER_NAME.to_string(),

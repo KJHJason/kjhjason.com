@@ -140,7 +140,7 @@ async fn update_blog(
 
     let options = FindOneOptions::builder().projection(projection_doc).build();
     let blog_in_db = client
-        .get_blog_post_projection(&blog_id, Some(options))
+        .get_projected_blog_post(&blog_id, Some(options))
         .await?;
 
     let mut is_updating = false;
@@ -235,7 +235,7 @@ async fn delete_blog(
         .projection(doc! { "files": 1 })
         .build();
     let blog_data = client
-        .get_blog_post_projection(&blog_id, Some(options))
+        .get_projected_blog_post(&blog_id, Some(options))
         .await?;
 
     let files = blog_data.files.unwrap_or(vec![]);

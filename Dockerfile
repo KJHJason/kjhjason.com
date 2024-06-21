@@ -17,6 +17,11 @@ ENV APP_DIR /app
 WORKDIR $APP_DIR
 COPY --from=node $APP_DIR .
 
+# Enable async file io for better performance.
+# Note: io-uring is only available on linux.
+# Hence, it's disabled by default since I'm running on Windows
+cargo add actix-files --features experimental-io-uring
+
 # Install production dependencies and build a release artifact.
 # Note: cargo install will automatically build the project with the --release flag
 RUN cargo install --path . 

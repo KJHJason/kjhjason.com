@@ -16,26 +16,25 @@
             </h1>
             <div id="error-alert"></div>
             <div id="success-msg"></div>
-            <form id="login-form"
+            <form id="login-form" class="space-y-4 md:space-y-6"
                 hx-post="/{{ login_url }}"
                 hx-headers='{{ common.csrf_header_json|safe }}'
                 hx-target="#success-msg"
                 hx-on::after-request="turnstile.reset()"
                 hx-target-error="#error-alert"
-                class="space-y-4 md:space-y-6"
             >
                 <div>
                     <label for="username" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Username/Email</label>
-                    <input type="text" name="username" id="username" class="input-theme" placeholder="name@proton.me" required>
+                    <input type="text" name="username" id="username" class="input-theme" placeholder="name@proton.me" required />
                 </div>
                 <div>
                     <label for="password" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Password</label>
-                    <input type="password" name="password" id="password" placeholder="••••••••" class="input-theme" required minlength="8" maxlength="64">
+                    <input type="password" name="password" id="password" placeholder="••••••••" class="input-theme" required minlength="8" maxlength="64" />
                 </div>
                 <div class="flex items-center justify-between">
                     <div class="flex items-start">
                         <div class="flex items-center h-5">
-                            <input name="remember" id="remember" aria-describedby="remember" type="checkbox" class="w-4 h-4 border border-neutral-300 rounded-lg bg-neutral-50 focus:ring-3 focus:ring-primary-300 dark:bg-neutral-700 dark:border-neutral-600 dark:focus:ring-primary-600 dark:ring-offset-neutral-800">
+                            <input name="remember" id="remember" aria-describedby="remember" type="checkbox" class="w-4 h-4 border border-neutral-300 rounded-lg bg-neutral-50 focus:ring-3 focus:ring-primary-300 dark:bg-neutral-700 dark:border-neutral-600 dark:focus:ring-primary-600 dark:ring-offset-neutral-800" />
                         </div>
                         <div class="ml-3 text-sm">
                             <label for="remember" class="text-neutral-500 dark:text-neutral-300">Remember me</label>
