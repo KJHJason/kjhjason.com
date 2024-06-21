@@ -122,10 +122,16 @@ pub fn configure_cache_control_middleware() -> middleware::cache_control::CacheC
                     value: "public, max-age=31536000".to_string(), // 1 year
                 },
             ],
-            regex_paths: vec![middleware::cache_control::CachePathValue {
-                path: regex::Regex::new(r"^/static/.*$").unwrap(),
-                value: "public, max-age=31536000, must-revalidate".to_string(), // 1 year
-            }],
+            regex_paths: vec![
+                middleware::cache_control::CachePathValue {
+                    path: regex::Regex::new(r"^/static/.*(\.js|\.css)$").unwrap(),
+                    value: "public, max-age=86400, must-revalidate".to_string(), // 1 day for css/js files
+                },
+                middleware::cache_control::CachePathValue {
+                    path: regex::Regex::new(r"^/static/.*$").unwrap(),
+                    value: "public, max-age=15768000, must-revalidate".to_string(), // 6 months
+                },
+            ],
         }
     };
     let cache_control_middleware =
