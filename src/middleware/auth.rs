@@ -7,12 +7,12 @@ use actix_web::http::{header::ContentType, Method, StatusCode};
 use actix_web::web::Data;
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    Error, HttpResponse,
+    Error, HttpMessage, HttpResponse,
 };
 use askama::Template;
 use bson::oid::ObjectId;
 use futures_util::future::LocalBoxFuture;
-use hmac_serialiser_rs::{HmacSigner, SignerLogic};
+use hmac_serialiser::HmacSigner;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::future::{ready, Ready};
@@ -61,7 +61,7 @@ pub struct UserClaim {
     pub user_id: ObjectId,
 }
 
-impl hmac_serialiser_rs::Data for UserClaim {
+impl hmac_serialiser::Payload for UserClaim {
     fn get_exp(&self) -> Option<chrono::DateTime<chrono::Utc>> {
         None
     }
@@ -77,8 +77,8 @@ pub fn create_user_claim(user_id: ObjectId, id: ObjectId) -> UserClaim {
 pub fn get_default_auth_signer() -> HmacSigner {
     HmacSigner::new(
         get_default_key_info(constants::get_secret_key_salt(), vec![]),
-        hmac_serialiser_rs::algorithm::Algorithm::SHA512,
-        hmac_serialiser_rs::Encoder::UrlSafeNoPadding,
+        hmac_serialiser::algorithm::Algorithm::SHA512,
+        hmac_serialiser::Encoder::UrlSafeNoPadding,
     )
 }
 
@@ -87,11 +87,6 @@ macro_rules! init_auth_signer {
         Lazy::new(|| get_default_auth_signer())
     };
 }
-
-// pub fn unsign_payload(payload: &str) -> Result<UserClaim, hmac_serialiser_rs::errors::Error> {
-//     static AUTH_SIGNER: Lazy<HmacSigner> = init_auth_signer!();
-//     AUTH_SIGNER.unsign::<UserClaim>(payload)
-// }
 
 pub fn sign_payload(user_claim: &UserClaim) -> String {
     static AUTH_SIGNER: Lazy<HmacSigner> = init_auth_signer!();
@@ -210,7 +205,7 @@ where
             Ok(user_claim) => user_claim,
             Err(e) => {
                 return match e {
-                    hmac_serialiser_rs::errors::Error::TokenExpired => Box::pin(async move {
+                    hmac_serialiser::errors::Error::TokenExpired => Box::pin(async move {
                         log::warn!("token expired");
                         auth_failed!(req, StatusCode::UNAUTHORIZED);
                     }),
@@ -250,6 +245,7 @@ where
                 auth_failed!(req, StatusCode::NOT_FOUND);
             }
 
+            req.extensions_mut().insert(user_claim);
             let fut = service.call(req).await?;
             Ok(fut.map_into_left_body())
         })

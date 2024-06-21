@@ -3,7 +3,6 @@ use crate::errors::csrf;
 use crate::utils::security;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
 use base64::{engine::general_purpose, Engine as _};
-use hmac_serialiser_rs::SignerLogic;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -20,7 +19,7 @@ impl CsrfToken {
     }
 }
 
-impl hmac_serialiser_rs::Data for CsrfToken {
+impl hmac_serialiser::Payload for CsrfToken {
     fn get_exp(&self) -> Option<chrono::DateTime<chrono::Utc>> {
         Some(self.expiry)
     }
@@ -31,7 +30,7 @@ pub struct CsrfSigner {
     cookie_name: String,
     header_name: String,
     token_len: usize,
-    signer: hmac_serialiser_rs::HmacSigner,
+    signer: hmac_serialiser::HmacSigner,
 }
 
 impl Default for CsrfSigner {
@@ -41,8 +40,8 @@ impl Default for CsrfSigner {
             constants::CSRF_HEADER_NAME,
             constants::CSRF_TOKEN_LENGTH,
             security::get_default_key_info(constants::get_csrf_key_salt(), vec![]),
-            hmac_serialiser_rs::algorithm::Algorithm::SHA1,
-            hmac_serialiser_rs::Encoder::UrlSafeNoPadding,
+            hmac_serialiser::algorithm::Algorithm::SHA1,
+            hmac_serialiser::Encoder::UrlSafeNoPadding,
         )
     }
 }
@@ -52,15 +51,15 @@ impl CsrfSigner {
         cookie_name: &str,
         header_name: &str,
         token_len: usize,
-        key_info: hmac_serialiser_rs::KeyInfo,
-        algo: hmac_serialiser_rs::algorithm::Algorithm,
-        encoder: hmac_serialiser_rs::Encoder,
+        key_info: hmac_serialiser::KeyInfo,
+        algo: hmac_serialiser::algorithm::Algorithm,
+        encoder: hmac_serialiser::Encoder,
     ) -> CsrfSigner {
         Self {
             cookie_name: cookie_name.to_string(),
             header_name: header_name.to_string(),
             token_len,
-            signer: hmac_serialiser_rs::HmacSigner::new(key_info, algo, encoder),
+            signer: hmac_serialiser::HmacSigner::new(key_info, algo, encoder),
         }
     }
 

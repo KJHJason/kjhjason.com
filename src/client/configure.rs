@@ -1,4 +1,4 @@
-use crate::client::admin::{edit_blog, new_blog};
+use crate::client::admin::{edit_blog, new_blog, profile};
 use crate::client::auth::{login_admin, login_auth, login_redirect};
 use crate::client::general::{
     awards, blog_id, blogs, certificates, experiences, index, projects, skills,
@@ -29,5 +29,5 @@ fn add_auth_routes(cfg: &mut web::ServiceConfig) {
 }
 
 fn add_admin_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(new_blog).service(edit_blog);
+    cfg.service(new_blog).service(edit_blog).service(profile);
 }

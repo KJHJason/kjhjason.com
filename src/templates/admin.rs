@@ -21,6 +21,12 @@ pub struct EditBlog<'a> {
 }
 
 #[derive(Template)]
+#[template(path = "admin/profile.html")]
+pub struct Profile {
+    pub common: TemplateValues,
+}
+
+#[derive(Template)]
 #[template(path = "components/unlocked.html")]
 pub struct Unlocked;
 

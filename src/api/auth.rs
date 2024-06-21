@@ -9,8 +9,10 @@ use crate::security::totp;
 use crate::templates;
 use crate::utils::html::render_template;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
+use actix_web::http::header::ContentType;
 use actix_web::http::StatusCode;
 use actix_web::{post, web, web::Data, web::Form, HttpRequest, HttpResponse};
+use askama::Template;
 use rand::Rng;
 use tokio::time as tokio_time;
 
@@ -137,7 +139,7 @@ async fn login(
 
 #[post("/api/logout")]
 async fn logout(req: HttpRequest) -> HttpResponse {
-    let msg = "you have logged out";
+    let html = templates::guest::GuestItems.render().unwrap();
     match req.cookie(constants::AUTH_COOKIE_NAME) {
         Some(_) => {
             let mut auth_cookie = Cookie::build(constants::AUTH_COOKIE_NAME, "")
@@ -148,8 +150,13 @@ async fn logout(req: HttpRequest) -> HttpResponse {
                 .secure(!constants::get_debug_mode())
                 .finish();
             auth_cookie.make_removal();
-            HttpResponse::Ok().cookie(auth_cookie).body(msg)
+            HttpResponse::Ok()
+                .content_type(ContentType::html())
+                .cookie(auth_cookie)
+                .body(html)
         }
-        None => HttpResponse::Ok().body(msg),
+        None => HttpResponse::Ok()
+            .content_type(ContentType::html())
+            .body(html),
     }
 }

@@ -6,8 +6,8 @@ use actix_web::{HttpMessage, HttpRequest};
 use rand::Rng as _;
 
 #[inline]
-pub fn get_default_key_info(salt: Vec<u8>, info: Vec<u8>) -> hmac_serialiser_rs::KeyInfo {
-    hmac_serialiser_rs::KeyInfo {
+pub fn get_default_key_info(salt: Vec<u8>, info: Vec<u8>) -> hmac_serialiser::KeyInfo {
+    hmac_serialiser::KeyInfo {
         key: constants::get_secret_key(),
         salt,
         info,

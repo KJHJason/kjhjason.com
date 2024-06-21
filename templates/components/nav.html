@@ -1,0 +1,79 @@
+<nav class="mb-8">
+    <div class="navbar rounded-lg">
+        <div class="flex-1">
+            <a href="/" class="w-12 h-12">
+                <picture >
+                    <source srcset="/static/images/logo/light/android-chrome-192x192.png" type="image/png" media="(prefers-color-scheme: light)" />
+                    <source srcset="/static/images/logo/dark/android-chrome-192x192.png" type="image/png" media="(prefers-color-scheme: dark)" />
+                    <img src="/static/images/logo/light/android-chrome-192x192.png" alt="KJHJason Logo" />
+                </picture>
+            </a>
+        </div>
+        <div class="flex-none">
+            <ul class="menu menu-horizontal px-1">
+                <li>
+                    <a href="/blogs">Blogs</a>
+                </li>
+                <li>
+                    <details>
+                        <summary>More</summary>
+                        <ul class="z-50 p-2 accent rounded-t-none">
+                            <li>
+                                <details open>
+                                    <summary>Portfolio</summary>
+                                    <ul>
+                                        <li>
+                                            <a href="/experiences">Experiences</a>
+                                        </li>
+                                        <li>
+                                            <a href="/certificates">Certificates</a>
+                                        </li>
+                                        <li>
+                                            <a href="/projects">Projects</a>
+                                        </li>
+                                        <li>
+                                            <a href="/skills">Skills</a>
+                                        </li>
+                                        <li>
+                                            <a href="/awards">Awards</a>
+                                        </li>
+                                        <li>
+                                            <a href="/resume">Resume (WIP)</a>
+                                        </li>
+                                    </ul>
+                                </details>
+                            </li>
+                            <li>
+                                <details>
+                                    <summary>Admin</summary>
+                                    <ul id="auth-items">
+                                        {% if !common.is_logged_in %}
+                                            {% include "components/guest_items.html" %}
+                                        {% else %}
+                                            <li>
+                                                <a href="/admin/new/blog">New Blog</a>
+                                            </li>
+                                            <li>
+                                                <a href="/admin/profile">Profile</a>
+                                            </li>
+                                            <li>
+                                                <button type="button" 
+                                                    hx-post="/api/logout" 
+                                                    hx-headers='{{ common.csrf_header_json|safe }}' 
+                                                    hx-target="#auth-items"
+                                                >
+                                                    Logout
+                                                </button>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </details>
+                            </li>
+                        </ul>
+                    </details>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <hr class="mt-2" />
+</nav>

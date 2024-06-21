@@ -1,6 +1,6 @@
 use actix_web::http::StatusCode;
 use actix_web::{http::header::ContentType, HttpResponse};
-use askama_actix::Template;
+use askama::Template;
 use minify_html::{minify, Cfg};
 
 macro_rules! render_askama_template {

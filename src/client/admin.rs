@@ -1,6 +1,6 @@
 use crate::database::db;
 use crate::models::blog_identifier::BlogIdentifier;
-use crate::templates::admin::{EditBlog, NewBlog};
+use crate::templates::admin::{EditBlog, NewBlog, Profile};
 use crate::templates::error::ErrorTemplate;
 use crate::utils::{
     html::render_template, security::extract_for_template, validations::get_id_from_path,
@@ -51,5 +51,13 @@ async fn edit_blog(
         post_blog_btn_txt: "Update Blog",
     };
     // since the minification will not preserve the whitespace in the content
+    render_template(template, StatusCode::OK)
+}
+
+#[get("/admin/profile")]
+async fn profile(req: HttpRequest) -> HttpResponse {
+    let template = Profile {
+        common: extract_for_template(&req),
+    };
     render_template(template, StatusCode::OK)
 }

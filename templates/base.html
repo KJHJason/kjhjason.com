@@ -21,162 +21,16 @@
 <body class="antialiased max-w-2xl mb-4 md:flex-row mx-4 mt-8 lg:mx-auto">
     <div class="min-w-0 mt-6 px-2 md:px-0">
         <header>
-            <nav class="mb-8">
-                <div class="navbar rounded-lg">
-                    <div class="flex-1">
-                        <a href="/" class="w-12 h-12">
-                            <picture >
-                                <source srcset="/static/images/logo/light/android-chrome-192x192.png" type="image/png" media="(prefers-color-scheme: light)" />
-                                <source srcset="/static/images/logo/dark/android-chrome-192x192.png" type="image/png" media="(prefers-color-scheme: dark)" />
-                                <img src="/static/images/logo/light/android-chrome-192x192.png" alt="KJHJason Logo" />
-                            </picture>
-                        </a>
-                    </div>
-                    <div class="flex-none">
-                        <ul class="menu menu-horizontal px-1">
-                            <li>
-                                <a href="/blogs">Blogs</a>
-                            </li>
-                            <li>
-                                <details>
-                                    <summary>
-                                        Others
-                                    </summary>
-                                    <ul class="z-50 p-2 accent rounded-t-none">
-                                        <li>
-                                            <a href="/experiences">Experiences</a>
-                                        </li>
-                                        <li>
-                                            <a href="/certificates">Certificates</a>
-                                        </li>
-                                        <li>
-                                            <a href="/projects">Projects</a>
-                                        </li>
-                                        <li>
-                                            <a href="/skills">Skills</a>
-                                        </li>
-                                        <li>
-                                            <a href="/awards">Awards</a>
-                                        </li>
-                                        <li>
-                                            <a href="/resume">Resume (WIP)</a>
-                                        </li>
-                                        <li id="login-item" class="hidden">
-                                            <a href="/admin">Login</a>
-                                        </li>
-                                        <div id="admin-items" class="hidden">
-                                            <li>
-                                                <a href="/admin/new/blog">New Blog</a>
-                                            </li>
-                                        </div>
-                                    </ul>
-                                </details>
-                            </li>
-                            <li id="logout-item" class="hidden">
-                                <button type="button" 
-                                    hx-post="/api/logout" 
-                                    hx-headers='{{ common.csrf_header_json|safe }}' 
-                                    hx-swap="none" 
-                                    hx-on::after-swap="handleLogout()"
-                                >
-                                    Logout
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <hr class="mt-2" />
-            </nav>
+            {% include "components/nav.html" %}
         </header>
         <main>
             {% block content %}{% endblock %}
         </main>
         <footer>
-            <hr class="my-6 lg:my-8" />
-            <div class="sm:flex sm:items-center sm:justify-between">
-                <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">
-                    ©
-                    <span id="footer-year"></span>
-                    <noscript>2024</noscript>
-                    <a href="https://kjhjason.com/" class="hover:underline">KJHJason</a>
-                </span>
-                <div class="flex mt-4 sm:justify-center sm:mt-0">
-                    <a href="https://www.linkedin.com/in/kjhjason/" target="_blank" class="text-gray-500 hover:text-gray-900 dark:hover:text-white">
-                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                            <path fill-rule="evenodd" d="M12.51 8.796v1.697a3.738 3.738 0 0 1 3.288-1.684c3.455 0 4.202 2.16 4.202 4.97V19.5h-3.2v-5.072c0-1.21-.244-2.766-2.128-2.766-1.827 0-2.139 1.317-2.139 2.676V19.5h-3.19V8.796h3.168ZM7.2 6.106a1.61 1.61 0 0 1-.988 1.483 1.595 1.595 0 0 1-1.743-.348A1.607 1.607 0 0 1 5.6 4.5a1.601 1.601 0 0 1 1.6 1.606Z" clip-rule="evenodd"/>
-                            <path d="M7.2 8.809H4V19.5h3.2V8.809Z"/>
-                        </svg>
-                        <span class="sr-only">LinkedIn Page</span>
-                    </a>
-                    <a href="https://x.com/Dratornic" target="_blank" class="text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5">
-                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M13.795 10.533 20.68 2h-3.073l-5.255 6.517L7.69 2H1l7.806 10.91L1.47 22h3.074l5.705-7.07L15.31 22H22l-8.205-11.467Zm-2.38 2.95L9.97 11.464 4.36 3.627h2.31l4.528 6.317 1.443 2.02 6.018 8.409h-2.31l-4.934-6.89Z"/>
-                        </svg>
-                        <span class="sr-only">Twitter/X Page</span>
-                    </a>
-                    <a href="https://www.instagram.com/dratornic/" target="_blank" class="text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5">
-                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                            <path fill="currentColor" fill-rule="evenodd" d="M3 8a5 5 0 0 1 5-5h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8Zm5-3a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3H8Zm7.597 2.214a1 1 0 0 1 1-1h.01a1 1 0 1 1 0 2h-.01a1 1 0 0 1-1-1ZM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-5 3a5 5 0 1 1 10 0 5 5 0 0 1-10 0Z" clip-rule="evenodd"/>
-                        </svg>
-                        <span class="sr-only">Instagram Page</span>
-                    </a>
-                    <a href="https://github.com/KJHJason" target="_blank" class="text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5">
-                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 .333A9.911 9.911 0 0 0 6.866 19.65c.5.092.678-.215.678-.477 0-.237-.01-1.017-.014-1.845-2.757.6-3.338-1.169-3.338-1.169a2.627 2.627 0 0 0-1.1-1.451c-.9-.615.07-.6.07-.6a2.084 2.084 0 0 1 1.518 1.021 2.11 2.11 0 0 0 2.884.823c.044-.503.268-.973.63-1.325-2.2-.25-4.516-1.1-4.516-4.9A3.832 3.832 0 0 1 4.7 7.068a3.56 3.56 0 0 1 .095-2.623s.832-.266 2.726 1.016a9.409 9.409 0 0 1 4.962 0c1.89-1.282 2.717-1.016 2.717-1.016.366.83.402 1.768.1 2.623a3.827 3.827 0 0 1 1.02 2.659c0 3.807-2.319 4.644-4.525 4.889a2.366 2.366 0 0 1 .673 1.834c0 1.326-.012 2.394-.012 2.72 0 .263.18.572.681.475A9.911 9.911 0 0 0 10 .333Z" clip-rule="evenodd" />
-                        </svg>
-                        <span class="sr-only">GitHub Page</span>
-                    </a>
-                    <a href="mailto:contact@kjhjason.com" class="text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5">
-                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 75.294 75.294">
-                            <path d="M66.097,12.089h-56.9C4.126,12.089,0,16.215,0,21.286v32.722c0,5.071,4.126,9.197,9.197,9.197h56.9
-                            c5.071,0,9.197-4.126,9.197-9.197V21.287C75.295,16.215,71.169,12.089,66.097,12.089z M61.603,18.089L37.647,33.523L13.691,18.089
-                            H61.603z M66.097,57.206h-56.9C7.434,57.206,6,55.771,6,54.009V21.457l29.796,19.16c0.04,0.025,0.083,0.042,0.124,0.065
-                            c0.043,0.024,0.087,0.047,0.131,0.069c0.231,0.119,0.469,0.215,0.712,0.278c0.025,0.007,0.05,0.01,0.075,0.016
-                            c0.267,0.063,0.537,0.102,0.807,0.102c0.001,0,0.002,0,0.002,0c0.002,0,0.003,0,0.004,0c0.27,0,0.54-0.038,0.807-0.102
-                            c0.025-0.006,0.05-0.009,0.075-0.016c0.243-0.063,0.48-0.159,0.712-0.278c0.044-0.022,0.088-0.045,0.131-0.069
-                            c0.041-0.023,0.084-0.04,0.124-0.065l29.796-19.16v32.551C69.295,55.771,67.86,57.206,66.097,57.206z" clip-rule="evenodd" />
-                        </svg>
-                        <span class="sr-only">Email</span>
-                    </a>
-                </div>
-            </div>
+            {% include "components/footer.html" %}
         </footer>
     </div>
-    <script nonce="{{ common.nonce }}">
-        htmx.config.includeIndicatorStyles = false;
-
-        // check if user is using dark mode
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            const darkTheme = document.createElement("link");
-            darkTheme.rel = "stylesheet";
-            darkTheme.href = "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@latest/dark.css";
-            document.head.appendChild(darkTheme);
-        }
-
-        const logoutItem = document.getElementById("logout-item");
-        const loginItem = document.getElementById("login-item");
-        const adminItems = document.getElementById("admin-items");
-        document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("footer-year").textContent = new Date().getFullYear().toString();
-
-            if ("{{ common.is_logged_in }}" === "true") {
-                logoutItem.classList.remove("hidden");
-                adminItems.classList.remove("hidden");
-            } else {
-                loginItem.classList.remove("hidden");
-            }
-        });
-
-        const handleLogout = () => {
-            if (window.location.pathname.startsWith("/admin")) {
-                window.location.href = "/";
-                return;
-            }
-            loginItem.classList.remove("hidden");
-            adminItems.classList.add("hidden");
-            logoutItem.classList.add("hidden");
-        };
-    </script>
+    <script nonce="{{ common.nonce }}" src="/static/js/base.js"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
