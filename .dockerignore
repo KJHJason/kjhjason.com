@@ -4,6 +4,9 @@ node_modules/
 target/
 res/
 
-convert-images-to-webp.ps1
+fly.toml
+README.md
+LICENSE
+*.ps1
 .env
 *test*
