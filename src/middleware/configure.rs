@@ -112,16 +112,10 @@ pub fn configure_cache_control_middleware() -> middleware::cache_control::CacheC
         }
     } else {
         middleware::cache_control::CachePaths {
-            strict_paths: vec![
-                middleware::cache_control::CacheStrictPathValue {
-                    path: "/".to_string(),
-                    value: "public, max-age=86400, must-revalidate".to_string(), // 1 day
-                },
-                middleware::cache_control::CacheStrictPathValue {
-                    path: "/favicon.ico".to_string(),
-                    value: "public, max-age=31536000".to_string(), // 1 year
-                },
-            ],
+            strict_paths: vec![middleware::cache_control::CacheStrictPathValue {
+                path: "/favicon.ico".to_string(),
+                value: "public, max-age=31536000".to_string(), // 1 year
+            }],
             regex_paths: vec![
                 middleware::cache_control::CachePathValue {
                     path: regex::Regex::new(r"^/static/.*(\.js|\.css)$").unwrap(),
