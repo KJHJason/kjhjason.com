@@ -1,8 +1,10 @@
-{% macro get(link, img_src, name) %}
-    <div class="skill">
-        <a target="_blank" href="{{ link }}">
-            <img src="{{ img_src }}" alt="{{ name }}" />
-        </a>
-        {{ name }}
-    </div>
+{% macro get(skills) %}
+    {% for skill in skills %}
+        <div class="skill">
+            <a target="_blank" href="{{ skill.link }}">
+                <img src="{{ skill.img_src }}" alt="{{ skill.img_alt }}" />
+            </a>
+            {{ skill.name }}
+        </div>
+    {% endfor %}
 {% endmacro %}

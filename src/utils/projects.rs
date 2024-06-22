@@ -1,6 +1,6 @@
 use crate::templates::general::ProjectInfo;
 
-#[inline]
+#[inline(always)]
 pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
     vec![
         ProjectInfo {

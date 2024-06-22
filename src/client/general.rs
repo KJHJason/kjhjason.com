@@ -5,9 +5,15 @@ use crate::templates::error::ErrorTemplate;
 use crate::templates::general::{
     Awards, Blog, BlogPost, BlogPostInfo, Certificates, Experiences, Index, Projects, Skills,
 };
+use crate::utils::awards::get_awards;
+use crate::utils::certificates::get_certificates;
+use crate::utils::experiences::get_experiences;
 use crate::utils::html::render_template;
 use crate::utils::projects::get_projects;
 use crate::utils::security::extract_for_template;
+use crate::utils::skills::{
+    get_backend, get_database, get_deployment, get_frontend, get_general, get_languages,
+};
 use crate::utils::validations::get_id_from_path;
 use actix_web::http::StatusCode;
 use actix_web::web::Data;
@@ -28,6 +34,7 @@ async fn index(req: HttpRequest) -> HttpResponse {
 async fn experiences(req: HttpRequest) -> HttpResponse {
     let template = Experiences {
         common: extract_for_template(&req),
+        experiences: get_experiences(),
     };
     render_template(template, StatusCode::OK)
 }
@@ -45,6 +52,12 @@ async fn projects(req: HttpRequest) -> HttpResponse {
 async fn skills(req: HttpRequest) -> HttpResponse {
     let template = Skills {
         common: extract_for_template(&req),
+        languages: get_languages(),
+        backend: get_backend(),
+        frontend: get_frontend(),
+        database: get_database(),
+        deployment: get_deployment(),
+        general: get_general(),
     };
     render_template(template, StatusCode::OK)
 }
@@ -53,6 +66,7 @@ async fn skills(req: HttpRequest) -> HttpResponse {
 async fn certificates(req: HttpRequest) -> HttpResponse {
     let template = Certificates {
         common: extract_for_template(&req),
+        certificates: get_certificates(),
     };
     render_template(template, StatusCode::OK)
 }
@@ -61,6 +75,7 @@ async fn certificates(req: HttpRequest) -> HttpResponse {
 async fn awards(req: HttpRequest) -> HttpResponse {
     let template = Awards {
         common: extract_for_template(&req),
+        awards: get_awards(),
     };
     render_template(template, StatusCode::OK)
 }

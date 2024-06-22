@@ -7,10 +7,19 @@ pub struct Index {
     pub common: TemplateValues,
 }
 
+pub struct ExperienceInfo<'a> {
+    pub time: &'a str,
+    pub finished: bool,
+    pub title: &'a str,
+    pub sub_title: &'a str,
+    pub desc: &'a str,
+}
+
 #[derive(Template)]
 #[template(path = "general/experiences.html")]
-pub struct Experiences {
+pub struct Experiences<'a> {
     pub common: TemplateValues,
+    pub experiences: Vec<ExperienceInfo<'a>>,
 }
 
 // title, img, img_alt, desc, tags, link
@@ -32,22 +41,57 @@ pub struct Projects<'a> {
     pub projects: Vec<ProjectInfo<'a>>,
 }
 
+pub struct SkillInfo<'a> {
+    pub link: &'a str,
+    pub img_src: &'a str,
+    pub img_alt: &'a str,
+    pub name: &'a str,
+}
+
 #[derive(Template)]
 #[template(path = "general/skills.html")]
-pub struct Skills {
+pub struct Skills<'a> {
     pub common: TemplateValues,
+    pub languages: Vec<SkillInfo<'a>>,
+    pub backend: Vec<SkillInfo<'a>>,
+    pub frontend: Vec<SkillInfo<'a>>,
+    pub database: Vec<SkillInfo<'a>>,
+    pub deployment: Vec<SkillInfo<'a>>,
+    pub general: Vec<SkillInfo<'a>>,
+}
+
+pub struct CertificateInfo<'a> {
+    pub title: &'a str,
+    pub issuer: &'a str,
+    pub cred_id: &'a str,
+    pub link: &'a str,
+    pub date: &'a str,
+    pub expiry: &'a str,
+    pub img_src: &'a str,
+    pub img_alt: &'a str,
 }
 
 #[derive(Template)]
 #[template(path = "general/certificates.html")]
-pub struct Certificates {
+pub struct Certificates<'a> {
     pub common: TemplateValues,
+    pub certificates: Vec<CertificateInfo<'a>>,
+}
+
+pub struct AwardInfo<'a> {
+    pub title: &'a str,
+    pub issuer: &'a str,
+    pub file_url: &'a str,
+    pub date: &'a str,
+    pub img_src: &'a str,
+    pub img_alt: &'a str,
 }
 
 #[derive(Template)]
 #[template(path = "general/awards.html")]
-pub struct Awards {
+pub struct Awards<'a> {
     pub common: TemplateValues,
+    pub awards: Vec<AwardInfo<'a>>,
 }
 
 pub struct BlogPostInfo {
