@@ -1,3 +1,4 @@
+pub mod auth;
 pub mod blog;
 pub mod datetime;
 pub mod html;

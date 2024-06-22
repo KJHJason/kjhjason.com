@@ -1,4 +1,5 @@
 use crate::database::db;
+use crate::models::blog;
 use crate::models::blog_identifier::BlogIdentifier;
 use crate::templates::error::ErrorTemplate;
 use crate::templates::general::{
@@ -150,7 +151,7 @@ async fn blog_id(
     let blog_post = if common.is_logged_in {
         blog_collection.find_one(query, None).await
     } else {
-        let update = doc! { "$inc": { "views": 1 } };
+        let update = doc! {"$inc": {blog::VIEWS_KEY: 1}};
         let options = FindOneAndUpdateOptions::builder()
             .return_document(ReturnDocument::After)
             .build();

@@ -8,6 +8,10 @@ COPY . .
 RUN npm install
 RUN npm run build
 
+# Minify js files in the static folder
+RUN npm install -g uglify-js
+RUN find ./static/js -name "*.js" -exec sh -c 'uglifyjs "${0}" -c -m -o "${0%.*}.js"' {} \;
+
 FROM rust:latest
 
 # NOTE: env var must be the same as the workdir used in the node stage

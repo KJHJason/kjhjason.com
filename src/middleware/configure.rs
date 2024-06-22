@@ -64,7 +64,7 @@ pub fn configure_csp_middleware() -> middleware::csp::CspMiddleware {
     let csp_options = middleware::csp::ContentSecurityPolicies {
         script_src: vec![
             "'self'".to_string(),
-            "'unsafe-eval'".to_string(), // needed for htmx to work for events like hx-on:click
+            "'unsafe-eval'".to_string(), // needed for htmx to work for responses like parsing the html content for the blog
             "https://challenges.cloudflare.com/turnstile/v0/api.js".to_string(),
             "https://unpkg.com/htmx.org@2.0.0".to_string(),
             "https://unpkg.com/htmx-ext-response-targets@latest/response-targets.js".to_string(),

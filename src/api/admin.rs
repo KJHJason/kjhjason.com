@@ -2,8 +2,8 @@ use crate::constants::constants;
 use crate::database::db;
 use crate::errors::blog::BlogError;
 use crate::models::{
-    blog::Blog, blog_identifier::BlogIdentifier, blog_preview::BlogPreview, new_blog::NewBlog,
-    update_blog::UpdateBlog, uploaded_files::UploadedFiles,
+    blog, blog::Blog, blog_identifier::BlogIdentifier, blog_preview::BlogPreview,
+    new_blog::NewBlog, update_blog::UpdateBlog, uploaded_files::UploadedFiles,
 };
 use crate::utils::blog::file_utils;
 use crate::utils::blog::file_utils::process_file_logic;
@@ -123,19 +123,19 @@ async fn update_blog(
 
     let mut projection_doc = doc! {};
     if updating_title {
-        projection_doc.insert("title", 1);
+        projection_doc.insert(blog::TITLE_KEY, 1);
     }
     if updating_content {
-        projection_doc.insert("content", 1);
+        projection_doc.insert(blog::CONTENT_KEY, 1);
     }
     if updating_tags {
-        projection_doc.insert("tags", 1);
+        projection_doc.insert(blog::TAGS_KEY, 1);
     }
     if updating_files {
-        projection_doc.insert("files", 1);
+        projection_doc.insert(blog::FILES_KEY, 1);
     }
     if updating_public {
-        projection_doc.insert("is_public", 1);
+        projection_doc.insert(blog::IS_PUBLIC_KEY, 1);
     }
 
     let options = FindOneOptions::builder().projection(projection_doc).build();
@@ -147,7 +147,7 @@ async fn update_blog(
     let last_modified = bson::DateTime::parse_rfc3339_str(datetime::get_dtnow_str())
         .expect("DateTime shouldn't fail to parse in update_blog");
     let mut set_doc = doc! {
-        "last_modified": last_modified,
+        blog::LAST_MODIFIED_KEY: last_modified,
     };
 
     let mut blog_content = blog.content.unwrap_or_default();
@@ -178,32 +178,32 @@ async fn update_blog(
 
         if update_file_flag {
             is_updating = true;
-            set_doc.insert("files", files_to_put_in_db);
+            set_doc.insert(blog::FILES_KEY, files_to_put_in_db);
         }
     }
 
     let old_blog_content = blog_in_db.content.unwrap_or_default();
     if updating_content && !blog_content.is_empty() && blog_content != old_blog_content {
         is_updating = true;
-        set_doc.insert("content", &blog_content);
+        set_doc.insert(blog::CONTENT_KEY, &blog_content);
     }
 
     let title = blog.title.unwrap_or_default();
     if updating_title && !title.is_empty() && title != blog_in_db.title.unwrap_or_default() {
         is_updating = true;
-        set_doc.insert("title", title);
+        set_doc.insert(blog::TITLE_KEY, title);
     }
 
     let is_public = blog.is_public.unwrap_or_default();
     if updating_public && is_public != blog_in_db.is_public.unwrap_or(false) {
         is_updating = true;
-        set_doc.insert("is_public", is_public);
+        set_doc.insert(blog::IS_PUBLIC_KEY, is_public);
     }
 
     let old_tags = blog_in_db.tags.unwrap_or(vec![]);
     if updating_tags && new_tags.len() != old_tags.len() || new_tags != old_tags {
         is_updating = true;
-        set_doc.insert("tags", new_tags);
+        set_doc.insert(blog::TAGS_KEY, new_tags);
     }
 
     if !is_updating {
@@ -232,7 +232,7 @@ async fn delete_blog(
     let blog_id = validate_id(&blog_identifier.into_inner().id)?;
 
     let options = FindOneOptions::builder()
-        .projection(doc! { "files": 1 })
+        .projection(doc! {blog::FILES_KEY: 1})
         .build();
     let blog_data = client
         .get_projected_blog_post(&blog_id, Some(options))

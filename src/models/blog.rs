@@ -4,6 +4,14 @@ use bson::oid::ObjectId;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
+pub const TITLE_KEY: &str = "title";
+pub const TAGS_KEY: &str = "tags";
+pub const FILES_KEY: &str = "files";
+pub const CONTENT_KEY: &str = "content";
+pub const IS_PUBLIC_KEY: &str = "is_public";
+pub const VIEWS_KEY: &str = "views";
+pub const LAST_MODIFIED_KEY: &str = "last_modified";
+
 #[derive(Serialize, Deserialize)]
 pub struct Blog {
     #[serde(rename = "_id")]

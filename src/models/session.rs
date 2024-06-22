@@ -1,6 +1,8 @@
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
+pub const EXPIRY_KEY: &str = "EXPIRY";
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Session {
     pub _id: ObjectId,

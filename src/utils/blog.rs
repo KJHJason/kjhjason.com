@@ -144,6 +144,7 @@ pub mod file_utils {
 pub mod publish_utils {
     use crate::database::db;
     use crate::errors::blog::BlogError;
+    use crate::models::blog;
     use crate::templates;
     use crate::utils::html::render_template;
     use crate::utils::validations::validate_id;
@@ -160,7 +161,7 @@ pub mod publish_utils {
     ) -> Result<HttpResponse, BlogError> {
         let blog_id = validate_id(blog_id)?;
         let query = doc! { "_id": blog_id };
-        let update = doc! { "$set": { "is_public": is_public } };
+        let update = doc! {"$set": {blog::IS_PUBLIC_KEY: is_public}};
         let blog_col = client.into_inner().get_blog_collection();
         match blog_col.update_one(query, update, None).await {
             Ok(_) => {

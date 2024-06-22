@@ -1,6 +1,11 @@
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
+pub const USERNAME_KEY: &str = "username";
+pub const EMAIL_KEY: &str = "email";
+pub const PASSWORD_KEY: &str = "password";
+pub const TOTP_SECRET_KEY: &str = "totp_secret";
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
     pub _id: ObjectId,

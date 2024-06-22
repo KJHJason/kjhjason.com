@@ -2,7 +2,7 @@ use askama::Template;
 
 #[derive(Template)]
 #[template(path = "components/alert_success.html")]
-pub struct SucessAlert<'a> {
+pub struct SuccessAlert<'a> {
     pub msg: &'a str,
 }
 

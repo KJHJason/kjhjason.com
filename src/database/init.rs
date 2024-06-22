@@ -2,7 +2,7 @@ use crate::constants::constants;
 use crate::database::db::DbClient;
 use crate::models::blog::Blog;
 use crate::models::session::Session;
-use crate::models::user::User;
+use crate::models::{blog, session, user, user::User};
 use crate::security::pw_hasher;
 use bson::doc;
 use mongodb::options::{ClientOptions, IndexOptions, ServerApi, ServerApiVersion};
@@ -16,7 +16,7 @@ async fn init_user_collection(client: &Client) {
     let admin_username =
         std::env::var(constants::BLOG_ADMIN_USERNAME).expect("admin username not set");
     let result = collection
-        .find_one(doc! { "username": &admin_username }, None)
+        .find_one(doc! {user::USERNAME_KEY: &admin_username}, None)
         .await;
     match result {
         Ok(Some(_)) => {
@@ -36,7 +36,7 @@ async fn init_user_collection(client: &Client) {
     // although there will only be one account, just do this for future-proofing
     let opts = IndexOptions::builder().unique(true).build();
     let index = IndexModel::builder()
-        .keys(doc! {"username": 1})
+        .keys(doc! {user::USERNAME_KEY: 1})
         .options(opts)
         .build();
     collection
@@ -46,7 +46,7 @@ async fn init_user_collection(client: &Client) {
 
     let opts = IndexOptions::builder().unique(true).build();
     let index = IndexModel::builder()
-        .keys(doc! {"email": 1})
+        .keys(doc! {user::EMAIL_KEY: 1})
         .options(opts)
         .build();
     collection
@@ -88,7 +88,7 @@ async fn init_session_collection(client: &Client) {
         ))
         .build();
     let index = IndexModel::builder()
-        .keys(doc! { "created": 1 })
+        .keys(doc! {session::EXPIRY_KEY: 1})
         .options(opts)
         .build();
     collection
@@ -110,10 +110,12 @@ async fn init_blog_collection(client: &Client) {
         _ => {}
     }
 
-    let title_idx = IndexModel::builder().keys(doc! { "title": 1 }).build();
+    let title_idx = IndexModel::builder()
+        .keys(doc! {blog::TITLE_KEY: 1})
+        .build();
     let title_idx_future = collection.create_index(title_idx, None);
 
-    let tag_idx = IndexModel::builder().keys(doc! { "tags": 1 }).build();
+    let tag_idx = IndexModel::builder().keys(doc! {blog::TAGS_KEY: 1}).build();
     let tag_idx_future = collection.create_index(tag_idx, None);
 
     let (title_result, tag_result) = tokio::join!(title_idx_future, tag_idx_future);
@@ -163,7 +165,7 @@ pub async fn init_db() -> Result<DbClient, mongodb::error::Error> {
     log::info!("pinging main database to test the connection...");
     match client
         .get_database(None)
-        .run_command(doc! { "ping": 1 }, None)
+        .run_command(doc! {"ping": 1}, None)
         .await
     {
         Ok(_) => {

@@ -8,6 +8,7 @@ use crate::security::chacha_crypto::decrypt_with_db_key;
 use crate::security::pw_hasher;
 use crate::security::totp;
 use crate::templates;
+use crate::utils::auth::cf_turnstile::verify_captcha;
 use crate::utils::html::render_template;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
 use actix_web::http::header::ContentType;
@@ -16,14 +17,6 @@ use actix_web::{post, web, web::Data, web::Form, HttpRequest, HttpResponse};
 use askama::Template;
 use rand::Rng;
 use tokio::time as tokio_time;
-
-macro_rules! verify_captcha {
-    ($req:expr, $cf_turnstile_res:expr) => {
-        if !cf_turnstile::verify_request($req, $cf_turnstile_res).await {
-            return Err(AuthError::CaptchaFailed);
-        }
-    };
-}
 
 #[post("/api/admin")]
 async fn admin_honeypot(
@@ -89,16 +82,7 @@ async fn login(
     };
 
     web::block(move || {
-        let is_valid = match pw_hasher::verify_password(&login_data_password, &user_password_hash) {
-            Ok(is_valid) => is_valid,
-            Err(_) => {
-                return Err(AuthError::InternalServerError);
-            }
-        };
-        if !is_valid {
-            return Err(AuthError::InvalidCredentials);
-        }
-
+        pw_hasher::verify_user_password(&login_data_password, &user_password_hash, true)?;
         if user_has_totp {
             let decrypted_totp = match decrypt_with_db_key(&user_totp_secret) {
                 Ok(decrypted_totp) => {
@@ -144,7 +128,7 @@ async fn login(
     let claims = auth::create_user_claim(user._id, result.inserted_id.as_object_id().unwrap());
     let token = auth::sign_payload(&claims);
     let max_age = if login_data.remember_session() {
-        // offset_dt is 10 seconds before the expiry time for extra leeway
+        // offset_dt is 10 seconds before the EXPIRY time for extra leeway
         let offset_dt = cookie_time::OffsetDateTime::from_unix_timestamp(session_expiry - 10_000);
         Some(offset_dt.unwrap())
     } else {
@@ -159,7 +143,7 @@ async fn login(
         .secure(!constants::get_debug_mode())
         .expires(max_age)
         .finish();
-    let template = templates::alerts::SucessAlert {
+    let template = templates::alerts::SuccessAlert {
         msg: "You have logged in",
     };
     let mut response = render_template(template, StatusCode::OK);

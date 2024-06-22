@@ -12,10 +12,16 @@ pub enum AuthError {
     UserNotFound, // same as InvalidCredentials to avoid enumeration attacks
     #[display(fmt = "Invalid username or password")]
     InvalidCredentials,
+    #[display(fmt = "Incorrect password!")]
+    IncorrectPassword, // Note: This should only be used when the user is logged in
     #[display(fmt = "Missing Time-based One-Time Password (TOTP)")]
     MissingTotp,
     #[display(fmt = "Invalid Time-based One-Time Password (TOTP)")]
     InvalidTotp,
+    #[display(fmt = "Already enabled 2FA")]
+    AlreadyEnabled2fa,
+    #[display(fmt = "Already disabled 2FA")]
+    AlreadyDisabled2fa,
     #[display(fmt = "Captcha verification failed")]
     CaptchaFailed,
     #[display(fmt = "Internal server error")]
@@ -40,12 +46,21 @@ impl ResponseError for AuthError {
             AuthError::InvalidCredentials => HttpResponse::Unauthorized()
                 .content_type(content_type)
                 .body(error_html),
+            AuthError::IncorrectPassword => HttpResponse::Unauthorized()
+                .content_type(content_type)
+                .body(error_html),
             AuthError::MissingTotp => HttpResponse::BadRequest()
                 .insert_header(("X-Login-Error", "MissingTotp"))
                 .content_type(content_type)
                 .body(error_html),
             AuthError::InvalidTotp => HttpResponse::BadRequest()
                 .insert_header(("X-Login-Error", "InvalidTotp"))
+                .content_type(content_type)
+                .body(error_html),
+            AuthError::AlreadyEnabled2fa => HttpResponse::BadRequest()
+                .content_type(content_type)
+                .body(error_html),
+            AuthError::AlreadyDisabled2fa => HttpResponse::BadRequest()
                 .content_type(content_type)
                 .body(error_html),
             AuthError::CaptchaFailed => HttpResponse::BadRequest()

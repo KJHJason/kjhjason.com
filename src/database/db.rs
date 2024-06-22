@@ -1,7 +1,9 @@
 use crate::constants::constants;
 use crate::errors::{auth::AuthError, blog::BlogError, session::SessionError};
 use crate::models::projected_user::ProjectedUser;
-use crate::models::{blog::Blog, projected_blog::ProjectedBlog, session::Session, user::User};
+use crate::models::{
+    blog::Blog, projected_blog::ProjectedBlog, session::Session, user, user::User,
+};
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
 use mongodb::options::FindOneOptions;
@@ -99,7 +101,7 @@ impl DbClient {
         let result = self
             .get_user_collection()
             .find_one(
-                doc! {"$or": [{"username": username_or_email}, {"email": username_or_email}]},
+                doc! {"$or": [{user::USERNAME_KEY: username_or_email}, {user::EMAIL_KEY: username_or_email}]},
                 None,
             )
             .await;

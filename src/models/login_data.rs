@@ -8,6 +8,7 @@ pub struct LoginData {
     #[serde(rename = "cf-turnstile-response")]
     pub cf_turnstile_res: String,
     pub remember: Option<checkbox::State>,
+    #[serde(rename = "totp-input")]
     pub totp_input: Option<String>,
 }
 

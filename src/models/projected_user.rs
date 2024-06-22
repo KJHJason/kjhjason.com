@@ -8,6 +8,9 @@ pub struct ProjectedUser {
     pub username: Option<String>,
     pub email: Option<String>,
     pub password: Option<String>,
+
+    // Note: totp is required to be in the projection
+    // to avoid deserialisation errors
     #[serde(with = "serde_bytes")]
     pub totp_secret: Option<Vec<u8>>,
 }

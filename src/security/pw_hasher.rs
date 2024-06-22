@@ -1,3 +1,4 @@
+use crate::errors::auth::AuthError;
 use crate::utils::security;
 use argon2::{
     password_hash::SaltString, Algorithm, Argon2, ParamsBuilder, PasswordHash, PasswordHasher,
@@ -63,4 +64,25 @@ pub fn verify_password(password: &str, hash: &str) -> Result<bool, actix_web::Er
         Ok(_) => Ok(true),
         Err(_) => Ok(false),
     }
+}
+
+#[inline]
+pub fn verify_user_password(
+    password: &str,
+    password_hash: &str,
+    use_vague_error: bool,
+) -> Result<(), AuthError> {
+    let is_valid = match verify_password(password, password_hash) {
+        Ok(is_valid) => is_valid,
+        Err(_) => {
+            return Err(AuthError::InternalServerError);
+        }
+    };
+    if !is_valid {
+        if use_vague_error {
+            return Err(AuthError::InvalidCredentials);
+        }
+        return Err(AuthError::IncorrectPassword);
+    }
+    Ok(())
 }

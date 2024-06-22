@@ -3,19 +3,23 @@
     <div class="collapse-title text-xl font-medium">
         Disable Two-Factor Authentication
     </div>
-    <form class="collapse-content"
-        hx-post="/api/admin/remove-2fa"
-        hx-headers='{{ csrf_header_json|safe }}'
-        hx-target="#two-fa-setting"
-        hx-target-error="#two-fa-alert"
-        hx-ext="response-targets"
-    > 
+    <div class="collapse-content"> 
         <div id="two-fa-alert" class="my-4"></div>
-
         <p id="two-fa-content-secret" class="!mt-2 !mb-4">You currently have Two-Factor Authentication Enabled</p>
+        <form 
+            hx-post="/api/admin/remove-2fa"
+            hx-headers='{{ csrf_header_json|safe }}'
+            hx-target="#two-fa-setting"
+            hx-target-error="#two-fa-alert"
+            hx-on::after-request="turnstile.reset()"
+        >
+            <label for="two-fa-current-password" class="block my-2 text-sm font-medium text-neutral-900 dark:text-white">Current Password:</label>
+            <input type="password" name="current-password" id="two-fa-current-password" class="input-theme mb-4" placeholder="AbcdEF@H1!" required minlength="8" maxlength="64" />
 
-        <div class="w-full text-right">
-            <button type="submit" class="btn btn-success">Disable 2FA</button>
-        </div>
-    </form>
+            <div class="cf-turnstile" data-sitekey="{{ crate::constants::constants::CF_TURNSTILE_SITE_KEY }}"></div>
+            <div class="mt-4 w-full text-right">
+                <button type="submit" class="btn btn-success">Disable 2FA</button>
+            </div>
+        </form>
+    </div>
 </div>
