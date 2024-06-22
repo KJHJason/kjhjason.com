@@ -60,6 +60,16 @@ pub fn get_debug_mode() -> bool {
     *DEBUG_MODE
 }
 
+// Mainly for development purposes.
+#[inline(always)]
+pub fn get_minify_html() -> bool {
+    if !get_debug_mode() {
+        true
+    } else {
+        std::env::var("MINIFY_HTML").unwrap_or_default() == "true"
+    }
+}
+
 macro_rules! generate_env_getter {
     ($fn_name:ident, $var_name:expr) => {
         pub fn $fn_name() -> String {

@@ -26,10 +26,10 @@ pub fn minify_html(html: &str) -> Vec<u8> {
 #[inline]
 pub fn render_template<T: Template>(template: T, status_code: StatusCode) -> HttpResponse {
     let html = render_askama_template!(template);
-    let minified = if constants::get_debug_mode() {
-        html.as_bytes().to_vec()
-    } else {
+    let minified = if constants::get_minify_html() {
         minify_html(&html)
+    } else {
+        html.as_bytes().to_vec()
     };
     HttpResponse::build(status_code)
         .content_type(ContentType::html())

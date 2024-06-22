@@ -15,8 +15,33 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/static/images/logo/dark/favicon-16x16.png" media="(prefers-color-scheme: dark)" />
     <script src="https://unpkg.com/htmx.org@2.0.0"></script> <!-- TODO: Change to @latest when htmx flags 2.0.0 as latest -->
     <script src="https://unpkg.com/htmx-ext-response-targets@latest/response-targets.js"></script>
-    <script nonce="{{ common.nonce }}" src="/static/js/sweetalert2.min.js" async defer></script>
+    <script async src="/static/js/sweetalert2.min.js" nonce="{{ common.nonce }}"></script>
     <script nonce="{{ common.nonce }}" src="/static/js/base.js"></script>
+
+    <!-- https://developers.google.com/tag-platform/security/guides/consent?consentmode=advanced#implementation_example -->
+    <script nonce="{{ common.nonce }}">
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+
+        // deny all Google-related cookies by default
+        gtag("consent", "default", {
+            "ad_user_data": "denied",
+            "ad_personalization": "denied",
+            "ad_storage": "denied",
+            "analytics_storage": "denied",
+        });
+    </script>
+    <script nonce="{{ common.nonce }}" src="/static/js/gtag.js"></script>
+
+    <!-- Google tag (gtag.js) -->
+    <script nonce="{{ common.nonce }}" async src="https://www.googletagmanager.com/gtag/js?id=G-917Z2B5TJY"></script>
+    <script nonce="{{ common.nonce }}">
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag("js", new Date());
+
+        gtag("config", "G-917Z2B5TJY");
+    </script>
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -32,6 +57,21 @@
             <footer>
                 {% include "components/footer.html" %}
             </footer>
+        </div>
+    </div>
+    <div id="cookie-consent" class="accent fixed inset-x-0 bottom-0 z-40 flex flex-col items-center justify-center text-black dark:text-white p-4 sm:p-6 lg:p-8 opacity-0 transition-opacity duration-500">
+        <p class="text-lg text-left md:text-center mb-4">
+            This website does not collect any user information, except through <a class="btn-text-link" href="https://marketingplatform.google.com/about/analytics/" target="_blank">Google Analytics</a>, which uses cookies to analyse traffic and understand where visitors are coming from.
+            <br />
+            Please read Google's <a class="btn-text-link" href="https://policies.google.com/technologies/cookies" target="_blank">Privacy Policy</a> for more information.
+        </p>
+        <div class="flex flex-wrap gap-2">
+            <button hx-on:click="acceptCookieConsent()" class="btn btn-success">
+                I Consent
+            </button>
+            <button hx-on:click="declineCookieConsent()" class="btn btn-danger">
+                I Decline
+            </button>
         </div>
     </div>
     {% block scripts %}{% endblock %}
