@@ -9,7 +9,7 @@ use crate::utils::html::render_template;
 use crate::utils::security::get_csrf_header_json;
 use actix_web::http::StatusCode;
 use actix_web::web::{Data, Form};
-use actix_web::{get, post, HttpRequest, HttpResponse};
+use actix_web::{get, post, web, HttpRequest, HttpResponse};
 use bson::doc;
 use mongodb::options::FindOneOptions;
 
@@ -47,14 +47,26 @@ async fn setup_2fa(
         return Err(AuthError::InvalidTotp);
     }
 
-    let encrypted_secret = chacha_crypto::encrypt_with_db_key(secret.as_bytes()).map_err(|e| {
-        log::error!("Failed to encrypt totp secret: {:?}", e);
+    let secret_bytes = secret.as_bytes().to_vec();
+    let encrypted_secret = web::block(move || {
+        let encrypted_secret = match chacha_crypto::encrypt_with_db_key(&secret_bytes) {
+            Ok(encrypted_secret) => encrypted_secret,
+            Err(e) => {
+                log::error!("Failed to encrypt totp secret: {:?}", e);
+                return Err(AuthError::InternalServerError);
+            }
+        };
+        let encrypted_secret = bson::Binary {
+            subtype: bson::spec::BinarySubtype::Generic,
+            bytes: encrypted_secret,
+        };
+        Ok(encrypted_secret)
+    })
+    .await
+    .map_err(|e| {
+        log::error!("Blocking Error when trying to encrypt totp secret: {:?}", e);
         AuthError::InternalServerError
-    })?;
-    let encrypted_secret = bson::Binary {
-        subtype: bson::spec::BinarySubtype::Generic,
-        bytes: encrypted_secret,
-    };
+    })??;
 
     client
         .get_user_collection()

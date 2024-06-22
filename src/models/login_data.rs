@@ -1,7 +1,7 @@
 use crate::models::checkbox;
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct LoginData {
     pub username: String,
     pub password: String,

@@ -1,9 +1,7 @@
-use crate::errors::crypto::CryptoError;
-use crate::security::chacha_crypto::decrypt_with_db_key;
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
     pub _id: ObjectId,
     username: String,
@@ -39,10 +37,7 @@ impl User {
     }
 
     #[inline]
-    pub fn decrypt_totp_secret(&self) -> Result<Vec<u8>, CryptoError> {
-        match &self.totp_secret {
-            Some(totp_secret) => decrypt_with_db_key(totp_secret),
-            None => Err(CryptoError::NoDataToEncrypt),
-        }
+    pub fn get_encrypted_totp_secret(&self) -> Option<&Vec<u8>> {
+        self.totp_secret.as_ref()
     }
 }

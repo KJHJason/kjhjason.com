@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
+#[derive(Debug, Clone)]
 pub enum State {
     On,
     Off,
