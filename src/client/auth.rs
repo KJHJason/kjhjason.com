@@ -19,6 +19,7 @@ async fn login_admin(req: HttpRequest) -> HttpResponse {
         None => {
             let template = Login {
                 common: extract_for_template(&req),
+                index_page: true,
                 login_url: "api/admin",
                 client_login_url: "admin",
             };
@@ -36,6 +37,7 @@ async fn login_auth(req: HttpRequest) -> HttpResponse {
         None => {
             let template = Login {
                 common: extract_for_template(&req),
+                index_page: false,
                 login_url: "api/auth/login",
                 client_login_url: "auth/login",
             };

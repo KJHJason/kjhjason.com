@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 {%- import "components/tags.html" as tags -%}
+{%- import "components/seo_tags.html" as seo -%}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block head %}
-    <link rel="canonical" href="https://kjhjason.com/blogs/{{ id }}" />
+    {% call seo::get(
+        title=title,
+        url="https://kjhjason.com/blogs/{{ id }}",
+        desc="View the blog post titled \"{{ title }}\" that I have written.",
+    ) %}
 {% endblock %}
 
 {% block content %}

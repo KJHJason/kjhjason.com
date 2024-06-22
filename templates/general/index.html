@@ -1,9 +1,14 @@
 {% extends "base.html" %}
+{%- import "components/seo_tags.html" as seo -%}
 
 {% block title %}About Me{% endblock %}
 
 {% block head %}
-    <link rel="canonical" href="https://kjhjason.com/" />
+    {% call seo::get(
+        title="About Me",
+        url="https://kjhjason.com/",
+        desc="I'm an aspiring software engineer and soon to be a student at the Singapore Management University...",
+    ) %}
 {% endblock %}
 
 {% block content %}

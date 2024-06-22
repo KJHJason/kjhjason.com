@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+#go-to-top-btn {
+	text-decoration: none;
+	transition: background-color .3s, opacity .5s, visibility .5s;
+	opacity: 0;
+	visibility: hidden;
+}
+
+#go-to-top-btn.show {
+	opacity: 1;
+	visibility: visible;
+}
+
 .cf-turnstile iframe {
     @apply !w-full;
 }

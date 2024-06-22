@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" class="dark:text-white dark:bg-[#111010] ">
+<html lang="en" class="dark:text-white dark:bg-[#111010]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %} | KJHJason</title>
     <link rel="stylesheet" href="/static/css/styles.css" nonce="{{ common.nonce }}" />
+    <link nonce="{{ common.nonce }}" rel="stylesheet" href="/static/css/sweetalert2.min.css" />
     {% block styles %}{% endblock %}
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/logo/light/apple-touch-icon.png" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/png" sizes="32x32" href="/static/images/logo/light/favicon-32x32.png" media="(prefers-color-scheme: light)" />
@@ -14,23 +15,25 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/static/images/logo/dark/favicon-16x16.png" media="(prefers-color-scheme: dark)" />
     <script src="https://unpkg.com/htmx.org@2.0.0"></script> <!-- TODO: Change to @latest when htmx flags 2.0.0 as latest -->
     <script src="https://unpkg.com/htmx-ext-response-targets@latest/response-targets.js"></script>
-    <script nonce="{{ common.nonce }}" src="/static/js/sweetalert2.min.js"></script>
-    <link nonce="{{ common.nonce }}" rel="stylesheet" href="/static/css/sweetalert2.min.css" />
+    <script nonce="{{ common.nonce }}" src="/static/js/sweetalert2.min.js" async defer></script>
+    <script nonce="{{ common.nonce }}" src="/static/js/base.js"></script>
     {% block head %}{% endblock %}
 </head>
-<body class="antialiased max-w-2xl mb-4 md:flex-row mx-4 mt-8 lg:mx-auto">
-    <div class="min-w-0 mt-6 px-2 md:px-0">
-        <header>
-            {% include "components/nav.html" %}
-        </header>
-        <main>
-            {% block content %}{% endblock %}
-        </main>
-        <footer>
-            {% include "components/footer.html" %}
-        </footer>
+<body>
+    {% include "components/go_to_top_btn.html" %}
+    <div class="antialiased max-w-2xl mb-4 md:flex-row mx-4 mt-8 lg:mx-auto">
+        <div class="min-w-0 mt-6 px-2 md:px-0">
+            <header>
+                {% include "components/nav.html" %}
+            </header>
+            <main>
+                {% block content %}{% endblock %}
+            </main>
+            <footer>
+                {% include "components/footer.html" %}
+            </footer>
+        </div>
     </div>
-    <script nonce="{{ common.nonce }}" src="/static/js/base.js"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

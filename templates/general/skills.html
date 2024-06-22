@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 {%- import "components/skill.html" as skill -%}
+{%- import "components/seo_tags.html" as seo -%}
 
 {% block title %}Skills{% endblock %}
 
 {% block head %}
-    <link rel="canonical" href="https://kjhjason.com/skills" />
+    {% call seo::get(
+        title="Skills",
+        url="https://kjhjason.com/skills",
+        desc="I have experience in various programming languages, frameworks, and tools that I have used in my projects and internships. Here are some of the skills that I have acquired over the years.",
+    ) %}
 {% endblock %}
 
 {% block content %}

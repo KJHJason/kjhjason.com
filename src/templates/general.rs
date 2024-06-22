@@ -103,8 +103,8 @@ pub struct BlogPostInfo {
 }
 
 #[derive(Template)]
-#[template(path = "general/blog.html")]
-pub struct Blog {
+#[template(path = "general/blogs.html")]
+pub struct Blogs {
     pub common: TemplateValues,
     pub blogs: Vec<BlogPostInfo>,
 }

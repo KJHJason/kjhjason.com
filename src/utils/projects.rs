@@ -7,7 +7,8 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             title: "kjhjason.com",
             img: "https://storage.kjhjason.com/images/projects/kjhjason.com.webp",
             img_alt: "Screenshot of the Blog Editing page of the kjhjason.com website",
-            desc: "This project is the website you are currently viewing. It is a personal project that I have started to showcase my portfolio and blog posts.
+            desc: "This project is the website you are currently viewing that is deployed on <a href=\"https://fly.io/\" target=\"_blank\">Fly.io</a>.
+            It is a personal project that I have started to showcase my portfolio and blog posts.
             <br /><br />It is developed using Actix Web, a Rust web framework, MongoDB as the database, and Cloudflare R2 for storing images.
             <br /><br />Moroever, it uses Askama for templating which is similar to Jinja2 in Python and TailwindCSS for the frontend.",
             tags: vec!["Web Dev", "Rust", "Actix", "Askama", "TailwindCSS", "MongoDB", "Cloud"],
@@ -16,17 +17,17 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             date: "Jun 2024 - Present",
         },
         ProjectInfo {
-            title: "hmac-serialiser-rs",
+            title: "hmac-serialiser (Rust)",
             img: "https://storage.kjhjason.com/images/projects/hmac-serialiser-rs.webp",
             img_alt: "Screenshot of some of the code in the hmac-serialiser-rs project",
             desc: "Similar to the HMACSerialiser project, this is a Rust implementation as I wanted to create shorter but secure tokens for the website you are currently viewing.",
             tags: vec!["Security", "Cryptography", "Rust"],
             link: "https://github.com/KJHJason/hmac-serialiser/tree/master/rust",
             presentation_link: "",
-            date: "Jun 2024 - Jun 2024",
+            date: "Jun 2024 - Present",
         },
         ProjectInfo {
-            title: "HMACSerialiser",
+            title: "hmac-serialiser (C#)",
             img: "https://storage.kjhjason.com/images/projects/hmac-serialiser.webp",
             img_alt: "Screenshot of some of the code in the HMACSerialiser project",
             desc: "This is one of my personal projects that I have started to address the use of SHA256(message | secretKey) in the company
@@ -35,7 +36,7 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             tags: vec!["Security", "Cryptography", "C#"],
             link: "https://github.com/KJHJason/hmac-serialiser/tree/master/csharp",
             presentation_link: "",
-            date: "Feb 2024 - May 2024",
+            date: "Feb 2024 - Present",
         },
         ProjectInfo {
             title: "Cultured Downloader",
@@ -141,7 +142,7 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             img_alt: "Screenshot of the CLI-based vending machine program",
             desc: "Part of the Programming Essentials module, this project consists of students creating a CLI-based vending machine program in Python with various requirements to fulfil.
             <br /><br />This is the first time I have worked with any programming languages so it was challenging to write code due to the unfamiliar syntax.
-            <br /><br />Additionally, understanding concepts of deep copy, shallow copy, and more took time to grasp.",
+            <br /><br />Additionally, understanding concepts like deep copy, shallow copy, and more took time to grasp.",
             tags: vec!["Introductory", "CLI", "Python"],
             link: "https://github.com/KJHJason/Vending-Machine",
             presentation_link: "",

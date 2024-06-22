@@ -1,0 +1,19 @@
+{% macro get(title, url, desc) %}
+    <meta name="author" content="KJHJason">
+    <meta name="description" content="{{ desc|safe }}">
+    {% if !url.is_empty() %}
+        <link rel="canonical" href="{{ url|safe }}" />
+        <meta property="og:title" content="{{ title|safe }} | KJHJason">
+        <meta property="og:description" content="{{ desc|safe }}">
+        <meta property="og:url" content="{{ url|safe }}">
+        <meta property="og:type" content="website">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:site" content="@Dratornic">
+        <meta name="twitter:title" content="{{ title|safe }} | KJHJason">
+        <meta name="twitter:description" content="{{ desc|safe }}">
+    {% endif %}
+    <meta property="og:image" content="https://kjhjason.com/static/images/card.png">
+    <meta property="og:image:alt" content="kjhjason.com logo">
+    <meta name="twitter:image" content="https://kjhjason.com/static/images/card.png">
+    <meta name="twitter:image:alt" content="kjhjason.com logo">
+{% endmacro %}

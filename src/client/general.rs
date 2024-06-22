@@ -3,7 +3,7 @@ use crate::models::blog;
 use crate::models::blog_identifier::BlogIdentifier;
 use crate::templates::error::ErrorTemplate;
 use crate::templates::general::{
-    Awards, Blog, BlogPost, BlogPostInfo, Certificates, Experiences, Index, Projects, Skills,
+    Awards, BlogPost, BlogPostInfo, Blogs, Certificates, Experiences, Index, Projects, Skills,
 };
 use crate::utils::awards::get_awards;
 use crate::utils::certificates::get_certificates;
@@ -135,7 +135,7 @@ async fn blogs(client: Data<db::DbClient>, req: HttpRequest) -> HttpResponse {
         }
     }
 
-    let template = Blog { common, blogs };
+    let template = Blogs { common, blogs };
     render_template(template, StatusCode::OK)
 }
 

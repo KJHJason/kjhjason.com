@@ -1,10 +1,16 @@
 {% extends "base.html" %}
 {%- import "components/award.html" as award -%}
+{%- import "components/seo_tags.html" as seo -%}
 
 {% block title %}Awards{% endblock %}
 
 {% block head %}
     <link rel="canonical" href="https://kjhjason.com/awards" />
+    {% call seo::get(
+        title="Awards",
+        url="https://kjhjason.com/awards",
+        desc="Here are the awards that I have received over the years.",
+    ) %}
 {% endblock %}
 
 {% block content %}

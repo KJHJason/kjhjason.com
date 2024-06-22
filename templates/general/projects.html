@@ -1,9 +1,14 @@
 {% extends "base.html" %}
+{%- import "components/seo_tags.html" as seo -%}
 
 {% block title %}Projects{% endblock %}
 
 {% block head %}
-    <link rel="canonical" href="https://kjhjason.com/projects" />
+    {% call seo::get(
+        title="Projects",
+        url="https://kjhjason.com/projects",
+        desc="Here are some of the projects I have worked on for the past few years. These projects range from personal projects to school projects, and most of them are open-source.",
+    ) %}
 {% endblock %}
 
 {% block content %}

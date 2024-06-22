@@ -1,9 +1,15 @@
 {% extends "base.html" %}
+{%- import "components/seo_tags.html" as seo -%}
 
 {% block title %}Uh Oh!{% endblock %}
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
+    {% call seo::get(
+        title="Uh Oh!",
+        url="",
+        desc="An error occurred while trying to access the page.",
+    ) %}
 {% endblock %}
 
 {% block content %}

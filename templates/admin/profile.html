@@ -1,10 +1,15 @@
 {% extends "base.html" %}
+{%- import "components/seo_tags.html" as seo -%}
 
 {% block title %}Profile{% endblock %}
 
 {% block head %}
-    <link rel="canonical" href="https://kjhjason.com/admin/profile" />
     <meta name="robots" content="noindex, nofollow">
+    {% call seo::get(
+        title="Login",
+        url="https://kjhjason.com/admin/profile",
+        desc="Sign in to your account.",
+    ) %}
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
 

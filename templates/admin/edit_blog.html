@@ -1,10 +1,15 @@
 {% extends "base.html" %}
+{%- import "components/seo_tags.html" as seo -%}
 
 {% block title %}Edit Blog - {{ title|truncate(10) }}{% endblock %}
 
 {% block head %}
-    <link rel="canonical" href="https://kjhjason.com/admin/blogs/{{ id }}/edit" />
     <meta name="robots" content="noindex, nofollow">
+    {% call seo::get(
+        title="Edit Blog - {{ title|truncate(10) }}",
+        url="https://kjhjason.com/admin/blogs/{{ id }}/edit",
+        desc="Edit the blog post with the title {{ title|truncate(10) }}.",
+    ) %}
 {% endblock %}
 
 {% block content %}
