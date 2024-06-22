@@ -20,7 +20,7 @@
                 hx-post="/{{ login_url }}"
                 hx-headers='{{ common.csrf_header_json|safe }}'
                 hx-target="#success-msg"
-                hx-on::after-request="turnstile.reset()"
+                hx-on::after-request="handleLoginRequest(event)"
                 hx-target-error="#error-alert"
             >
                 <div>
@@ -30,6 +30,10 @@
                 <div>
                     <label for="password" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Password</label>
                     <input type="password" name="password" id="password" placeholder="••••••••" class="input-theme" required minlength="8" maxlength="64" />
+                </div>
+                <div id="totp-input-div" class="hidden">
+                    <label for="totp" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">TOTP Code:</label>
+                    <input type="totp" name="totp_input" id="totp" placeholder="123456" class="input-theme" minlength="6" maxlength="6" pattern="[0-9]{6}" />
                 </div>
                 <div class="flex items-center justify-between">
                     <div class="flex items-start">
@@ -46,4 +50,8 @@
             </form>
         </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <script nonce="{{ common.nonce }}" src="/static/js/login.js"></script>
 {% endblock %}

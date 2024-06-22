@@ -8,5 +8,6 @@ pub struct ProjectedUser {
     pub username: Option<String>,
     pub email: Option<String>,
     pub password: Option<String>,
+    #[serde(with = "serde_bytes")]
     pub totp_secret: Option<Vec<u8>>,
 }

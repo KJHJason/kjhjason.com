@@ -41,9 +41,11 @@ impl ResponseError for AuthError {
                 .content_type(content_type)
                 .body(error_html),
             AuthError::MissingTotp => HttpResponse::BadRequest()
+                .insert_header(("X-Login-Error", "MissingTotp"))
                 .content_type(content_type)
                 .body(error_html),
             AuthError::InvalidTotp => HttpResponse::BadRequest()
+                .insert_header(("X-Login-Error", "InvalidTotp"))
                 .content_type(content_type)
                 .body(error_html),
             AuthError::CaptchaFailed => HttpResponse::BadRequest()

@@ -7,6 +7,7 @@ pub struct User {
     username: String,
     email: String,
     password: String,
+    #[serde(with = "serde_bytes")]
     totp_secret: Option<Vec<u8>>,
 }
 

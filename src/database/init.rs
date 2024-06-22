@@ -19,8 +19,16 @@ async fn init_user_collection(client: &Client) {
         .find_one(doc! { "username": &admin_username }, None)
         .await;
     match result {
-        Ok(Some(_)) => return,
-        _ => {}
+        Ok(Some(_)) => {
+            log::info!("admin account already exists");
+            return;
+        }
+        Ok(None) => {
+            log::info!("admin account does not exist");
+        }
+        Err(e) => {
+            panic!("Failed to check if admin account exists: {}", e);
+        }
     }
 
     let admin_email = std::env::var(constants::BLOG_ADMIN_EMAIL).expect("admin email not set");
