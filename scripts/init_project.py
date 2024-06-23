@@ -33,29 +33,88 @@ def init_env_file() -> None:
 
     logging.info("Initialised the .env file with keys.")
 
-def replace_hosted_viewer_origins_in_viewer_mjs() -> None:
-    logging.info("Replacing the HOSTED_VIEWER_ORIGINS value in viewer.mjs")
+def _replace_hosted_viewer_origins_in_file(file_path: str, value: str, to_replace_with: str) -> None:
+    logging.info(f"Replacing the HOSTED_VIEWER_ORIGINS value in {file_path}")
 
-    viewer_mjs_path = pathlib.Path("./static/pdfjs/web/viewer.mjs")
-    if not viewer_mjs_path.exists():
-        logging.error("viewer.mjs does not exist")
-        return
-
-    with open(viewer_mjs_path, encoding="utf-8") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
+        if value not in content:
+            logging.error(f"Could not find the HOSTED_VIEWER_ORIGINS in {file_path}")
+            return
 
-    to_replace = 'const HOSTED_VIEWER_ORIGINS = ["null", "http://mozilla.github.io", "https://mozilla.github.io"];'
-    if to_replace not in content:
-        logging.error("Could not find the HOSTED_VIEWER_ORIGINS in viewer.mjs")
-        return
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(content.replace(value, to_replace_with))
+    logging.info(f"Replaced the HOSTED_VIEWER_ORIGINS value in {file_path}")
 
-    content = content.replace(
-        to_replace,
+def replace_hosted_viewer_origins_for_pdfjs() -> None:
+    _replace_hosted_viewer_origins_in_file(
+        "./static/pdfjs/web/viewer.mjs",
+        'const HOSTED_VIEWER_ORIGINS = ["null", "http://mozilla.github.io", "https://mozilla.github.io"];',
         'const HOSTED_VIEWER_ORIGINS = ["null", "https://storage.kjhjason.com"];',
     )
-    with open(viewer_mjs_path, "w", encoding="utf-8") as f:
+    _replace_hosted_viewer_origins_in_file(
+        "./static/pdfjs/web/viewer.mjs.map",
+        r'const HOSTED_VIEWER_ORIGINS = [\n    \"null\",\n    \"http://mozilla.github.io\",\n    \"https://mozilla.github.io\",\n  ];',
+        r'const HOSTED_VIEWER_ORIGINS = [\n    "null",\n    "https://storage.kjhjason.com",\n  ];',
+    )
+
+def _remove_file_origin_checks_in_file(file_path: str, value: str) -> None:
+    logging.info(f"Removing the file origin checks in {file_path}")
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+        if value not in content:
+            logging.error(f"Could not find the file origin check in {file_path}")
+            return
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(content.replace(value, ""))
+
+    logging.info(f"Removed the file origin check in {file_path}")
+
+def remove_file_origin_checks_for_pdfjs() -> None:
+    mjs_map_value = r"if (fileOrigin !== viewerOrigin) {\n        throw new Error(\"file origin does not match viewer's\");\n      }\n"
+    mjs_value = r"""      if (fileOrigin !== viewerOrigin) {
+        throw new Error("file origin does not match viewer's");
+      }"""
+
+    _remove_file_origin_checks_in_file("./static/pdfjs/web/viewer.mjs", mjs_value)
+    _remove_file_origin_checks_in_file("./static/pdfjs/web/viewer.mjs.map", mjs_map_value)
+
+def _change_default_options_in_file(file_path: str, value: str, to_replace_with: str) -> None:
+    logging.info(f"Changing the default options in {file_path}")
+
+    common_value = "enablePermissions = false"
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+        if value not in content:
+            logging.error(f"Could not find the default options in {file_path}")
+            return
+        if common_value not in content:
+            logging.error(f"Could not find the common default options in {file_path}")
+            return
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        content = content.replace(common_value, "enablePermissions = true")
+        content = content.replace(value, to_replace_with)
         f.write(content)
-    logging.info("Replaced the HOSTED_VIEWER_ORIGINS value in viewer.mjs")
+
+    logging.info(f"Changed the default options in {file_path}")
+
+def change_default_options_for_pdfjs() -> None:
+    map_value = r"enablePermissions: {\n    /** @type {boolean} */\n    value: false,"
+    value = r"enablePermissions: false,"
+
+    _change_default_options_in_file(
+        "./static/pdfjs/web/viewer.mjs", 
+        value,
+        r"enablePermissions: true,",
+    )
+    _change_default_options_in_file(
+        "./static/pdfjs/web/viewer.mjs.map", 
+        map_value,
+        r"enablePermissions: {\n    /** @type {boolean} */\n    value: true,"
+    )
 
 def download_pdfjs() -> None:
     # https://mozilla.github.io/pdf.js/getting_started/#download
@@ -100,7 +159,6 @@ def download_pdfjs() -> None:
 
     logging.info("Downloaded and extracted pdfjs")
 
-
 def main() -> None:
     logging.basicConfig(
         level=logging.INFO,
@@ -108,7 +166,17 @@ def main() -> None:
     )
     init_env_file()
     download_pdfjs()
-    replace_hosted_viewer_origins_in_viewer_mjs()
+
+    # Modify the pdfjs source files
+    replace_hosted_viewer_origins_for_pdfjs()
+
+    # Remove the file origin checks so 
+    # that the pdf can use storage.kjhjason.com
+    remove_file_origin_checks_for_pdfjs()
+
+    # Change the default options for pdfjs.
+    # Mainly to disable editing of the pdf.
+    change_default_options_for_pdfjs()
 
 if __name__ == "__main__":
     main()

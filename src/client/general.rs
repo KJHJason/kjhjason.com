@@ -2,7 +2,10 @@ use crate::database::db;
 use crate::models::blog;
 use crate::models::blog_identifier::BlogIdentifier;
 use crate::templates::error::ErrorTemplate;
-use crate::templates::general::{Awards, BlogPost, BlogPostInfo, Blogs, Certificates, Experiences, Index, Projects, Resume, Skills, Testimonials};
+use crate::templates::general::{
+    Awards, BlogPost, BlogPostInfo, Blogs, Certificates, Experiences, Index, Projects, Resume,
+    Skills, Testimonials,
+};
 use crate::utils::awards::get_awards;
 use crate::utils::certificates::get_certificates;
 use crate::utils::experiences::get_experiences;
@@ -12,6 +15,7 @@ use crate::utils::security::extract_for_template;
 use crate::utils::skills::{
     get_backend, get_database, get_deployment, get_frontend, get_general, get_languages,
 };
+use crate::utils::testimonials::get_testimonials;
 use crate::utils::validations::get_id_from_path;
 use actix_web::http::StatusCode;
 use actix_web::web::Data;
@@ -19,7 +23,6 @@ use actix_web::{get, web::Path, HttpRequest, HttpResponse};
 use futures_util::TryStreamExt;
 use mongodb::bson::doc;
 use mongodb::options::{FindOneAndUpdateOptions, FindOptions, ReturnDocument};
-use crate::utils::testimonials::get_testimonials;
 
 #[get("/")]
 async fn index(req: HttpRequest) -> HttpResponse {

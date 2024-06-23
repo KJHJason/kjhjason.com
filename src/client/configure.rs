@@ -1,6 +1,9 @@
 use crate::client::admin::{edit_blog, new_blog, profile};
 use crate::client::auth::{login_admin, login_auth, login_redirect};
-use crate::client::general::{awards, blog_id, blogs, certificates, experiences, index, projects, resume, skills, testimonials};
+use crate::client::general::{
+    awards, blog_id, blogs, certificates, experiences, index, projects, resume, skills,
+    testimonials,
+};
 use actix_web::web;
 
 #[inline]

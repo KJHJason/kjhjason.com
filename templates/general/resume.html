@@ -12,9 +12,10 @@
 {% endblock %}
 
 {% block content %}
-    <iframe id="pdf-js-viewer" src="/static/pdfjs/web/viewer.html?file=/static/resume.pdf" title="webviewer" frameborder="0" width="500" height="600"></iframe>
-{% endblock %}
-
-{% block scripts %}
-    
+    {% let pdf_url = "/static/pdfjs/web/viewer.html?file=https%3A%2F%2Fstorage.kjhjason.com%2Fresume.pdf" %}
+    <section>
+        <h1>Resume</h1>
+        <a class="btn-text-link" href="{{ pdf_url }}" target="_blank">View in full-screen</a>
+        <iframe class="mt-4 w-full h-[600px] md:h-[800px]" src="{{ pdf_url }}" title="webviewer" frameborder="0"></iframe>
+    </section>
 {% endblock %}

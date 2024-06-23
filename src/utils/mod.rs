@@ -12,5 +12,5 @@ pub mod redirect;
 pub mod security;
 pub mod skills;
 pub mod storage;
-pub mod validations;
 pub mod testimonials;
+pub mod validations;

@@ -20,7 +20,7 @@ macro_rules! get_client_routes {
             (Method::GET, "/api".to_string()),
             (Method::GET, "/api/csrf-token".to_string()),
         ]
-    }
+    };
 }
 
 pub fn configure_auth_middleware() -> middleware::auth::AuthMiddleware {
