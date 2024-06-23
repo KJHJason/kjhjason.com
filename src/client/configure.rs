@@ -1,8 +1,6 @@
 use crate::client::admin::{edit_blog, new_blog, profile};
 use crate::client::auth::{login_admin, login_auth, login_redirect};
-use crate::client::general::{
-    awards, blog_id, blogs, certificates, experiences, index, projects, skills,
-};
+use crate::client::general::{awards, blog_id, blogs, certificates, experiences, index, projects, resume, skills, testimonials};
 use actix_web::web;
 
 #[inline]
@@ -15,7 +13,9 @@ pub fn add_client_routes(cfg: &mut web::ServiceConfig) {
 #[inline]
 fn add_general_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(index)
+        .service(resume)
         .service(experiences)
+        .service(testimonials)
         .service(projects)
         .service(skills)
         .service(certificates)

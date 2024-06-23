@@ -14,47 +14,47 @@
 {% endblock %}
 
 {% block content %}
-<div class="gap-y-8 grid grid-cols-1" hx-ext="response-targets">
-    <div class="collapse collapse-arrow accent">
-        <input type="radio" name="profile-accordion" checked="checked" /> 
-        <div class="collapse-title text-xl font-medium">
-            Change Password
-        </div>
-        <form class="collapse-content"
-            id="change-password-form"
-            hx-patch="/api/admin/change-password"
-            hx-headers='{{ common.csrf_header_json|safe }}'
-            hx-target="#password-change-alert"
-            hx-target-error="#password-change-alert"
-            hx-on::after-request="handleChangePasswordRes(event)"
-        > 
-            <div id="password-change-alert" class="my-4"></div>
-
-            <label for="current-password" class="block my-2 text-sm font-medium text-neutral-900 dark:text-white">Current Password:</label>
-            <input type="password" name="current-password" id="current-password" class="input-theme mb-4" placeholder="AbcdEF@H1!" required minlength="8" maxlength="64" />
-
-            <label for="new-password" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">New Password:</label>
-            <input type="password" name="new-password" id="new-password" class="input-theme mb-4" placeholder="aBcdEF@H2!" required minlength="8" maxlength="64" />
-
-            <label for="confirm-password" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Confirm Password:</label>
-            <input type="password" name="confirm-password" id="confirm-password" class="input-theme mb-4" placeholder="aBcdEF@H2!" required minlength="8" maxlength="64" />
-
-            <div class="cf-turnstile" data-sitekey="{{ crate::constants::constants::CF_TURNSTILE_SITE_KEY }}"></div>
-            <div class="mt-4 w-full text-right">
-                <button type="submit" class="btn btn-success">Submit</button>
+    <div class="gap-y-8 grid grid-cols-1" hx-ext="response-targets">
+        <div class="collapse collapse-arrow accent">
+            <input type="radio" name="profile-accordion" checked="checked" /> 
+            <div class="collapse-title text-xl font-medium">
+                Change Password
             </div>
-        </form>
-    </div>
+            <form class="collapse-content"
+                id="change-password-form"
+                hx-patch="/api/admin/change-password"
+                hx-headers='{{ common.csrf_header_json|safe }}'
+                hx-target="#password-change-alert"
+                hx-target-error="#password-change-alert"
+                hx-on::after-request="handleChangePasswordRes(event)"
+            > 
+                <div id="password-change-alert" class="my-4"></div>
 
-    {% let csrf_header_json = common.csrf_header_json|as_ref %}
-    <div id="two-fa-setting">
-        {% if has_2fa %}
-            {% include "components/disable_2fa.html" %}
-        {% else %}
-            {% include "components/enable_2fa.html" %}
-        {% endif %}
+                <label for="current-password" class="block my-2 text-sm font-medium text-neutral-900 dark:text-white">Current Password:</label>
+                <input type="password" name="current-password" id="current-password" class="input-theme mb-4" placeholder="AbcdEF@H1!" required minlength="8" maxlength="64" />
+
+                <label for="new-password" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">New Password:</label>
+                <input type="password" name="new-password" id="new-password" class="input-theme mb-4" placeholder="aBcdEF@H2!" required minlength="8" maxlength="64" />
+
+                <label for="confirm-password" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Confirm Password:</label>
+                <input type="password" name="confirm-password" id="confirm-password" class="input-theme mb-4" placeholder="aBcdEF@H2!" required minlength="8" maxlength="64" />
+
+                <div class="cf-turnstile" data-sitekey="{{ crate::constants::constants::CF_TURNSTILE_SITE_KEY }}"></div>
+                <div class="mt-4 w-full text-right">
+                    <button type="submit" class="btn btn-success">Submit</button>
+                </div>
+            </form>
+        </div>
+
+        {% let csrf_header_json = common.csrf_header_json|as_ref %}
+        <div id="two-fa-setting">
+            {% if has_2fa %}
+                {% include "components/disable_2fa.html" %}
+            {% else %}
+                {% include "components/enable_2fa.html" %}
+            {% endif %}
+        </div>
     </div>
-</div>
 {% endblock %}
 
 {% block scripts %}

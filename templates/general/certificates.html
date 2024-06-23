@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{%- import "components/certificate.html" as certificate -%}
 {%- import "components/seo_tags.html" as seo -%}
 
 {% block title %}Certificates{% endblock %}
@@ -13,9 +12,40 @@
 {% endblock %}
 
 {% block content %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {% for cert in certificates %}
-            {% call certificate::get(cert) %}
-        {% endfor %}
-    </div>
+    <section>
+        <h1>Certificates</h1>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {% for cert in certificates %}
+                <div class="card accent shadow-xl">
+                    <div class="card-body">
+                        <h2 class="card-title !my-2">
+                            {{ cert.title }}
+                        </h2>
+                        <p class="!my-0 text-sm">
+                            <a href="{{ cert.link }}" target="_blank" class="btn-text-link" title="Verify">
+                                <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 14v4.833A1.166 1.166 0 0 1 16.833 20H5.167A1.167 1.167 0 0 1 4 18.833V7.167A1.166 1.166 0 0 1 5.167 6h4.618m4.447-2H20v5.768m-7.889 2.121 7.778-7.778"/>
+                                </svg>
+                            </a>
+                            <br />
+                            {{ cert.issuer }}
+                            <br />
+                            Issued: {{ cert.date }}
+                            {% if !cert.expiry.is_empty() %}
+                                <br />
+                                Expires: {{ cert.expiry }}
+                            {% endif %}
+                            {% if !cert.cred_id.is_empty() %}
+                                <br />
+                                Credential ID: {{ cert.cred_id }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <figure>
+                        <img class="h-48 sm:h-64 w-full object-cover object-center" src="{{ cert.img_src }}" alt="{{ cert.img_alt }}" />
+                    </figure>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
 {% endblock %}

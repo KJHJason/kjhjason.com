@@ -14,44 +14,42 @@
 
 {% block content %}
 <section>
-    <h2 class="skills-header !mt-0">Languages</h2>
-    <article class="skills">
-        {% call skill::get(languages|as_ref) %}
+    <h1>Skills</h1>
+    <article>
+        <h2 class="skills-header !mt-0">Languages</h2>
+        <div class="skills">
+            {% call skill::get(languages|as_ref) %}
+        </div>
     </article>
-</section>
-
-<section>
-    <h2 class="skills-header">Backend</h2>
-    <article class="skills">
-        {% call skill::get(backend|as_ref) %}
+    <article>
+        <h2 class="skills-header">Backend</h2>
+        <div class="skills">
+            {% call skill::get(backend|as_ref) %}
+        </div>
     </article>
-</section>
-
-<section>
-    <h2 class="skills-header">Frontend</h2>
-    <article class="skills">
-        {% call skill::get(frontend|as_ref) %}
+    <article>
+        <h2 class="skills-header">Frontend</h2>
+        <div class="skills">
+            {% call skill::get(frontend|as_ref) %}
+        </div>
     </article>
-</section>
-
-<section>
-    <h2 class="skills-header">Databases</h2>
-    <article class="skills">
-        {% call skill::get(database|as_ref) %}
+    <article>
+        <h2 class="skills-header">Databases</h2>
+        <div class="skills">
+            {% call skill::get(database|as_ref) %}
+        </div>
     </article>
-</section>
-
-<section>
-    <h2 class="skills-header">Deployment</h2>
-    <article class="skills">
-        {% call skill::get(deployment|as_ref) %}
+    <article>
+        <h2 class="skills-header">Deployment</h2>
+        <div class="skills">
+            {% call skill::get(deployment|as_ref) %}
+        </div>
     </article>
-</section>
-
-<section>
-    <h2 class="skills-header">General</h2>
-    <article class="skills">
-        {% call skill::get(general|as_ref) %}
+    <article>
+        <h2 class="skills-header">General</h2>
+        <div class="skills">
+            {% call skill::get(general|as_ref) %}
+        </div>
     </article>
 </section>
 {% endblock %}

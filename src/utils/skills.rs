@@ -82,6 +82,12 @@ pub fn get_backend<'a>() -> Vec<SkillInfo<'a>> {
             name: ".NET Core",
         },
         SkillInfo {
+            link: "https://pkg.go.dev/net/http",
+            img_src: "https://storage.kjhjason.com/images/skills/go.webp",
+            img_alt: "Go",
+            name: "net/http",
+        },
+        SkillInfo {
             link: "https://actix.rs/",
             img_src: "https://storage.kjhjason.com/images/skills/actix.webp",
             img_alt: "Actix Web",

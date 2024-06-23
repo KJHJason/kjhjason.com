@@ -7,6 +7,7 @@ res/
 fly.toml
 README.md
 LICENSE
-*.ps1
+*.py
 .env
 *test*
+!testimonial*

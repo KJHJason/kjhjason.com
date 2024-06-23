@@ -45,7 +45,7 @@ const __SECRET_KEY: &str = "SECRET_KEY";
 const __SECRET_KEY_SALT: &str = "SECRET_KEY_SALT";
 const __CSRF_KEY_SALT: &str = "CSRF_KEY_SALT";
 const __DB_ENCRYPTION_KEY: &str = "DB_ENCRYPTION_KEY";
-const __DB_ENCRYPTION_KEY_AD: &str = "DB_ENCRYPTION_KEY_AD";
+const __DB_ENCRYPTION_KEY_AAD: &str = "DB_ENCRYPTION_KEY_AAD";
 
 #[inline(always)]
 fn get_env_var(var_name: &str) -> String {
@@ -93,7 +93,7 @@ generate_env_hex_to_bytes_getter!(get_secret_key, __R2_ACCOUNT_ID);
 generate_env_hex_to_bytes_getter!(get_secret_key_salt, __SECRET_KEY_SALT);
 generate_env_hex_to_bytes_getter!(get_csrf_key_salt, __CSRF_KEY_SALT);
 generate_env_hex_to_bytes_getter!(get_db_encryption_key, __DB_ENCRYPTION_KEY);
-generate_env_hex_to_bytes_getter!(get_db_encryption_key_ad, __DB_ENCRYPTION_KEY_AD);
+generate_env_hex_to_bytes_getter!(get_db_encryption_key_aad, __DB_ENCRYPTION_KEY_AAD);
 generate_env_getter!(get_r2_acc_id, __R2_ACCOUNT_ID);
 generate_env_getter!(get_cf_turnstile_secret_key, __CF_TURNSTILE_SECRET_KEY);
 

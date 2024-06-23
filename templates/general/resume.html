@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{%- import "components/seo_tags.html" as seo -%}
+
+{% block title %}Resume{% endblock %}
+
+{% block head %}
+    {% call seo::get(
+        title="Resume",
+        url="https://kjhjason.com/resume",
+        desc="Here is my resume where you can view or download it."
+    ) %}
+{% endblock %}
+
+{% block content %}
+    <iframe id="pdf-js-viewer" src="/static/pdfjs/web/viewer.html?file=/static/resume.pdf" title="webviewer" frameborder="0" width="500" height="600"></iframe>
+{% endblock %}
+
+{% block scripts %}
+    
+{% endblock %}

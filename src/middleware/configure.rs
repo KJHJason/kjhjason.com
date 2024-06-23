@@ -1,27 +1,36 @@
 use crate::{constants::constants, middleware};
 use actix_web::http::Method;
 
+macro_rules! get_client_routes {
+    () => {
+        vec![
+            (Method::GET, "/".to_string()),
+            (Method::GET, "/favicon.ico".to_string()),
+            (Method::GET, "/experiences".to_string()),
+            (Method::GET, "/testimonials".to_string()),
+            (Method::GET, "/projects".to_string()),
+            (Method::GET, "/skills".to_string()),
+            (Method::GET, "/certificates".to_string()),
+            (Method::GET, "/awards".to_string()),
+            (Method::GET, "/resume".to_string()),
+            (Method::GET, "/blogs".to_string()),
+            (Method::GET, "/admin".to_string()),
+            (Method::GET, "/login".to_string()),
+            (Method::GET, "/auth/login".to_string()),
+            (Method::GET, "/api".to_string()),
+            (Method::GET, "/api/csrf-token".to_string()),
+        ]
+    }
+}
+
 pub fn configure_auth_middleware() -> middleware::auth::AuthMiddleware {
-    let auth_whitelist = vec![
-        (Method::GET, "/".to_string()),
-        (Method::GET, "/favicon.ico".to_string()),
-        (Method::GET, "/experiences".to_string()),
-        (Method::GET, "/projects".to_string()),
-        (Method::GET, "/skills".to_string()),
-        (Method::GET, "/certificates".to_string()),
-        (Method::GET, "/awards".to_string()),
-        (Method::GET, "/resume".to_string()),
-        (Method::GET, "/blogs".to_string()),
-        (Method::GET, "/admin".to_string()),
-        (Method::GET, "/login".to_string()),
-        (Method::GET, "/auth/login".to_string()),
-        (Method::GET, "/api".to_string()),
-        (Method::GET, "/api/csrf-token".to_string()),
+    let mut auth_whitelist = get_client_routes!();
+    auth_whitelist.extend(vec![
         (Method::POST, "/api/admin".to_string()),
         (Method::POST, "/api/login".to_string()),
         (Method::POST, "/api/auth/login".to_string()),
         (Method::POST, "/api/logout".to_string()),
-    ];
+    ]);
     let auth_whitelist_regex = vec![
         (Method::GET, regex::Regex::new(r"^/blogs/[\w-]+$").unwrap()),
         (Method::GET, regex::Regex::new(r"^/static/.*$").unwrap()),
@@ -36,11 +45,7 @@ pub fn configure_auth_middleware() -> middleware::auth::AuthMiddleware {
 }
 
 pub fn configure_csrf_middleware() -> middleware::csrf::CsrfMiddleware {
-    let csrf_whitelist = vec![
-        (Method::GET, "/".to_string()),
-        (Method::GET, "/favicon.ico".to_string()),
-        (Method::GET, "/api/csrf-token".to_string()),
-    ];
+    let csrf_whitelist = get_client_routes!();
     let csrf_whitelist_regex = vec![];
     let csrf_middleware =
         middleware::csrf::CsrfMiddleware::new(None, csrf_whitelist, csrf_whitelist_regex);
@@ -50,13 +55,15 @@ pub fn configure_csrf_middleware() -> middleware::csrf::CsrfMiddleware {
 pub fn configure_csp_middleware() -> middleware::csp::CspMiddleware {
     let csp_whitelist = vec![
         (Method::GET, "/favicon.ico".to_string()),
-        (Method::GET, "/csrf-token".to_string()),
+        (Method::GET, "/api".to_string()),
+        (Method::GET, "/api/csrf-token".to_string()),
     ];
     let api_regex = regex::Regex::new(r"^/api/.*$").unwrap();
     let csp_whitelist_regex = vec![
         (Method::GET, api_regex.clone()),
         (Method::POST, api_regex.clone()),
         (Method::PUT, api_regex.clone()),
+        (Method::PATCH, api_regex.clone()),
         (Method::DELETE, api_regex.clone()),
         (Method::OPTIONS, api_regex.clone()),
         (Method::GET, regex::Regex::new(r"^/static/.*$").unwrap()),
@@ -117,6 +124,10 @@ pub fn configure_cache_control_middleware() -> middleware::cache_control::CacheC
                 value: "public, max-age=31536000".to_string(), // 1 year
             }],
             regex_paths: vec![
+                middleware::cache_control::CachePathValue {
+                    path: regex::Regex::new(r"^/static/pdfjs/.*$").unwrap(),
+                    value: "public, max-age=86400, must-revalidate".to_string(), // 1 day for files in pdfjs directory
+                },
                 middleware::cache_control::CachePathValue {
                     path: regex::Regex::new(r"^/static/.*(\.js|\.css)$").unwrap(),
                     value: "public, max-age=86400, must-revalidate".to_string(), // 1 day for css/js files

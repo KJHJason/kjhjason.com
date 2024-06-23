@@ -7,6 +7,12 @@ pub struct Index {
     pub common: TemplateValues,
 }
 
+#[derive(Template)]
+#[template(path = "general/resume.html")]
+pub struct Resume {
+    pub common: TemplateValues,
+}
+
 pub struct ExperienceInfo<'a> {
     pub time: &'a str,
     pub finished: bool,
@@ -20,6 +26,21 @@ pub struct ExperienceInfo<'a> {
 pub struct Experiences<'a> {
     pub common: TemplateValues,
     pub experiences: Vec<ExperienceInfo<'a>>,
+}
+
+pub struct TestimonialInfo<'a> {
+    pub issuer: &'a str,
+    pub file_url: &'a str,
+    pub date: &'a str,
+    pub img_src: &'a str,
+    pub img_alt: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "general/testimonials.html")]
+pub struct Testimonials<'a> {
+    pub common: TemplateValues,
+    pub testimonials: Vec<TestimonialInfo<'a>>,
 }
 
 // title, img, img_alt, desc, tags, link

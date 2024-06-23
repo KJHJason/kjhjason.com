@@ -2,9 +2,7 @@ use crate::database::db;
 use crate::models::blog;
 use crate::models::blog_identifier::BlogIdentifier;
 use crate::templates::error::ErrorTemplate;
-use crate::templates::general::{
-    Awards, BlogPost, BlogPostInfo, Blogs, Certificates, Experiences, Index, Projects, Skills,
-};
+use crate::templates::general::{Awards, BlogPost, BlogPostInfo, Blogs, Certificates, Experiences, Index, Projects, Resume, Skills, Testimonials};
 use crate::utils::awards::get_awards;
 use crate::utils::certificates::get_certificates;
 use crate::utils::experiences::get_experiences;
@@ -21,10 +19,19 @@ use actix_web::{get, web::Path, HttpRequest, HttpResponse};
 use futures_util::TryStreamExt;
 use mongodb::bson::doc;
 use mongodb::options::{FindOneAndUpdateOptions, FindOptions, ReturnDocument};
+use crate::utils::testimonials::get_testimonials;
 
 #[get("/")]
 async fn index(req: HttpRequest) -> HttpResponse {
     let template = Index {
+        common: extract_for_template(&req),
+    };
+    render_template(template, StatusCode::OK)
+}
+
+#[get("/resume")]
+async fn resume(req: HttpRequest) -> HttpResponse {
+    let template = Resume {
         common: extract_for_template(&req),
     };
     render_template(template, StatusCode::OK)
@@ -35,6 +42,15 @@ async fn experiences(req: HttpRequest) -> HttpResponse {
     let template = Experiences {
         common: extract_for_template(&req),
         experiences: get_experiences(),
+    };
+    render_template(template, StatusCode::OK)
+}
+
+#[get("/testimonials")]
+async fn testimonials(req: HttpRequest) -> HttpResponse {
+    let template = Testimonials {
+        common: extract_for_template(&req),
+        testimonials: get_testimonials(),
     };
     render_template(template, StatusCode::OK)
 }

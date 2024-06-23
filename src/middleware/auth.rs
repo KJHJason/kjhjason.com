@@ -20,13 +20,16 @@ use std::rc::Rc;
 
 macro_rules! auth_failed {
     ($req:expr, $status:expr) => {
-        let html = ErrorTemplate {
+        let mut template = ErrorTemplate {
             common: crate::utils::security::extract_for_template($req.request()),
             status: $status.as_u16(),
             message: $status.canonical_reason().unwrap_or("Not Found"),
-        }
-        .render()
-        .unwrap();
+        };
+        // Since the auth cookie has not been removed yet,
+        // we have to manually set the is_logged_in to false.
+        template.common.is_logged_in = false;
+
+        let html = template.render().unwrap();
         let mut auth_cookie = Cookie::build(constants::AUTH_COOKIE_NAME, "")
             .path("/")
             .domain(constants::get_domain())

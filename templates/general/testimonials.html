@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{%- import "components/seo_tags.html" as seo -%}
+
+{% block title %}Testimonials{% endblock %}
+
+{% block head %}
+    {% call seo::get(
+        title="Testimonials",
+        url="https://kjhjason.com/testimonials",
+        desc="Here are some testimonials from my previous work and educational background.",
+    ) %}
+{% endblock %}
+
+{% block content %}
+    <section>
+        <h1>Testimonials</h1>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {% for testimonial in testimonials %}
+                <div class="card accent shadow-xl">
+                    <figure>
+                        <img class="h-44 w-full object-cover" src="{{ testimonial.img_src }}" alt="{{ testimonial.img_alt }}" />
+                    </figure>
+                    <div class="card-body">
+                        <h2 class="card-title !mt-2 !mb-0">{{ testimonial.issuer }}</h2>
+                        <p class="!my-0 text-sm">{{ testimonial.date }}</p>
+                        <a href="{{ testimonial.file_url }}" target="_blank" class="mt-2 btn-text-link" title="Testimonial PDF URL">
+                            <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 14v4.833A1.166 1.166 0 0 1 16.833 20H5.167A1.167 1.167 0 0 1 4 18.833V7.167A1.166 1.166 0 0 1 5.167 6h4.618m4.447-2H20v5.768m-7.889 2.121 7.778-7.778"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}
