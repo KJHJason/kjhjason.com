@@ -59,8 +59,6 @@ pub fn decrypt(cipher: &XChaCha20Poly1305, data: &[u8], ad: &[u8]) -> Result<Vec
 
 pub fn decrypt_with_db_key(data: &[u8]) -> Result<Vec<u8>, CryptoError> {
     static CIPHER: Lazy<XChaCha20Poly1305> = Lazy::new(|| {
-        // let key = Key::new_from_slice(&get_db_encryption_key())
-        //     .expect("failed to parse db encryption key when trying to decrypt data");
         let key = get_db_encryption_key();
         XChaCha20Poly1305::new(&GenericArray::clone_from_slice(&key))
     });

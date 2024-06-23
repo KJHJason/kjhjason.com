@@ -151,7 +151,7 @@ async fn update_blog(
 
     let mut is_updating = false;
     let last_modified = bson::DateTime::parse_rfc3339_str(datetime::get_dtnow_str())
-        .expect("DateTime shouldn't fail to parse in update_blog");
+        .expect("DateTime be parsed in update_blog");
     let mut set_doc = doc! {
         blog::LAST_MODIFIED_KEY: last_modified,
     };
@@ -345,7 +345,13 @@ async fn upload_blog_files(
             file_ext
         );
 
-        let mut data = Vec::new();
+        let headers = field.headers();
+        let content_length: usize = match headers.get(CONTENT_LENGTH) {
+            Some(v) => v.to_str().unwrap_or("0").parse().unwrap(),
+            None => 0,
+        };
+
+        let mut data = Vec::with_capacity(content_length);
         while let Ok(Some(chunk)) = field.try_next().await {
             data.extend_from_slice(&chunk);
         }

@@ -28,7 +28,7 @@ macro_rules! get_default_hasher {
 #[inline]
 fn generate_salt() -> SaltString {
     let salt = security::generate_random_bytes(32);
-    SaltString::encode_b64(&salt).expect("Failed to encode salt")
+    SaltString::encode_b64(&salt).expect("Salt bytes should be able to be encoded as base64")
 }
 
 pub fn hash_password(password: &str) -> Result<String, actix_web::Error> {

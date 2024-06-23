@@ -20,9 +20,11 @@ pub fn generate_totp(username: &str) -> GeneratedTotp {
         Some(constants::DOMAIN.to_string()),
         username.to_string(),
     )
-    .expect("Failed to create TOTP instance");
+    .expect("TOTP instance should be created without errors");
 
-    let qr_code_data = totp.get_qr_base64().expect("failed to generate QR code");
+    let qr_code_data = totp
+        .get_qr_base64()
+        .expect("Should be able to generate QR code");
     GeneratedTotp {
         secret: encoded_secret,
         qr_code_data,
@@ -40,10 +42,10 @@ pub fn verify_totp(totp_input: &str, secret: &str) -> bool {
         Some(constants::DOMAIN.to_string()),
         "".to_string(),
     )
-    .expect("Failed to create TOTP instance");
+    .expect("TOTP instance should be created without errors");
 
     let token = totp
         .generate_current()
-        .expect("Failed to generate TOTP token");
+        .expect("Should be able to generate TOTP token for verification");
     totp_input == token
 }

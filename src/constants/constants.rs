@@ -55,6 +55,7 @@ fn get_env_var(var_name: &str) -> String {
     }
 }
 
+#[inline(never)]
 pub fn get_debug_mode() -> bool {
     static DEBUG_MODE: Lazy<bool> = Lazy::new(|| get_env_var(__DEBUG_MODE) == "true");
     *DEBUG_MODE

@@ -86,7 +86,7 @@ async fn login(
         if user_has_totp {
             let decrypted_totp = match decrypt_with_db_key(&user_totp_secret) {
                 Ok(decrypted_totp) => {
-                    String::from_utf8(decrypted_totp).expect("totp secret is not valid utf-8")
+                    String::from_utf8(decrypted_totp).expect("totp secret should be valid utf-8")
                 }
                 Err(e) => {
                     log::error!("Failed to decrypt TOTP: {:?}", e);

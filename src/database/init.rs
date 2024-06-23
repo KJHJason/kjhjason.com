@@ -14,7 +14,7 @@ async fn init_user_collection(client: &Client) {
 
     // check if the collection already exists
     let admin_username =
-        std::env::var(constants::BLOG_ADMIN_USERNAME).expect("admin username not set");
+        std::env::var(constants::BLOG_ADMIN_USERNAME).expect("admin username should be set");
     let result = collection
         .find_one(doc! {user::USERNAME_KEY: &admin_username}, None)
         .await;
@@ -31,7 +31,8 @@ async fn init_user_collection(client: &Client) {
         }
     }
 
-    let admin_email = std::env::var(constants::BLOG_ADMIN_EMAIL).expect("admin email not set");
+    let admin_email =
+        std::env::var(constants::BLOG_ADMIN_EMAIL).expect("admin email should be set");
 
     // although there will only be one account, just do this for future-proofing
     let opts = IndexOptions::builder().unique(true).build();
@@ -42,7 +43,7 @@ async fn init_user_collection(client: &Client) {
     collection
         .create_index(index, None)
         .await
-        .expect("Failed to create username index for user collection");
+        .expect("Should be able to create username index for user collection");
 
     let opts = IndexOptions::builder().unique(true).build();
     let index = IndexModel::builder()
@@ -52,16 +53,16 @@ async fn init_user_collection(client: &Client) {
     collection
         .create_index(index, None)
         .await
-        .expect("Failed to create email index for user collection");
+        .expect("Should be able to create email index for user collection");
 
     let admin_password =
-        std::env::var(constants::BLOG_ADMIN_PASSWORD).expect("admin password not set");
+        std::env::var(constants::BLOG_ADMIN_PASSWORD).expect("admin password should be set");
 
     let hash_admin_pass_future =
         tokio::task::spawn_blocking(move || pw_hasher::hash_password(&admin_password).unwrap());
     let hashed_admin_password = hash_admin_pass_future
         .await
-        .expect("failed to hash admin password");
+        .expect("Should be able to hash admin password");
 
     let user = User::new(admin_username, admin_email, hashed_admin_password, None);
     match collection.insert_one(user, None).await {
@@ -94,7 +95,7 @@ async fn init_session_collection(client: &Client) {
     collection
         .create_index(index, None)
         .await
-        .expect("Failed to create session index for session collection");
+        .expect("Should be able to create session index for session collection");
 
     log::info!("Session collection initialised");
 }
@@ -145,7 +146,7 @@ pub async fn init_db() -> Result<DbClient, mongodb::error::Error> {
     let uri = if constants::get_debug_mode() {
         constants::LOCAL_URI.to_string()
     } else {
-        std::env::var(constants::MONGODB_URI).expect("MONGODB_URI not set in production mode")
+        std::env::var(constants::MONGODB_URI).expect("MONGODB_URI should be set in production mode")
     };
 
     let mut client_options = ClientOptions::parse(uri.clone()).await?;
