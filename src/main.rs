@@ -100,6 +100,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(s3_client.clone()))
             .wrap(Logger::default())
             .wrap(Compress::default())
+            .wrap(middleware::host::HostMiddleware)
             .wrap(middleware::content_type::ContentTypeMiddleware)
             .wrap(configure_csrf_middleware())
             .wrap(configure_csp_middleware())

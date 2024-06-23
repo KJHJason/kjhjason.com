@@ -1,5 +1,5 @@
+import os
 import logging
-import subprocess
 
 def import_to_flyio() -> None:
     logging.info("Importing the secrets to fly.io")
@@ -8,15 +8,17 @@ def import_to_flyio() -> None:
         for line in f:
             key, value = line.split("=", 1)
             if key == "DEBUG_MODE":
-                value = "false"
+                value = '"false"'
 
             logging.info(f"Adding secret \"{key}\"")
             args.append(f"{key}={value.strip()}")
 
     logging.info("Setting the secrets")
     try:
-        subprocess.run(args, check=True)
-    except subprocess.CalledProcessError as e:
+        # Somehow subprocess.run causes weird 
+        # string issues esp with mongodb uri
+        os.system(" ".join(args))
+    except Exception as e:
         logging.error(f"Coud not set the secrets: {e}")
         return
     logging.info("Imported the secrets to fly.io")

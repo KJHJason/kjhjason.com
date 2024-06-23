@@ -5,4 +5,5 @@ pub mod content_type;
 pub mod csp;
 pub mod csrf;
 pub mod errors;
+pub mod host;
 pub mod hsts;

@@ -58,7 +58,7 @@ def replace_hosted_viewer_origins_for_pdfjs() -> None:
         r'const HOSTED_VIEWER_ORIGINS = [\n    "null",\n    "https://storage.kjhjason.com",\n  ];',
     )
 
-def _remove_file_origin_checks_in_file(file_path: str, value: str) -> None:
+def _remove_file_origin_checks_in_file(file_path: str, value: str, to_replace_with: str) -> None:
     logging.info(f"Removing the file origin checks in {file_path}")
 
     with open(file_path, "r", encoding="utf-8") as f:
@@ -68,7 +68,7 @@ def _remove_file_origin_checks_in_file(file_path: str, value: str) -> None:
             return
 
     with open(file_path, "w", encoding="utf-8") as f:
-        f.write(content.replace(value, ""))
+        f.write(content.replace(value, to_replace_with))
 
     logging.info(f"Removed the file origin check in {file_path}")
 
@@ -78,8 +78,22 @@ def remove_file_origin_checks_for_pdfjs() -> None:
         throw new Error("file origin does not match viewer's");
       }"""
 
-    _remove_file_origin_checks_in_file("./static/pdfjs/web/viewer.mjs", mjs_value)
-    _remove_file_origin_checks_in_file("./static/pdfjs/web/viewer.mjs.map", mjs_map_value)
+    # the new values ensures that only pdf from storage.kjhjason.com can be viewed
+    mjs_new_value = r"""      if (!HOSTED_VIEWER_ORIGINS.includes(fileOrigin)) {
+        throw new Error("file origin not allowed");
+      }"""
+    mjs_map_new_value = r"""if (!HOSTED_VIEWER_ORIGINS.includes(fileOrigin)) {\n        throw new Error("file origin not allowed");\n      }\n"""
+
+    _remove_file_origin_checks_in_file(
+        "./static/pdfjs/web/viewer.mjs", 
+        mjs_value,
+        mjs_new_value,
+    )
+    _remove_file_origin_checks_in_file(
+        "./static/pdfjs/web/viewer.mjs.map", 
+        mjs_map_value,
+        mjs_map_new_value,
+    )
 
 def _change_default_options_in_file(file_path: str, value: str, to_replace_with: str) -> None:
     logging.info(f"Changing the default options in {file_path}")

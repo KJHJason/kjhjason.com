@@ -30,9 +30,6 @@ RUN cargo add actix-files --features experimental-io-uring
 # Note: cargo install will automatically build the project with the --release flag
 RUN cargo install --path . 
 
-# Remove artifacts after compilation to save storage space
-RUN cargo clean
-
 EXPOSE 8080
 
 # Run the web service on container startup.
