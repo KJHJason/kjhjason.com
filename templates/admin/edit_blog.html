@@ -61,7 +61,25 @@
         let initialTitle = document.getElementById("title-template").innerHTML;
         updateTitle(initialTitle);
 
+        /**
+         * @typedef {object} FileSlice
+         * @property {FileResponse} file
+         * @property {number} time
+         */
+        /**
+         * @type {FileSlice[]}
+         */
         let newFiles = [];
+
+        /**
+         * @typedef {object} FileResponse
+         * @property {string} name
+         * @property {string} url
+         * @property {string} signed_url
+         */
+        /**
+         * @param {FileResponse} file 
+         */
         fileUploadResponseHandler = (file) => {
             newFiles.push(file);
         };

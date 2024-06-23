@@ -3,6 +3,17 @@ let csrfValue = null;
 
 const isPublic = document.getElementById("is-public");
 
+/**
+ * @typedef {object} FileResponse
+ * @property {string} name
+ * @property {string} url
+ * @property {string} signed_url
+ */
+/**
+ * 
+ * @param {FileResponse} file 
+ * @returns {string}
+ */
 const parseUrlToMd = (file) => {
     if (!file.url.endsWith(".mp4")) {
         return `![${file.name}](${file.signed_url})\n`;
@@ -19,6 +30,18 @@ if (editDiv === null) {
 }
 
 const maxSize = 1024 * 1024 * 100; // 100MB
+
+/**
+ * Check if the file size is less than maxSize
+ * 
+ * Note: Since I am using Cloudflare behind the web server,
+ * Cloudflare free plan only allows 100MB in a single request
+ * Hence, if there's a need to upload a file larger than 100MB,
+ * chunk upload should be implemented instead.
+ * 
+ * @param {File} file
+ * @returns {boolean}
+ */
 const checkFileSize = (file) => {
     if (file.size > maxSize) {
         alert("File size is too large");
@@ -51,6 +74,13 @@ editDiv.addEventListener("drop", (e) => {
         uploadImage(file);
     }
 });
+
+/**
+ * Uploads the file to the server
+ * 
+ * @param {File} file
+ * @returns {void}
+ */
 const uploadImage = (file) => {
     if (csrfValue === null || csrfHeaderName === null) {
         throw new Error("csrf header name or value is null");
@@ -86,11 +116,30 @@ const uploadImage = (file) => {
 
 /* Fn mainly for the new blog route */
 
+/**
+ * @typedef {object} FileSlice
+ * @property {FileResponse} file
+ * @property {number} time
+ */
+/**
+ * 
+ * @param {FileResponse} file 
+ * @param {FileSlice[]} fileSlice
+ * @returns {void}
+ */
 const saveFileInfo = (file, fileSlice) => {
     fileSlice.push({"file": file, "time": new Date().getTime()});
     localStorage.setItem("fileSlice", JSON.stringify(fileSlice));
 };
+
 const maxAge = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Loads the file info from localStorage
+ * no longer than maxAge (7 days)
+ * 
+ * @returns {FileSlice[]}
+ */
 const loadFileInfo = () => {
     const fileSlice = localStorage.getItem("fileSlice");
     if (fileSlice === null) {
@@ -100,6 +149,14 @@ const loadFileInfo = () => {
     const currentTime = new Date().getTime();
     return files.filter((file) => currentTime - file.time < maxAge);
 };
+
+/**
+ * Converts the fileSlice to an array of files
+ * to be used for the upload logic.
+ * 
+ * @param {FileSlice[]} fileSlice
+ * @returns {File[]}
+ */
 const parseFileSliceForUpload = (fileSlice) => {
     return fileSlice.map((file) => file.file);
 };
@@ -119,6 +176,13 @@ const previewBtnEvt = () => {
 let useLocalStorage = true;
 const content = document.getElementById("content");
 const contentPreview = document.getElementById("content-preview");
+
+/**
+ * Updates the content of the blog
+ * 
+ * @param {string} value
+ * @returns {void}
+ */
 const updateContent = (value) => {
     content.value = value;
     contentPreview.value = value;
@@ -133,6 +197,13 @@ content.addEventListener("input", () => {
 
 const title = document.getElementById("title");
 const titlePreivew = document.getElementById("blog-title");
+
+/**
+ * Updates the title of the blog
+ * 
+ * @param {string} value
+ * @returns {void}
+ */
 const updateTitle = (value) => {
     title.value = value;
     titlePreivew.innerText = value;
@@ -157,6 +228,13 @@ tagsInp.addEventListener("input", () => {
         localStorage.setItem("tags", JSON.stringify(tagsSlice));
     }
 });
+
+/**
+ * Loads the tags from localStorage
+ * to the tags input field
+ * 
+ * @returns {string}
+ */
 const loadTags = () => {
     const tagsSlice = localStorage.getItem("tags");
     if (tagsSlice === null) {
@@ -164,6 +242,12 @@ const loadTags = () => {
     }
     tags.value = JSON.parse(tagsSlice).join(",");
 };
+
+/**
+ * Parse the tag input value to an array of tags
+ * @param {string} tags 
+ * @returns {string[]}
+ */
 const parseTags = (tags) => {
     return tags.split(",")
         .map((tag) => tag.trim())

@@ -1,3 +1,10 @@
+/**
+ * Parse date to local date format
+ * 
+ * @param {string} date
+ * @param {boolean} withTime
+ * @returns {string}
+ */
 const parseDateToLocal = (date, withTime = false) => {
     const dateObj = new Date(date);
     return dateObj.toLocaleDateString("en-US", {

@@ -35,7 +35,26 @@
 
         csrfHeaderName = "{{ common.csrf_header }}";
         csrfValue = "{{ common.csrf_value }}";
+
+        /**
+         * @typedef {object} FileSlice
+         * @property {FileResponse} file
+         * @property {number} time
+         */
+        /**
+         * @type {FileSlice[]}
+         */
         const files = loadFileInfo();
+
+        /**
+         * @typedef {object} FileResponse
+         * @property {string} name
+         * @property {string} url
+         * @property {string} signed_url
+         */
+        /**
+         * @param {FileResponse} file 
+         */
         fileUploadResponseHandler = (file) => {
             saveFileInfo(file, files);
         };

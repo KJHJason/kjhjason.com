@@ -1,4 +1,18 @@
 const changePasswordForm = document.getElementById("change-password-form");
+
+/**
+ * @typedef {Object} detail
+ * @property {XMLHttpRequest} xhr
+ */
+/**
+ * @typedef {Object} ChangePasswordEvent
+ * @property {detail} detail
+ */
+/**
+ * Handles the change password response
+ * 
+ * @param {ChangePasswordEvent} e
+ */
 const handleChangePasswordRes = (e) => {
     turnstile.reset();
 

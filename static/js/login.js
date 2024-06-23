@@ -1,4 +1,18 @@
 const totpInputDiv = document.getElementById("totp-input-div");
+
+/**
+ * @typedef {Object} detail
+ * @property {XMLHttpRequest} xhr
+ */
+/**
+ * @typedef {Object} LoginEvent
+ * @property {detail} detail
+ */
+/**
+ * Handles the login request
+ * 
+ * @param {LoginEvent} e
+ */
 const handleLoginRequest = (e) => {
     const detail = e.detail;
     const xhr = detail.xhr;
