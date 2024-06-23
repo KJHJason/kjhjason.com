@@ -14,6 +14,8 @@ pub enum AuthError {
     InvalidCredentials,
     #[display(fmt = "Incorrect password!")]
     IncorrectPassword, // Note: This should only be used when the user is logged in
+    #[display(fmt = "New password and confirm password do not match")]
+    PasswordMismatch,
     #[display(fmt = "Missing Time-based One-Time Password (TOTP)")]
     MissingTotp,
     #[display(fmt = "Invalid Time-based One-Time Password (TOTP)")]
@@ -47,6 +49,9 @@ impl ResponseError for AuthError {
                 .content_type(content_type)
                 .body(error_html),
             AuthError::IncorrectPassword => HttpResponse::Unauthorized()
+                .content_type(content_type)
+                .body(error_html),
+            AuthError::PasswordMismatch => HttpResponse::BadRequest()
                 .content_type(content_type)
                 .body(error_html),
             AuthError::MissingTotp => HttpResponse::BadRequest()

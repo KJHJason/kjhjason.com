@@ -7,6 +7,7 @@ pub struct ProjectedBlog {
     #[serde(rename = "_id")]
     pub id: Option<ObjectId>,
     pub title: Option<String>,
+    pub seo_desc: Option<String>,
     pub tags: Option<Vec<String>>,
     pub files: Option<Vec<FileInfo>>,
     pub content: Option<String>,

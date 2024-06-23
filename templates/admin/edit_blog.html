@@ -21,6 +21,7 @@
     </button>
     {% include "components/blog_input_div.html" %}
     <template id="title-template">{{ title }}</template>
+    <template id="seo-desc-template">{{ seo_desc }}</template>
     <template id="tags-template">{{ tags }}</template>
     <!-- using pre to avoid removing the whitespaces in the content
         https://github.com/wilsonzlin/minify-html?tab=readme-ov-file#whitespace -->
@@ -61,6 +62,9 @@
         let initialTitle = document.getElementById("title-template").innerHTML;
         updateTitle(initialTitle);
 
+        let initialSeoDesc = document.getElementById("seo-desc-template").innerHTML;
+        seoDesc.value = initialSeoDesc;
+
         /**
          * @typedef {object} FileSlice
          * @property {FileResponse} file
@@ -86,6 +90,7 @@
 
         const postBlog = async () => {
             const tileVal = title.value;
+            const seoDescVal = seoDesc.value;
             const contentVal = content.value;
             const tagsVal = tagsInp.value;
 
@@ -113,6 +118,9 @@
             };
             if (tileVal !== initialTitle) {
                 data.title = tileVal;
+            }
+            if (seoDescVal !== initialSeoDesc) {
+                data.seo_desc = seoDescVal;
             }
             if (tagsVal !== initialTags) {
                 data.tags = tagsSlice;

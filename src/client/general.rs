@@ -186,6 +186,7 @@ async fn blog_id(
                 common,
                 id: &blog_post.get_id_string(),
                 title: &blog_post.title,
+                seo_desc: &blog_post.seo_desc,
                 date: &blog_post.get_date_string(),
                 readable_date: &blog_post.get_readable_date_diff(),
                 last_modified: &blog_post.get_last_modified_date_string(),

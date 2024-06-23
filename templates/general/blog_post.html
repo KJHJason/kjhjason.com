@@ -8,7 +8,7 @@
     {% call seo::get(
         title=title,
         url="https://kjhjason.com/blogs/{{ id }}",
-        desc="View the blog post titled \"{{ title }}\" that I have written.",
+        desc=seo_desc,
     ) %}
 {% endblock %}
 

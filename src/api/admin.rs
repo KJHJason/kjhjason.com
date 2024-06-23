@@ -65,6 +65,7 @@ async fn new_blog(
 
     let mut blog = Blog::new(
         title,
+        blog_op.seo_desc,
         String::new(),
         &blog_op.tags,
         &vec![],
@@ -108,11 +109,13 @@ async fn update_blog(
         }
     }
 
+    let updating_seo_desc = !blog.seo_desc.is_none();
     let updating_content = !blog.content.is_none();
     let updating_files = updating_content || !blog.new_files.is_none();
     let updating_title = !blog.title.is_none();
     let updating_public = !blog.is_public.is_none();
-    let no_changes = !updating_content
+    let no_changes = !updating_seo_desc
+        && !updating_content
         && !updating_files
         && !updating_title
         && !updating_tags
@@ -124,6 +127,9 @@ async fn update_blog(
     let mut projection_doc = doc! {};
     if updating_title {
         projection_doc.insert(blog::TITLE_KEY, 1);
+    }
+    if updating_seo_desc {
+        projection_doc.insert(blog::SEO_DESC_KEY, 1);
     }
     if updating_content {
         projection_doc.insert(blog::CONTENT_KEY, 1);
@@ -180,6 +186,15 @@ async fn update_blog(
             is_updating = true;
             set_doc.insert(blog::FILES_KEY, files_to_put_in_db);
         }
+    }
+
+    let seo_desc = blog.seo_desc.unwrap_or_default();
+    if updating_seo_desc
+        && !seo_desc.is_empty()
+        && seo_desc != blog_in_db.seo_desc.unwrap_or_default()
+    {
+        is_updating = true;
+        set_doc.insert(blog::SEO_DESC_KEY, seo_desc);
     }
 
     let old_blog_content = blog_in_db.content.unwrap_or_default();

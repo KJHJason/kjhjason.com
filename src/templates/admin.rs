@@ -14,6 +14,7 @@ pub struct EditBlog<'a> {
     pub common: TemplateValues,
     pub id: &'a str,
     pub title: &'a str,
+    pub seo_desc: &'a str,
     pub content: &'a str,
     pub public: bool,
     pub tags: &'a str,

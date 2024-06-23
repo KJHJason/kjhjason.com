@@ -48,6 +48,7 @@ async fn edit_blog(
         common: extract_for_template(&req),
         id: &blog_id.to_hex(),
         title: &blog.title,
+        seo_desc: &blog.seo_desc,
         content: &blog.content,
         public: blog.is_public,
         tags: &blog.tags.join(", "),

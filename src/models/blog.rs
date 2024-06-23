@@ -5,6 +5,7 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
 pub const TITLE_KEY: &str = "title";
+pub const SEO_DESC_KEY: &str = "seo_desc";
 pub const TAGS_KEY: &str = "tags";
 pub const FILES_KEY: &str = "files";
 pub const CONTENT_KEY: &str = "content";
@@ -17,6 +18,7 @@ pub struct Blog {
     #[serde(rename = "_id")]
     pub id: ObjectId,
     pub title: String,
+    pub seo_desc: String,
     pub tags: Vec<String>,
     pub files: Vec<FileInfo>,
     pub content: String,
@@ -32,6 +34,7 @@ pub struct Blog {
 impl Blog {
     pub fn new(
         title: String,
+        seo_desc: String,
         content: String,
         tags: &Vec<String>,
         files: &Vec<FileInfo>,
@@ -40,6 +43,7 @@ impl Blog {
         Blog {
             id: ObjectId::new(),
             title,
+            seo_desc: seo_desc,
             tags: tags.clone(),
             files: files.clone(),
             content,

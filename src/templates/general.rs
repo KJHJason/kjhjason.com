@@ -115,6 +115,7 @@ pub struct BlogPost<'a> {
     pub common: TemplateValues,
     pub id: &'a str,
     pub title: &'a str,
+    pub seo_desc: &'a str,
     pub date: &'a str,
     pub last_modified: &'a str,
     pub readable_date: &'a str,

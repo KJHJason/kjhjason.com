@@ -171,6 +171,10 @@ async fn change_password(
 ) -> Result<HttpResponse, AuthError> {
     verify_captcha!(&req, &change_data.cf_turnstile_res);
 
+    if change_data.new_password != change_data.confirm_password {
+        return Err(AuthError::PasswordMismatch);
+    }
+
     let user_info = get_user_claim(&req);
     let options = FindOneOptions::builder()
         .projection(doc! {user::TOTP_SECRET_KEY: 1, user::PASSWORD_KEY: 1})

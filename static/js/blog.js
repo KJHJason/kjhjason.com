@@ -1,3 +1,10 @@
+// LocalStorage keys
+const titleKey = "title";
+const seoDescKey = "seoDesc";
+const contentKey = "content";
+const tagsKey = "tags";
+const fileSliceKey = "fileSlice";
+
 let csrfHeaderName = null;
 let csrfValue = null;
 
@@ -129,7 +136,7 @@ const uploadImage = (file) => {
  */
 const saveFileInfo = (file, fileSlice) => {
     fileSlice.push({"file": file, "time": new Date().getTime()});
-    localStorage.setItem("fileSlice", JSON.stringify(fileSlice));
+    localStorage.setItem(fileSliceKey, JSON.stringify(fileSlice));
 };
 
 const maxAge = 7 * 24 * 60 * 60 * 1000;
@@ -141,7 +148,7 @@ const maxAge = 7 * 24 * 60 * 60 * 1000;
  * @returns {FileSlice[]}
  */
 const loadFileInfo = () => {
-    const fileSlice = localStorage.getItem("fileSlice");
+    const fileSlice = localStorage.getItem(fileSliceKey);
     if (fileSlice === null) {
         return [];
     }
@@ -190,7 +197,7 @@ const updateContent = (value) => {
 content.addEventListener("input", () => {
     const value = content.value;
     if (useLocalStorage) {
-        localStorage.setItem("content", value);
+        localStorage.setItem(contentKey, value);
     }
     contentPreview.value = value;
 });
@@ -212,10 +219,24 @@ title.addEventListener("input", () => {
     const value = title.value;
     titlePreivew.innerText = value;
     if (useLocalStorage) {
-        localStorage.setItem("title", value);
+        localStorage.setItem(titleKey, value);
     }
-    localStorage.setItem("title", value);
+    localStorage.setItem(titleKey, value);
 });
+
+const seoDesc = document.getElementById("seo-desc");
+seoDesc.addEventListener("input", () => {
+    if (useLocalStorage) {
+        localStorage.setItem(seoDescKey, seoDesc.value);
+    }
+});
+const loadSeoDesc = () => {
+    const seoDescValue = localStorage.getItem(seoDescKey);
+    if (seoDescValue === null) {
+        return;
+    }
+    seoDesc.value = seoDescValue;
+};
 
 const maxTags = 8;
 const tagsInp = document.getElementById("tags");
@@ -225,7 +246,7 @@ tagsInp.addEventListener("input", () => {
         tagsSlice = tagsSlice.slice(0, 8);
     }
     if (useLocalStorage) {
-        localStorage.setItem("tags", JSON.stringify(tagsSlice));
+        localStorage.setItem(tagsKey, JSON.stringify(tagsSlice));
     }
 });
 
@@ -236,7 +257,7 @@ tagsInp.addEventListener("input", () => {
  * @returns {string}
  */
 const loadTags = () => {
-    const tagsSlice = localStorage.getItem("tags");
+    const tagsSlice = localStorage.getItem(tagsKey);
     if (tagsSlice === null) {
         return;
     }

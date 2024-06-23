@@ -4,6 +4,7 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct NewBlog {
     pub title: String,
+    pub seo_desc: String,
     pub tags: Vec<String>,
     pub files: Vec<FileInfo>,
     pub content: String,

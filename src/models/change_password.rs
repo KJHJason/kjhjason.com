@@ -10,6 +10,4 @@ pub struct ChangePassword {
     pub new_password: String,
     #[serde(rename = "confirm-password")]
     pub confirm_password: String,
-    #[serde(rename = "totp-input")]
-    pub totp_input: Option<String>,
 }

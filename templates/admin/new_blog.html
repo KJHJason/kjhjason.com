@@ -20,15 +20,15 @@
     <script nonce="{{ common.nonce }}" src="/static/js/blog.js"></script>
     <script nonce="{{ common.nonce }}">
         // read from localstorage
-        const savedContent = localStorage.getItem("content");
+        const savedContent = localStorage.getItem(contentKey);
         if (savedContent) {
             updateContent(savedContent)
         }
-        const savedTags = localStorage.getItem("tags");
+        const savedTags = localStorage.getItem(tagsKey);
         if (savedTags) {
             tags.value = savedTags;
         }
-        const savedTitle = localStorage.getItem("title");
+        const savedTitle = localStorage.getItem(titleKey);
         if (savedTitle) {
             updateTitle(savedTitle);
         }
@@ -60,8 +60,10 @@
         };
 
         loadTags();
+        loadSeoDesc();
         const postBlog = () => {
             const tileVal = title.value;
+            const seoDescVal = seoDesc.value;
             const contentVal = content.value;
             const tagsVal = parseTags(tagsInp.value);
 
@@ -90,6 +92,7 @@
                 },
                 body: JSON.stringify({
                     title: tileVal,
+                    seo_desc: seoDescVal,
                     tags: tagsVal,
                     files: parseFileSliceForUpload(files),
                     content: contentVal,
@@ -100,10 +103,10 @@
                     if (!response.ok) {
                         throw new Error("Failed to create blog!", response);
                     }
-                    localStorage.removeItem("content");
-                    localStorage.removeItem("tags");
-                    localStorage.removeItem("title");
-                    localStorage.removeItem("files");
+                    localStorage.removeItem(contentKey);
+                    localStorage.removeItem(tagsKey);
+                    localStorage.removeItem(titleKey);
+                    localStorage.removeItem(fileKey);
                     return response.text();
                 })
                 .then((blogId) => {

@@ -5,6 +5,7 @@ use serde::Deserialize;
 pub struct UpdateBlog {
     pub id: String,
     pub title: Option<String>,
+    pub seo_desc: Option<String>,
     pub tags: Option<Vec<String>>,
     pub new_files: Option<Vec<FileInfo>>,
     pub content: Option<String>,

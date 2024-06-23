@@ -21,7 +21,7 @@ async fn login_admin(req: HttpRequest) -> HttpResponse {
                 common: extract_for_template(&req),
                 index_page: true,
                 login_url: "api/admin",
-                client_login_url: "admin",
+                client_login_url: "https://kjhjason.com/admin",
             };
             render_template(template, StatusCode::OK)
         }
@@ -39,7 +39,7 @@ async fn login_auth(req: HttpRequest) -> HttpResponse {
                 common: extract_for_template(&req),
                 index_page: false,
                 login_url: "api/auth/login",
-                client_login_url: "auth/login",
+                client_login_url: "https://kjhjason.com/auth/login",
             };
             render_template(template, StatusCode::OK)
         }
