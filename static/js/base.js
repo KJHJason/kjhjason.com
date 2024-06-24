@@ -15,12 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
     window.onscroll = () => {
         if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
             scrollToTopBtn.classList.add("show");
-        } else{
+        } else {
             scrollToTopBtn.classList.remove("show");
         }
     };
+
+    const rootEl = document.documentElement;
     scrollToTopBtn.addEventListener("click", () => {
-        document.documentElement.scrollTo({
+        rootEl.scrollTo({
             top: 0, 
             behavior: "smooth",
         });

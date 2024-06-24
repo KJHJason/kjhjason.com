@@ -12,11 +12,8 @@
         <div class="flex-none">
             <ul class="menu menu-horizontal px-1">
                 <li>
-                    <a href="/blogs">Blogs</a>
-                </li>
-                <li>
                     <details>
-                        <summary>More</summary>
+                        <summary>Main</summary>
                         <ul class="z-50 p-2 accent rounded-t-none">
                             <li>
                                 <details open>
@@ -47,7 +44,7 @@
                                 </details>
                             </li>
                             <li>
-                                <details open>
+                                <details>
                                     <summary>Admin</summary>
                                     <ul id="auth-items">
                                         {% if !common.is_logged_in %}
@@ -74,6 +71,9 @@
                             </li>
                         </ul>
                     </details>
+                </li>
+                <li>
+                    <a href="/blogs">Blogs</a>
                 </li>
             </ul>
         </div>
