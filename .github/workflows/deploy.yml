@@ -15,4 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: py ./dev_scripts/init_project.py -p -pm
       - run: flyctl deploy --remote-only

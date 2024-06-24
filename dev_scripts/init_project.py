@@ -2,6 +2,7 @@ import json
 import shutil
 import pathlib
 import logging
+import argparse
 from urllib import request as urllib_request
 
 def init_env_file() -> None:
@@ -178,19 +179,39 @@ def main() -> None:
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
-    init_env_file()
-    download_pdfjs()
 
-    # Modify the pdfjs source files
-    replace_hosted_viewer_origins_for_pdfjs()
+    parser = argparse.ArgumentParser(
+        prog="init-project",
+        description="Initialise the project with the necessary files and configurations.",
+    )
+    parser.add_argument("-e", "--init-env", 
+                    action="store_true", 
+                    help="Initialise .env file flag.")
+    parser.add_argument("-p", "--pdfjs", 
+                        action="store_true", 
+                        help="Download and extract pdfjs flag.")
+    parser.add_argument("-pm", "--pdfjs-modify", 
+                        action="store_true", 
+                        help="Modify the pdfjs source files flag.")
 
-    # Remove the file origin checks so 
-    # that the pdf can use storage.kjhjason.com
-    remove_file_origin_checks_for_pdfjs()
+    args = parser.parse_args()
+    if args.init_env:
+        init_env_file()
 
-    # Change the default options for pdfjs.
-    # Mainly to disable editing of the pdf.
-    change_default_options_for_pdfjs()
+    if args.pdfjs:
+        download_pdfjs()
+
+    if args.pdfjs_modify:
+        # Modify the pdfjs source files
+        replace_hosted_viewer_origins_for_pdfjs()
+
+        # Remove the file origin checks so 
+        # that the pdf can use storage.kjhjason.com
+        remove_file_origin_checks_for_pdfjs()
+
+        # Change the default options for pdfjs.
+        # Mainly to disable editing of the pdf.
+        change_default_options_for_pdfjs()
 
 if __name__ == "__main__":
     main()
