@@ -7,6 +7,7 @@ COPY . .
 # install npm packages like tailwindcss
 RUN npm install
 RUN npm run build
+RUN rm ./static/css/tailwind.css
 
 # Minify js files in the static folder
 RUN npm install -g uglify-js
