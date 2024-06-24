@@ -5,7 +5,7 @@ use crate::api::admin::{
 use crate::api::admin_profile::{change_password, generate_2fa, remove_2fa, setup_2fa};
 use crate::api::auth::{admin_honeypot, login, logout};
 use crate::api::csrf::get_csrf_token;
-use crate::api::general::api_index;
+use crate::api::general::{api_health, api_index};
 use actix_web::web;
 
 #[inline]
@@ -43,7 +43,7 @@ fn add_auth_routes(cfg: &mut web::ServiceConfig) {
 
 #[inline]
 fn add_general_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(api_index).service(setup_2fa);
+    cfg.service(api_index).service(api_health);
 }
 
 #[inline]

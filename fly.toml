@@ -20,7 +20,7 @@ primary_region = 'sin'
     h2_backend = true
 
 [[http_service.checks]]
-  grace_period = "4s"
+  grace_period = "2s"
   interval = "30s"
   method = "GET"
   timeout = "5s"
