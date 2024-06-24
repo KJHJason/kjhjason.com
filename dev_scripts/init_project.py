@@ -151,7 +151,7 @@ def download_pdfjs() -> None:
     assets: list[dict] = json_response["assets"]
     for asset in assets:
         name: str = asset["name"]
-        if "legacy" in name:
+        if "legacy" not in name:
             continue
 
         download_url = asset["browser_download_url"]
