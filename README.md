@@ -31,7 +31,7 @@ This is the source code for my personal website, [kjhjason.com](https://kjhjason
 
 - Automated attacks are mitigated using Cloudflare's [turnstile](https://www.cloudflare.com/products/turnstile/) CAPTCHA solution.
 - Passwords are hashed using [Argon2](https://github.com/RustCrypto/password-hashes/tree/master/argon2).
-- TOTP secrets for 2FA are stored in the database encrypted using [XChaCha20-Poly1305](https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305).
+- TOTP secrets for 2FA are encrypted using [XChaCha20-Poly1305](https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305) before being stored in the database.
 - Nonces are generated with `rand::thread_rng()` that is cryptographically secure and are usually 32 bytes long.
 - Implemented various middleware for enhanced security to adhere to [OWASP Top 10](https://owasp.org/www-project-top-ten/) guidelines:
   - Content Security Policy.
