@@ -16,5 +16,15 @@ primary_region = 'sin'
   min_machines_running = 0
   processes = ['app']
 
+  [services.ports.http_options]
+    h2_backend = true
+
+[[http_service.checks]]
+  grace_period = "4s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/api/health"
+
 [[vm]]
   size = 'shared-cpu-1x'

@@ -8,3 +8,10 @@ async fn api_index() -> HttpResponse {
         .content_type("application/json")
         .body(serialised);
 }
+
+#[get("/api/health")]
+async fn api_health() -> HttpResponse {
+    return HttpResponse::Ok()
+        .content_type("application/json")
+        .body(r#"{"status": "ok"}"#);
+}

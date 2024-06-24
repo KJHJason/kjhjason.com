@@ -6,6 +6,8 @@ macro_rules! get_client_routes {
         vec![
             (Method::GET, "/"),
             (Method::GET, "/favicon.ico"),
+            (Method::GET, "/robots.txt"),
+            (Method::GET, "/sitemap.xml"),
             (Method::GET, "/experiences"),
             (Method::GET, "/testimonials"),
             (Method::GET, "/projects"),
@@ -18,6 +20,7 @@ macro_rules! get_client_routes {
             (Method::GET, "/login"),
             (Method::GET, "/auth/login"),
             (Method::GET, "/api"),
+            (Method::GET, "/api/health"),
             (Method::GET, "/api/csrf-token"),
         ]
     };
@@ -55,8 +58,9 @@ pub fn configure_csrf_middleware() -> middleware::csrf::CsrfMiddleware {
 pub fn configure_csp_middleware() -> middleware::csp::CspMiddleware {
     let csp_whitelist = vec![
         (Method::GET, "/favicon.ico"),
+        (Method::GET, "/robots.txt"),
+        (Method::GET, "/sitemap.xml"),
         (Method::GET, "/api"),
-        (Method::GET, "/api/csrf-token"),
     ];
     let api_regex = regex::Regex::new(r"^/api/.*$").unwrap();
     let csp_whitelist_regex = vec![
