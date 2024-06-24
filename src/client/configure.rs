@@ -4,7 +4,7 @@ use crate::client::general::{
     awards, blog_id, blogs, certificates, experiences, index, projects, resume, skills,
     testimonials,
 };
-use crate::client::static_files::{favicon, sweetalert_css, sweetalert_js};
+use crate::client::static_files::{favicon, robots_txt, sitemap_xml, sweetalert_css, sweetalert_js};
 use actix_web::web;
 
 #[inline]
@@ -18,6 +18,8 @@ pub fn add_client_routes(cfg: &mut web::ServiceConfig) {
 #[inline]
 fn add_static_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(favicon)
+        .service(robots_txt)
+        .service(sitemap_xml)
         .service(sweetalert_js)
         .service(sweetalert_css)
         .service(

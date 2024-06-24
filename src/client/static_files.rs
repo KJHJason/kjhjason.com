@@ -8,6 +8,20 @@ async fn favicon() -> impl Responder {
         .expect("should be able to open favicon.ico file")
 }
 
+#[get("/robots.txt")]
+async fn robots_txt() -> impl Responder {
+    NamedFile::open_async("./robots.txt")
+        .await
+        .expect("should be able to open robots.txt file")
+}
+
+#[get("/sitemap.xml")]
+async fn sitemap_xml() -> impl Responder {
+    NamedFile::open_async("./sitemap.xml")
+        .await
+        .expect("should be able to open sitemap.xml file")
+}
+
 #[get("/static/js/sweetalert2.min.js")]
 async fn sweetalert_js() -> impl Responder {
     NamedFile::open_async("./node_modules/sweetalert2/dist/sweetalert2.min.js")
