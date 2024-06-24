@@ -22,6 +22,15 @@ pub fn generate_random_bytes(length: usize) -> Vec<u8> {
     random_bytes
 }
 
+#[inline]
+pub fn convert_vec_str_to_owned(vec_str: Vec<(Method, &str)>) -> Vec<(Method, String)> {
+    let mut vec_str_owned = Vec::with_capacity(vec_str.len());
+    for (method, path) in vec_str {
+        vec_str_owned.push((method, path.to_string()));
+    }
+    vec_str_owned
+}
+
 pub fn is_protected(
     whitelist: &[(Method, String)],
     whitelist_regex: &[(Method, regex::Regex)],

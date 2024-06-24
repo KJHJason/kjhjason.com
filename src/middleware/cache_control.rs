@@ -7,30 +7,30 @@ use std::future::ready;
 use std::rc::Rc;
 
 #[derive(Clone)]
-pub struct CacheStrictPathValue {
-    pub path: String,
-    pub value: String,
+pub struct CacheStrictPathValue<'a> {
+    pub path: &'a str,
+    pub value: &'a str,
 }
 
 #[derive(Clone)]
-pub struct CachePathValue {
+pub struct CachePathValue<'a> {
     pub path: Regex,
-    pub value: String,
+    pub value: &'a str,
 }
 
 #[derive(Clone)]
-pub struct CachePaths {
-    pub strict_paths: Vec<CacheStrictPathValue>,
-    pub regex_paths: Vec<CachePathValue>,
+pub struct CachePaths<'a> {
+    pub strict_paths: Vec<CacheStrictPathValue<'a>>,
+    pub regex_paths: Vec<CachePathValue<'a>>,
 }
 
 #[derive(Clone)]
 pub struct CacheControlMiddleware {
-    inner: CachePaths,
+    inner: CachePaths<'static>,
 }
 
 impl CacheControlMiddleware {
-    pub fn new(cache_paths: CachePaths) -> Self {
+    pub fn new(cache_paths: CachePaths<'static>) -> Self {
         Self { inner: cache_paths }
     }
 }
@@ -57,7 +57,7 @@ where
 
 pub struct CacheControlMiddlewareService<S> {
     service: S,
-    inner: Rc<CachePaths>,
+    inner: Rc<CachePaths<'static>>,
 }
 
 impl<S, B> Service<ServiceRequest> for CacheControlMiddlewareService<S>
@@ -74,17 +74,17 @@ where
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let path = req.path();
-        let mut cache_control = String::new();
+        let mut cache_control = "";
         for cache in &self.inner.strict_paths {
             if cache.path == path {
-                cache_control = cache.value.clone();
+                cache_control = cache.value;
                 break;
             }
         }
         if cache_control.is_empty() {
             for cache in &self.inner.regex_paths {
                 if cache.path.is_match(path) {
-                    cache_control = cache.value.clone();
+                    cache_control = cache.value;
                     break;
                 }
             }

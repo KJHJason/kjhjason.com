@@ -1,5 +1,4 @@
-use crate::utils::security::generate_random_bytes;
-use crate::utils::security::is_protected;
+use crate::utils::security::{convert_vec_str_to_owned, generate_random_bytes, is_protected};
 use actix_web::dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform};
 use actix_web::http::header::HeaderValue;
 use actix_web::http::{header, Method};
@@ -10,40 +9,32 @@ use std::future::ready;
 use std::rc::Rc;
 
 #[derive(Clone)]
-pub struct ContentSecurityPolicies {
-    pub script_src: Vec<String>,
-    pub style_src: Vec<String>,
-    pub frame_src: Vec<String>,
-    pub default_src: Vec<String>,
-    pub base_uri: Vec<String>,
-    pub img_src: Vec<String>,
-    pub font_src: Vec<String>,
-    pub object_src: Vec<String>,
-    pub form_action: Vec<String>,
-    pub frame_ancestors: Vec<String>,
+pub struct ContentSecurityPolicies<'a> {
+    pub script_src: Vec<&'a str>,
+    pub style_src: Vec<&'a str>,
+    pub frame_src: Vec<&'a str>,
+    pub default_src: Vec<&'a str>,
+    pub base_uri: Vec<&'a str>,
+    pub img_src: Vec<&'a str>,
+    pub font_src: Vec<&'a str>,
+    pub object_src: Vec<&'a str>,
+    pub form_action: Vec<&'a str>,
+    pub frame_ancestors: Vec<&'a str>,
 }
 
-impl Default for ContentSecurityPolicies {
+impl Default for ContentSecurityPolicies<'_> {
     fn default() -> Self {
         Self {
-            script_src: vec!["'self'".to_string()],
-            style_src: vec![
-                "'self'".to_string(),
-                "https:".to_string(),
-                "'unsafe-inline'".to_string(),
-            ],
-            frame_src: vec!["'self'".to_string()],
-            default_src: vec!["'self'".to_string()],
-            base_uri: vec!["'self'".to_string()],
-            img_src: vec!["'self'".to_string(), "data:".to_string()],
-            font_src: vec![
-                "'self'".to_string(),
-                "https:".to_string(),
-                "data:".to_string(),
-            ],
-            object_src: vec!["'none'".to_string()],
-            form_action: vec!["'self'".to_string()],
-            frame_ancestors: vec!["'self'".to_string()],
+            script_src: vec!["'self'"],
+            style_src: vec!["'self'", "https:", "'unsafe-inline'"],
+            frame_src: vec!["'self'"],
+            default_src: vec!["'self'"],
+            base_uri: vec!["'self'"],
+            img_src: vec!["'self'", "data:"],
+            font_src: vec!["'self'", "https:", "data:"],
+            object_src: vec!["'none'"],
+            form_action: vec!["'self'"],
+            frame_ancestors: vec!["'self'"],
         }
     }
 }
@@ -53,7 +44,7 @@ fn generate_nonce(n_bytes: usize) -> String {
     general_purpose::URL_SAFE_NO_PAD.encode(&nonce)
 }
 
-fn add_csp_header(csp_option: &str, csp_value: &Vec<String>) -> Option<String> {
+fn add_csp_header(csp_option: &str, csp_value: &Vec<&str>) -> Option<String> {
     if csp_value.is_empty() {
         return None;
     }
@@ -115,19 +106,19 @@ struct CspMiddlewareConfig {
     nonce_len: usize,
     whitelist: Vec<(Method, String)>,
     whitelist_regex: Vec<(Method, regex::Regex)>,
-    csp_config: ContentSecurityPolicies,
+    csp_config: ContentSecurityPolicies<'static>,
 }
 
 impl CspMiddlewareConfig {
     pub fn new(
         nonce_len: usize,
-        whitelist: Vec<(Method, String)>,
+        whitelist: Vec<(Method, &str)>,
         whitelist_regex: Vec<(Method, regex::Regex)>,
-        csp_config: ContentSecurityPolicies,
+        csp_config: ContentSecurityPolicies<'static>,
     ) -> Self {
         Self {
             nonce_len,
-            whitelist,
+            whitelist: convert_vec_str_to_owned(whitelist),
             whitelist_regex,
             csp_config,
         }
@@ -153,9 +144,9 @@ pub struct CspMiddleware {
 impl CspMiddleware {
     pub fn new(
         nonce_len: usize,
-        whitelist: Vec<(Method, String)>,
+        whitelist: Vec<(Method, &str)>,
         whitelist_regex: Vec<(Method, regex::Regex)>,
-        csp_options: ContentSecurityPolicies,
+        csp_options: ContentSecurityPolicies<'static>,
     ) -> Self {
         Self {
             inner: CspMiddlewareConfig::new(nonce_len, whitelist, whitelist_regex, csp_options),

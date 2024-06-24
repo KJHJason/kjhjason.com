@@ -1,6 +1,6 @@
 use crate::errors::csrf as csrf_errors;
 use crate::security::csrf::CsrfSigner;
-use crate::utils::security::is_protected;
+use crate::utils::security::{convert_vec_str_to_owned, is_protected};
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
 use actix_web::http::header::HeaderValue;
 use actix_web::http::{header, Method};
@@ -45,18 +45,18 @@ struct CsrfMiddlewareConfig {
 impl CsrfMiddlewareConfig {
     pub fn new(
         csrf_signer: CsrfSigner,
-        whitelist: Vec<(Method, String)>,
+        whitelist: Vec<(Method, &str)>,
         whitelist_regex: Vec<(Method, regex::Regex)>,
     ) -> Self {
         Self {
             csrf_signer,
-            whitelist,
+            whitelist: convert_vec_str_to_owned(whitelist),
             whitelist_regex,
         }
     }
     #[inline]
-    pub fn set_whitelist(&mut self, whitelist: Vec<(Method, String)>) {
-        self.whitelist = whitelist;
+    pub fn set_whitelist(&mut self, whitelist: Vec<(Method, &str)>) {
+        self.whitelist = convert_vec_str_to_owned(whitelist)
     }
     #[inline]
     pub fn get_csrf_cookie_name(&self) -> &str {
@@ -90,7 +90,7 @@ pub struct CsrfMiddleware {
 impl CsrfMiddleware {
     pub fn new(
         signer: Option<CsrfSigner>,
-        whitelist: Vec<(Method, String)>,
+        whitelist: Vec<(Method, &str)>,
         whitelist_regex: Vec<(Method, regex::Regex)>,
     ) -> Self {
         let config = match signer {

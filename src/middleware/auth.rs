@@ -1,6 +1,6 @@
 use crate::constants::constants;
 use crate::templates::error::ErrorTemplate;
-use crate::utils::security::get_default_key_info;
+use crate::utils::security::{convert_vec_str_to_owned, get_default_key_info};
 use actix_web::body::{BoxBody, EitherBody};
 use actix_web::cookie::Cookie;
 use actix_web::http::{header::ContentType, Method, StatusCode};
@@ -104,13 +104,13 @@ impl UserAuth {
     pub fn new(
         csrf_signer: HmacSigner,
         cookie_name: String,
-        whitelist: Vec<(Method, String)>,
+        whitelist: Vec<(Method, &str)>,
         whitelist_regex: Vec<(Method, regex::Regex)>,
     ) -> Self {
         Self {
             csrf_signer,
             cookie_name,
-            whitelist,
+            whitelist: convert_vec_str_to_owned(whitelist),
             whitelist_regex,
         }
     }
@@ -128,7 +128,7 @@ impl AuthMiddleware {
     pub fn new(
         signer: Option<HmacSigner>,
         cookie_name: &str,
-        whitelist: Vec<(Method, String)>,
+        whitelist: Vec<(Method, &str)>,
         whitelist_regex: Vec<(Method, regex::Regex)>,
     ) -> Self {
         let signer = signer.unwrap_or_else(|| get_default_auth_signer());

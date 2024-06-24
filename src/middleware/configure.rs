@@ -4,21 +4,21 @@ use actix_web::http::Method;
 macro_rules! get_client_routes {
     () => {
         vec![
-            (Method::GET, "/".to_string()),
-            (Method::GET, "/favicon.ico".to_string()),
-            (Method::GET, "/experiences".to_string()),
-            (Method::GET, "/testimonials".to_string()),
-            (Method::GET, "/projects".to_string()),
-            (Method::GET, "/skills".to_string()),
-            (Method::GET, "/certificates".to_string()),
-            (Method::GET, "/awards".to_string()),
-            (Method::GET, "/resume".to_string()),
-            (Method::GET, "/blogs".to_string()),
-            (Method::GET, "/admin".to_string()),
-            (Method::GET, "/login".to_string()),
-            (Method::GET, "/auth/login".to_string()),
-            (Method::GET, "/api".to_string()),
-            (Method::GET, "/api/csrf-token".to_string()),
+            (Method::GET, "/"),
+            (Method::GET, "/favicon.ico"),
+            (Method::GET, "/experiences"),
+            (Method::GET, "/testimonials"),
+            (Method::GET, "/projects"),
+            (Method::GET, "/skills"),
+            (Method::GET, "/certificates"),
+            (Method::GET, "/awards"),
+            (Method::GET, "/resume"),
+            (Method::GET, "/blogs"),
+            (Method::GET, "/admin"),
+            (Method::GET, "/login"),
+            (Method::GET, "/auth/login"),
+            (Method::GET, "/api"),
+            (Method::GET, "/api/csrf-token"),
         ]
     };
 }
@@ -26,10 +26,10 @@ macro_rules! get_client_routes {
 pub fn configure_auth_middleware() -> middleware::auth::AuthMiddleware {
     let mut auth_whitelist = get_client_routes!();
     auth_whitelist.extend(vec![
-        (Method::POST, "/api/admin".to_string()),
-        (Method::POST, "/api/login".to_string()),
-        (Method::POST, "/api/auth/login".to_string()),
-        (Method::POST, "/api/logout".to_string()),
+        (Method::POST, "/api/admin"),
+        (Method::POST, "/api/login"),
+        (Method::POST, "/api/auth/login"),
+        (Method::POST, "/api/logout"),
     ]);
     let auth_whitelist_regex = vec![
         (Method::GET, regex::Regex::new(r"^/blogs/[\w-]+$").unwrap()),
@@ -54,9 +54,9 @@ pub fn configure_csrf_middleware() -> middleware::csrf::CsrfMiddleware {
 
 pub fn configure_csp_middleware() -> middleware::csp::CspMiddleware {
     let csp_whitelist = vec![
-        (Method::GET, "/favicon.ico".to_string()),
-        (Method::GET, "/api".to_string()),
-        (Method::GET, "/api/csrf-token".to_string()),
+        (Method::GET, "/favicon.ico"),
+        (Method::GET, "/api"),
+        (Method::GET, "/api/csrf-token"),
     ];
     let api_regex = regex::Regex::new(r"^/api/.*$").unwrap();
     let csp_whitelist_regex = vec![
@@ -70,25 +70,22 @@ pub fn configure_csp_middleware() -> middleware::csp::CspMiddleware {
     ];
     let csp_options = middleware::csp::ContentSecurityPolicies {
         script_src: vec![
-            "'self'".to_string(),
-            "'unsafe-eval'".to_string(), // needed for htmx to work for responses like parsing the html content for the blog
-            "https://challenges.cloudflare.com/turnstile/v0/api.js".to_string(),
-            "https://unpkg.com/htmx.org@2.0.0".to_string(),
-            "https://unpkg.com/htmx-ext-response-targets@latest/response-targets.js".to_string(),
+            "'self'",
+            "'unsafe-eval'", // needed for htmx to work for responses like parsing the html content for the blog
+            "https://challenges.cloudflare.com/turnstile/v0/api.js",
+            "https://unpkg.com/htmx.org@2.0.0",
+            "https://unpkg.com/htmx-ext-response-targets@latest/response-targets.js",
         ],
         style_src: vec![
-            "'self'".to_string(),
-            "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@latest/dark.css".to_string(),
+            "'self'",
+            "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@latest/dark.css",
         ],
-        frame_src: vec![
-            "'self'".to_string(),
-            "https://challenges.cloudflare.com/".to_string(),
-        ],
+        frame_src: vec!["'self'", "https://challenges.cloudflare.com/"],
         default_src: vec![],
-        base_uri: vec!["'self'".to_string()],
+        base_uri: vec!["'self'"],
         img_src: vec![],
         font_src: vec![],
-        object_src: vec!["'none'".to_string()],
+        object_src: vec!["'none'"],
         form_action: vec![],
         frame_ancestors: vec![],
     };
@@ -120,21 +117,21 @@ pub fn configure_cache_control_middleware() -> middleware::cache_control::CacheC
     } else {
         middleware::cache_control::CachePaths {
             strict_paths: vec![middleware::cache_control::CacheStrictPathValue {
-                path: "/favicon.ico".to_string(),
-                value: "public, max-age=31536000".to_string(), // 1 year
+                path: "/favicon.ico",
+                value: "public, max-age=31536000", // 1 year
             }],
             regex_paths: vec![
                 middleware::cache_control::CachePathValue {
                     path: regex::Regex::new(r"^/static/pdfjs/.*$").unwrap(),
-                    value: "public, max-age=86400, must-revalidate".to_string(), // 1 day for files in pdfjs directory
+                    value: "public, max-age=86400, must-revalidate", // 1 day for files in pdfjs directory
                 },
                 middleware::cache_control::CachePathValue {
                     path: regex::Regex::new(r"^/static/.*(\.js|\.css)$").unwrap(),
-                    value: "public, max-age=86400, must-revalidate".to_string(), // 1 day for css/js files
+                    value: "public, max-age=86400, must-revalidate", // 1 day for css/js files
                 },
                 middleware::cache_control::CachePathValue {
                     path: regex::Regex::new(r"^/static/.*$").unwrap(),
-                    value: "public, max-age=15768000, must-revalidate".to_string(), // 6 months
+                    value: "public, max-age=15768000, must-revalidate", // 6 months
                 },
             ],
         }
