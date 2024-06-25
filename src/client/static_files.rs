@@ -10,14 +10,14 @@ async fn favicon() -> impl Responder {
 
 #[get("/robots.txt")]
 async fn robots_txt() -> impl Responder {
-    NamedFile::open_async("./robots.txt")
+    NamedFile::open_async("./seo/robots.txt")
         .await
         .expect("should be able to open robots.txt file")
 }
 
 #[get("/sitemap.xml")]
 async fn sitemap_xml() -> impl Responder {
-    NamedFile::open_async("./sitemap.xml")
+    NamedFile::open_async("./seo/sitemap.xml")
         .await
         .expect("should be able to open sitemap.xml file")
 }

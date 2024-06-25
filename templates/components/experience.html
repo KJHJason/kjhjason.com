@@ -24,7 +24,7 @@
                 <div class="text-md font-normal">{{ experience.sub_title }}</div>
             {% endif %}
             {% if !experience.desc.is_empty() %}
-                <div class="prose prose-neutral dark:prose-invert">{{ experience.desc }}</div>
+                <div class="accent mt-2 p-5 rounded-lg text-sm prose prose-neutral dark:prose-invert">{{ experience.desc|safe }}</div>
             {% endif %}
         </div>
         <hr />

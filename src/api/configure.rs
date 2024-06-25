@@ -14,7 +14,6 @@ pub fn add_api_routes(cfg: &mut web::ServiceConfig) {
     add_admin_profile_routes(cfg);
     add_auth_routes(cfg);
     add_general_routes(cfg);
-    add_csrf_routes(cfg);
 }
 
 #[inline]
@@ -43,10 +42,7 @@ fn add_auth_routes(cfg: &mut web::ServiceConfig) {
 
 #[inline]
 fn add_general_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(api_index).service(api_health);
-}
-
-#[inline]
-fn add_csrf_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_csrf_token);
+    cfg.service(api_index)
+        .service(api_health)
+        .service(get_csrf_token);
 }

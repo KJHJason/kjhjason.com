@@ -2,6 +2,8 @@
 
 This is the source code for my personal website, [kjhjason.com](https://kjhjason.com).
 
+Note: The website design is inspired by [leerob/leerob.io](https://github.com/leerob/leerob.io).
+
 ## Tech Stack
 
 ### Backend
