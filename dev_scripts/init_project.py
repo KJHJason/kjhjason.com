@@ -105,7 +105,7 @@ def remove_file_origin_checks_for_pdfjs(panic: bool) -> None:
         panic=panic,
         file_path="./static/pdfjs/web/viewer.mjs.map", 
         value=mjs_map_value,
-        to_replace_wtih=mjs_map_new_value,
+        to_replace_with=mjs_map_new_value,
     )
 
 def _change_default_options_in_file(panic: bool, file_path: str, value: str, to_replace_with: str) -> None:
