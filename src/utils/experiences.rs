@@ -28,7 +28,7 @@ pub fn get_experiences<'a>() -> Vec<ExperienceInfo<'a>> {
             sub_title: "Logistic Assistant (Part-time)",
             desc: "As a logistics assistant, my job involves packing orders from Beautiful.Me for shipping, recording packed orders for the shipping manifest in Excel sheets.
             <br /><br />I also helped out to clear the waste area by segregating cardboard and plastic waste for recycling.
-             <br /><br />Additionally, resolving any duplicate and missing parcels was also one of my main responsibility.",
+            <br /><br />Additionally, resolving any duplicate and missing parcels was also one of my main responsibility.",
         },
         ExperienceInfo {
             time: "Apr 2020 - Apr 2021",

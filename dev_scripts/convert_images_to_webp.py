@@ -4,7 +4,7 @@ import subprocess
 
 QUALITY = "80"
 REMOVE_METADATA = True
-IMG_DIR = r"E:\Codes\Github Projects\kjhjason.com\res\testimonials"
+IMG_DIR = r"E:\Codes\Github Projects\kjhjason.com\res\projects"
 
 def convert_jpeg_to_webp(img_file: pathlib.Path, replaced: pathlib.Path) -> None:
     logging.info(f"Converting {img_file} to webp using ImageMagick to {replaced}")

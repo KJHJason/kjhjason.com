@@ -7,10 +7,10 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             title: "kjhjason.com",
             img: "https://storage.kjhjason.com/images/projects/kjhjason.com.webp",
             img_alt: "Screenshot of the Blog Editing page of the kjhjason.com website",
-            desc: "This project is the website you are currently viewing that is deployed on <a href=\"https://fly.io/\" target=\"_blank\">Fly.io</a>.
+            desc: r#"This project is the website you are currently viewing that is deployed on <a href="https://fly.io/" target="_blank">Fly.io</a>.
             It is a personal project that I have started to showcase my portfolio and blog posts.
             <br /><br />It is developed using Actix Web, a Rust web framework, MongoDB as the database, and Cloudflare R2 for storing images.
-            <br /><br />Moroever, it uses Askama for templating which is similar to Jinja2 in Python and TailwindCSS for the frontend.",
+            <br /><br />Moroever, it uses Askama for templating which is similar to Jinja2 in Python and TailwindCSS for the frontend."#,
             tags: vec!["Web Dev", "Rust", "Actix", "Askama", "TailwindCSS", "MongoDB", "Cloud"],
             link: "https://github.com/KJHJason/kjhjason.com",
             presentation_link: "",
@@ -20,7 +20,8 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             title: "hmac-serialiser (Rust)",
             img: "https://storage.kjhjason.com/images/projects/hmac-serialiser-rs.webp",
             img_alt: "Screenshot of some of the code in the hmac-serialiser-rs project",
-            desc: "Similar to the HMACSerialiser project, this is a Rust implementation as I wanted to create shorter but secure tokens for the website you are currently viewing.",
+            desc: r#"Similar to the HMACSerialiser project, this is a Rust implementation as I wanted to create shorter but secure tokens for the website you are currently viewing.
+            <br /><br />Note: The cryptographic implementations used are from the <a href="https://github.com/RustCrypto" target="_blank">RustCrypto</a> libraries."#,
             tags: vec!["Security", "Cryptography", "Rust"],
             link: "https://github.com/KJHJason/hmac-serialiser/tree/master/rust",
             presentation_link: "",
@@ -51,18 +52,37 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             date: "Mar 2022 - Present",
         },
         ProjectInfo {
+            title: "Cybersecurity Project",
+            img: "https://storage.kjhjason.com/images/projects/cspj-implementation-plan.webp",
+            img_alt: "Screenshot of the implementation plan for my Cybersecurity Project",
+            desc: r#"The Cybersecurity Project module focuses on applying what we have learnt in the course to mitigate various threats like malware attacks in simulated real-world scenarios, such as the SingHealth data breach in 2018.
+            <br /><br />My team and I have decided to mitigate the various threats found in the Australian National University (ANU) Data Breach in 2018.
+            <br /><br />My tasks were addressing Malware Attacks, Password Attacks, Social Engineering Attacks, and Network Attacks mainly using <a href="https://opnsense.org/" target="_blank">OPNsense</a>."#,
+            tags: vec!["Cybersecurity", "Infrastructure", "OPNsense", "VMware"],
+            link: "",
+            presentation_link: "https://www.canva.com/design/DAGJJIsOSVI/iCc2utLHLcxI3-xyUVv9lA/edit?utm_content=DAGJJIsOSVI&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton",
+            date: "May 2023 - Aug 2023",
+        },
+        ProjectInfo {
+            title: "Cyber Forensic Process Assignment",
+            img: "https://storage.kjhjason.com/images/projects/cforp.webp",
+            img_alt: "Screenshot of one of the pages of my Cyber Forensic Process Assignment",
+            desc: r#"Based on the given scenario found in the <a href="https://drive.proton.me/urls/C71J76B3T4#d1LgRgJ1ApL4" target="_blank">assignment brief</a>, I am tasked with applying the steps in preliminary planning, equipment seizure, evidence collection, recording, and safeguarding processes by developing a forensic investigation, as well as serving as an Expert Witness."#,
+            tags: vec!["Cybersecurity", "Forensics", "EnCase"],
+            link: "",
+            presentation_link: "https://drive.proton.me/urls/NQY33N8VC4#sAHxl7xBOVYW",
+            date: "Jun 2023 - Jul 2023",
+        },
+        ProjectInfo {
             title: "Mirai (Infosecurity Project)",
             img: "https://storage.kjhjason.com/images/projects/mirai-index.webp",
             img_alt: "Screenshot of the index page of the Mirai Web App",
-            desc: "The Infosecurity Project module focuses on applying data privacy and adhering to standards such as the Personal Data Protection Act in applications.
+            desc: r#"The Infosecurity Project module focuses on applying data privacy and adhering to standards such as the Personal Data Protection Act in applications.
             <br /><br />Our team has chosen to develop a Social Media Web Application similar to Twitter or X.
             <br /><br />My role primarily involves developing essential features such as the login feature, chat feature,
             and more with various data security measures which helped me obtain my Distinction for this module.
             <br /><br />Additionally, I assist team members with deployment and address any features that require additional attention.
-            <br /><br />The website has been archived on
-            <a href=\"https://web.archive.org/web/20230228052024/https://www.miraisocial.live/\" target=\"_blank\">
-                Wayback Machine - Internet Archive
-            </a>",
+            <br /><br />The website has been archived on <a href="https://web.archive.org/web/20230228052024/https://www.miraisocial.live/" target="_blank">Wayback Machine - Internet Archive</a>"#,
             tags: vec!["Web Dev", "Python", "FastAPI", "TailwindCSS", "MongoDB", "Cloud"],
             link: "https://github.com/KJHJason/ISPJ-REVISED",
             presentation_link: "https://www.canva.com/design/DAFxbixHp3M/pmVo_rQHQ8xpFkC6ekmvig/edit?utm_content=DAFxbixHp3M&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton",
@@ -72,13 +92,10 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             title: "CourseFinity (App Security)",
             img: "https://storage.kjhjason.com/images/projects/coursefinity-app-sec.webp",
             img_alt: "Screenshot of the login page of the CourseFinity Web App",
-            desc: "The main focus of the App Security Project is to develop a secure web application while adhering to the OWASP Top 10 standards.
+            desc: r#"The main focus of the App Security Project is to develop a secure web application while adhering to the OWASP Top 10 standards.
             <br /><br />My main areas for addressing the OWASP Top 10 2021 were Cryptographic Failures and Identification and Authentication Failures.
             <br /><br />This is also my first time touching Cloud Technologies to enhance the security of the Web Application which helped me obtain my Distinction for this module.
-            <br /><br />The website has been archived on
-            <a href=\"https://web.archive.org/web/20220819100528/https://coursefinity.social/\" target=\"_blank\">
-                Wayback Machine - Internet Archive
-            </a>",
+            <br /><br />The website has been archived on <a href="https://web.archive.org/web/20220819100528/https://coursefinity.social/" target="_blank">Wayback Machine - Internet Archive</a>"#,
             tags: vec!["Web Dev", "Python", "Flask", "Bootstrap 5", "MySQL", "Cloud"],
             link: "https://github.com/KJHJason/IT2555-Applications-Security-Project",
             presentation_link: "https://docs.google.com/presentation/d/1dhIkai6SfHuYox7r67zSZPOn9eqqSkxMTkydQKC97P4/edit?usp=sharing",
@@ -125,12 +142,9 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             title: "OtakuAbroadJapan",
             img: "https://storage.kjhjason.com/images/projects/web-development.webp",
             img_alt: "Screenshot of the OtakuAbroadJapan Website",
-            desc: "Similar to Web Publishing in PFP, students were tasked to create a static website. However, the Web Development module focuses more on JavaScript to enhance the website.
+            desc: r#"Similar to Web Publishing in PFP, students were tasked to create a static website. However, the Web Development module focuses more on JavaScript to enhance the website.
             <br /><br />
-            The website has been archived on
-            <a href=\"https://web.archive.org/web/20210923123819/https://www.otakuabroadjapan.com/\" target=\"_blank\">
-                Wayback Machine - Internet Archive
-            </a>",
+            The website has been archived on <a href="https://web.archive.org/web/20210923123819/https://www.otakuabroadjapan.com/" target="_blank">Wayback Machine - Internet Archive</a>"#,
             tags: vec!["Web Dev", "Bootstrap 5", "JavaScript"],
             link: "https://github.com/KJHJason/OtakuAbroadJapan-Website",
             presentation_link: "https://drive.proton.me/urls/MTHCGZAE0R#EEtEYE6g7qQW",
@@ -165,7 +179,7 @@ pub fn get_projects<'a>() -> Vec<ProjectInfo<'a>> {
             desc: "A simple module that introduced block programming to me using a Cozmo toy robot to do simple tasks.",
             tags: vec!["Introductory", "PFP"],
             link: "",
-            presentation_link: "https://drive.proton.me/urls/3BTGCZNH78#ovAibuG5jytj",
+            presentation_link: "https://drive.proton.me/urls/GRA3B9XD6M#MurHS0pMVSLf",
             date: "Dec 2020 - Feb 2021",
         },
     ]
