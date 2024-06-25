@@ -1,4 +1,3 @@
-# nodejs
 FROM node:latest as node
 
 WORKDIR /app
@@ -6,6 +5,9 @@ COPY . .
 
 # install npm packages like tailwindcss
 RUN npm install
+
+# Run the build script to 
+# generate a minified TailwindCSS file
 RUN npm run build
 RUN rm ./static/css/tailwind.css
 
