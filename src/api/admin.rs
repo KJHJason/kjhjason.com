@@ -125,9 +125,7 @@ async fn update_blog(
         return Ok(HttpResponse::Ok().body("No changes to update".to_string()));
     }
 
-    let blog_in_db = client
-        .get_blog_post(&blog_id, None)
-        .await?;
+    let blog_in_db = client.get_blog_post(&blog_id, None).await?;
 
     let mut is_updating = false;
     let last_modified = bson::DateTime::parse_rfc3339_str(datetime::get_dtnow_str())
@@ -173,10 +171,7 @@ async fn update_blog(
     }
 
     let seo_desc = blog.seo_desc.unwrap_or_default();
-    if updating_seo_desc
-        && !seo_desc.is_empty()
-        && seo_desc != blog_in_db.seo_desc
-    {
+    if updating_seo_desc && !seo_desc.is_empty() && seo_desc != blog_in_db.seo_desc {
         is_updating = true;
         blog_to_backup.seo_desc = seo_desc.clone();
         set_doc.insert(blog::SEO_DESC_KEY, seo_desc);
