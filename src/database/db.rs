@@ -33,7 +33,7 @@ impl DbClient {
     }
 
     #[inline]
-    pub fn get_custom_collection<T>(&self, collection_name: &str) -> Collection<T> {
+    pub fn get_custom_collection<T: Send + Sync>(&self, collection_name: &str) -> Collection<T> {
         self.get_database(None).collection(collection_name)
     }
 
@@ -58,7 +58,7 @@ impl DbClient {
     pub async fn get_session_by_id(&self, id: &ObjectId) -> Result<Session, SessionError> {
         match self
             .get_session_collection()
-            .find_one(doc! {"_id": id}, None)
+            .find_one(doc! {"_id": id})
             .await
         {
             Ok(Some(session)) => Ok(session),
@@ -90,7 +90,7 @@ impl DbClient {
         options: Option<FindOneOptions>,
     ) -> Result<ProjectedUser, AuthError> {
         let col: Collection<ProjectedUser> = self.get_custom_collection(constants::USER_COLLECTION);
-        let result = col.find_one(doc! {"_id": id}, options).await;
+        let result = col.find_one(doc! {"_id": id}).with_options(options).await;
         Self::handle_user_result(result)
     }
 
@@ -102,7 +102,6 @@ impl DbClient {
             .get_user_collection()
             .find_one(
                 doc! {"$or": [{user::USERNAME_KEY: username_or_email}, {user::EMAIL_KEY: username_or_email}]},
-                None,
             )
             .await;
         Self::handle_user_result(result)
@@ -129,7 +128,10 @@ impl DbClient {
     ) -> Result<ProjectedBlog, BlogError> {
         let blog_collection: Collection<ProjectedBlog> =
             self.get_custom_collection(constants::BLOG_COLLECTION);
-        let result = blog_collection.find_one(doc! {"_id": id}, options).await;
+        let result = blog_collection
+            .find_one(doc! {"_id": id})
+            .with_options(options)
+            .await;
         Self::handle_blog_result(result)
     }
 
@@ -140,7 +142,8 @@ impl DbClient {
     ) -> Result<Blog, BlogError> {
         let result = self
             .get_blog_collection()
-            .find_one(doc! {"_id": id}, options)
+            .find_one(doc! {"_id": id})
+            .with_options(options)
             .await;
         Self::handle_blog_result(result)
     }

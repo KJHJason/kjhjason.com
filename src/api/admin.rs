@@ -79,7 +79,7 @@ async fn new_blog(
     blog.files = blog_op.files;
     blog.content = blog_op.content;
 
-    match blog_col.insert_one(&blog, None).await {
+    match blog_col.insert_one(&blog).await {
         Ok(result) => {
             let id = result.inserted_id.as_object_id().unwrap();
             back_up_blog(&s3_client, &blog).await;
@@ -237,7 +237,7 @@ async fn update_blog(
     let query = doc! { "_id": blog_id };
     let update = doc! { "$set": set_doc };
     let blog_col = client.into_inner().get_blog_collection();
-    match blog_col.update_one(query, update, None).await {
+    match blog_col.update_one(query, update).await {
         Ok(_) => {
             back_up_blog(&s3_client, &blog_to_backup).await;
             Ok(HttpResponse::Ok().body(blog_content))
@@ -270,7 +270,7 @@ async fn delete_blog(
     }
 
     let blog_col = client.into_inner().get_blog_collection();
-    match blog_col.delete_one(doc! { "_id": blog_id }, None).await {
+    match blog_col.delete_one(doc! { "_id": blog_id }).await {
         Ok(_) => {
             delete_blog_backup(&s3_client, &blog_id).await;
             Ok(HttpResponse::Ok().body("Blog deleted successfully".to_string()))

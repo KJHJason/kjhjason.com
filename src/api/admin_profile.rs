@@ -97,7 +97,6 @@ async fn setup_2fa(
         .update_one(
             doc! {"_id": user_info.user_id},
             doc! {"$set": {user::TOTP_SECRET_KEY: encrypted_secret}},
-            None,
         )
         .await
         .map_err(|e| {
@@ -149,7 +148,6 @@ async fn remove_2fa(
         .update_one(
             doc! {"_id": user_info.user_id},
             doc! {"$set": {user::TOTP_SECRET_KEY: bson::Bson::Null}},
-            None,
         )
         .await
         .map_err(|e| {
@@ -211,7 +209,6 @@ async fn change_password(
         .update_one(
             doc! {"_id": user_info.user_id},
             doc! {"$set": {user::PASSWORD_KEY: new_password_hash}},
-            None,
         )
         .await
         .map_err(|e| {

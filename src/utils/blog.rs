@@ -194,7 +194,7 @@ pub mod publish_utils {
         let query = doc! { "_id": blog_id };
         let update = doc! {"$set": {blog::IS_PUBLIC_KEY: is_public}};
         let blog_col = client.into_inner().get_blog_collection();
-        match blog_col.update_one(query, update, None).await {
+        match blog_col.update_one(query, update).await {
             Ok(_) => {
                 let response = if is_public {
                     render_template(templates::admin::Unlocked, StatusCode::OK)

@@ -105,7 +105,12 @@ async fn blogs(client: Data<db::DbClient>, req: HttpRequest) -> HttpResponse {
     let find_options = FindOptions::builder()
         .sort(doc! { "_id": -1 }) // get by newest first
         .build();
-    let mut blogs_cursor = match client.get_blog_collection().find(None, find_options).await {
+    let mut blogs_cursor = match client
+        .get_blog_collection()
+        .find(doc! {})
+        .with_options(find_options)
+        .await
+    {
         Ok(blogs) => blogs,
         Err(_) => {
             let template = ErrorTemplate {
@@ -183,7 +188,7 @@ async fn blog_id(
     let common = extract_for_template(&req);
     let blog_collection = client.get_blog_collection();
     let blog_post = if common.is_logged_in {
-        blog_collection.find_one(query, None).await
+        blog_collection.find_one(query).await
     } else {
         let update = doc! {"$inc": {blog::VIEWS_KEY: 1}};
         let options = FindOneAndUpdateOptions::builder()
@@ -191,7 +196,8 @@ async fn blog_id(
             .build();
 
         blog_collection
-            .find_one_and_update(query, update, Some(options))
+            .find_one_and_update(query, update)
+            .with_options(Some(options))
             .await
     };
 

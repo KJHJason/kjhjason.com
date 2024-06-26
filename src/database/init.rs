@@ -16,7 +16,7 @@ async fn init_user_collection(client: &Client) {
     let admin_username =
         std::env::var(constants::BLOG_ADMIN_USERNAME).expect("admin username should be set");
     let result = collection
-        .find_one(doc! {user::USERNAME_KEY: &admin_username}, None)
+        .find_one(doc! {user::USERNAME_KEY: &admin_username})
         .await;
     match result {
         Ok(Some(_)) => {
@@ -41,7 +41,7 @@ async fn init_user_collection(client: &Client) {
         .options(opts)
         .build();
     collection
-        .create_index(index, None)
+        .create_index(index)
         .await
         .expect("Should be able to create username index for user collection");
 
@@ -51,7 +51,7 @@ async fn init_user_collection(client: &Client) {
         .options(opts)
         .build();
     collection
-        .create_index(index, None)
+        .create_index(index)
         .await
         .expect("Should be able to create email index for user collection");
 
@@ -65,7 +65,7 @@ async fn init_user_collection(client: &Client) {
         .expect("Should be able to hash admin password");
 
     let user = User::new(admin_username, admin_email, hashed_admin_password, None);
-    match collection.insert_one(user, None).await {
+    match collection.insert_one(user).await {
         Ok(_) => log::info!("Admin account created"),
         Err(e) => panic!("Failed to create admin account: {}", e),
     }
@@ -77,7 +77,7 @@ async fn init_session_collection(client: &Client) {
     let collection: Collection<Session> = db.collection(constants::SESSION_COLLECTION);
 
     // check if the collection already exists
-    let result = collection.find_one(None, None).await;
+    let result = collection.find_one(doc! {}).await;
     match result {
         Ok(Some(_)) => return,
         _ => {}
@@ -93,7 +93,7 @@ async fn init_session_collection(client: &Client) {
         .options(opts)
         .build();
     collection
-        .create_index(index, None)
+        .create_index(index)
         .await
         .expect("Should be able to create session index for session collection");
 
@@ -105,7 +105,7 @@ async fn init_blog_collection(client: &Client) {
     let collection: Collection<Blog> = db.collection(constants::BLOG_COLLECTION);
 
     // check if the collection already exists
-    let result = collection.find_one(None, None).await;
+    let result = collection.find_one(doc! {}).await;
     match result {
         Ok(Some(_)) => return,
         _ => {}
@@ -114,12 +114,11 @@ async fn init_blog_collection(client: &Client) {
     let title_idx = IndexModel::builder()
         .keys(doc! {blog::TITLE_KEY: 1})
         .build();
-    let title_idx_future = collection.create_index(title_idx, None);
+    let title_result = collection.create_index(title_idx).await;
 
     let tag_idx = IndexModel::builder().keys(doc! {blog::TAGS_KEY: 1}).build();
-    let tag_idx_future = collection.create_index(tag_idx, None);
+    let tag_result = collection.create_index(tag_idx).await;
 
-    let (title_result, tag_result) = tokio::join!(title_idx_future, tag_idx_future);
     let mut has_error = false;
     match title_result {
         Ok(_) => {}
@@ -166,7 +165,7 @@ pub async fn init_db() -> Result<DbClient, mongodb::error::Error> {
     log::info!("pinging main database to test the connection...");
     match client
         .get_database(None)
-        .run_command(doc! {"ping": 1}, None)
+        .run_command(doc! {"ping": 1})
         .await
     {
         Ok(_) => {

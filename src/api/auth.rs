@@ -116,7 +116,7 @@ pub async fn login(
     let session_col = client.get_session_collection();
     let session = Session::new(user._id, exp_sec);
     let session_expiry = session.expiry.timestamp_millis();
-    let result = match session_col.insert_one(session, None).await {
+    let result = match session_col.insert_one(session).await {
         Ok(result) => result,
         Err(e) => {
             log::error!("Failed to insert session into db: {:?}", e);
