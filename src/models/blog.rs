@@ -13,7 +13,7 @@ pub const IS_PUBLIC_KEY: &str = "is_public";
 pub const VIEWS_KEY: &str = "views";
 pub const LAST_MODIFIED_KEY: &str = "last_modified";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Blog {
     #[serde(rename = "_id")]
     pub id: ObjectId,
@@ -51,21 +51,6 @@ impl Blog {
             views: 0,
             timestamp: Utc::now(),
             last_modified: None,
-        }
-    }
-
-    pub fn get_for_backup(id: &ObjectId, last_modified: bson::DateTime) -> Self {
-        Self {
-            id: id.clone(),
-            title: "".to_string(),
-            seo_desc: "".to_string(),
-            tags: vec![],
-            files: vec![],
-            content: "".to_string(),
-            is_public: false,
-            views: 0,
-            timestamp: Utc::now(),
-            last_modified: Some(chrono::DateTime::from(last_modified)),
         }
     }
 

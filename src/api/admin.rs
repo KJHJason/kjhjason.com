@@ -125,44 +125,24 @@ async fn update_blog(
         return Ok(HttpResponse::Ok().body("No changes to update".to_string()));
     }
 
-    let mut projection_doc = doc! {};
-    if updating_title {
-        projection_doc.insert(blog::TITLE_KEY, 1);
-    }
-    if updating_seo_desc {
-        projection_doc.insert(blog::SEO_DESC_KEY, 1);
-    }
-    if updating_content {
-        projection_doc.insert(blog::CONTENT_KEY, 1);
-    }
-    if updating_tags {
-        projection_doc.insert(blog::TAGS_KEY, 1);
-    }
-    if updating_files {
-        projection_doc.insert(blog::FILES_KEY, 1);
-    }
-    if updating_public {
-        projection_doc.insert(blog::IS_PUBLIC_KEY, 1);
-    }
-
-    let options = FindOneOptions::builder().projection(projection_doc).build();
     let blog_in_db = client
-        .get_projected_blog_post(&blog_id, Some(options))
+        .get_blog_post(&blog_id, None)
         .await?;
 
     let mut is_updating = false;
     let last_modified = bson::DateTime::parse_rfc3339_str(datetime::get_dtnow_str())
         .expect("DateTime be parsed in update_blog");
 
-    let mut blog_to_backup = Blog::get_for_backup(&blog_id, last_modified);
+    let mut blog_to_backup = blog_in_db.clone();
     let mut set_doc = doc! {
         blog::LAST_MODIFIED_KEY: last_modified,
     };
+    blog_to_backup.last_modified = Some(chrono::DateTime::from(last_modified));
 
     let mut blog_content = blog.content.unwrap_or_default();
     if updating_files {
         let mut update_file_flag = false; // initialise it to false as it could be an empty slice.
-        let old_files = blog_in_db.files.unwrap_or(vec![]);
+        let old_files = blog_in_db.files;
         let mut new_files = blog.new_files.unwrap_or(vec![]);
         let mut files_to_put_in_db = Vec::with_capacity(new_files.len() + old_files.len());
         if new_files.len() > 0 {
@@ -195,14 +175,14 @@ async fn update_blog(
     let seo_desc = blog.seo_desc.unwrap_or_default();
     if updating_seo_desc
         && !seo_desc.is_empty()
-        && seo_desc != blog_in_db.seo_desc.unwrap_or_default()
+        && seo_desc != blog_in_db.seo_desc
     {
         is_updating = true;
         blog_to_backup.seo_desc = seo_desc.clone();
         set_doc.insert(blog::SEO_DESC_KEY, seo_desc);
     }
 
-    let old_blog_content = blog_in_db.content.unwrap_or_default();
+    let old_blog_content = blog_in_db.content;
     if updating_content && !blog_content.is_empty() && blog_content != old_blog_content {
         is_updating = true;
         blog_to_backup.content = blog_content.clone();
@@ -210,30 +190,30 @@ async fn update_blog(
     }
 
     let title = blog.title.unwrap_or_default();
-    if updating_title && !title.is_empty() && title != blog_in_db.title.unwrap_or_default() {
+    if updating_title && !title.is_empty() && title != blog_in_db.title {
         is_updating = true;
-        set_doc.insert(blog::TITLE_KEY, title);
+        blog_to_backup.title = title;
+        set_doc.insert(blog::TITLE_KEY, &blog_to_backup.title);
     }
 
     let is_public = blog.is_public.unwrap_or_default();
-    if updating_public && is_public != blog_in_db.is_public.unwrap_or(false) {
+    if updating_public && is_public != blog_in_db.is_public {
         is_updating = true;
         blog_to_backup.is_public = is_public;
         set_doc.insert(blog::IS_PUBLIC_KEY, is_public);
     }
 
-    let old_tags = blog_in_db.tags.unwrap_or(vec![]);
+    let old_tags = blog_in_db.tags;
     if updating_tags && new_tags.len() != old_tags.len() || new_tags != old_tags {
         is_updating = true;
-        blog_to_backup.tags = new_tags.clone();
-        set_doc.insert(blog::TAGS_KEY, new_tags);
+        blog_to_backup.tags = new_tags;
+        set_doc.insert(blog::TAGS_KEY, &blog_to_backup.tags);
     }
 
     if !is_updating {
         return Ok(HttpResponse::Ok().body(old_blog_content));
     }
 
-    log::info!("set doc: {:?}", set_doc);
     let query = doc! { "_id": blog_id };
     let update = doc! { "$set": set_doc };
     let blog_col = client.into_inner().get_blog_collection();
