@@ -54,6 +54,21 @@ impl Blog {
         }
     }
 
+    pub fn get_for_backup(id: &ObjectId, last_modified: bson::DateTime) -> Self {
+        Self {
+            id: id.clone(),
+            title: "".to_string(),
+            seo_desc: "".to_string(),
+            tags: vec![],
+            files: vec![],
+            content: "".to_string(),
+            is_public: false,
+            views: 0,
+            timestamp: Utc::now(),
+            last_modified: Some(chrono::DateTime::from(last_modified)),
+        }
+    }
+
     #[inline]
     pub fn get_id_string(&self) -> String {
         self.id.to_hex()

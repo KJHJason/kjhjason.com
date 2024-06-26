@@ -4,6 +4,7 @@ pub mod file_utils {
     use crate::models::file_info::FileInfo;
     use crate::utils::storage;
     use aws_sdk_s3 as s3;
+    use bson::oid::ObjectId;
 
     #[inline]
     fn change_obj_prefix(obj: &str, blog_id: &str, old_prefix: &str, new_prefix: &str) -> String {
@@ -49,6 +50,36 @@ pub mod file_utils {
                 return Err(BlogError::FileUploadError);
             }
         };
+    }
+
+    macro_rules! get_blog_backup_obj_name {
+        ($blog_id:expr) => {
+            format!("{}/{}.json", constants::BLOG_BACKUP_OBJ_PREFIX, $blog_id)
+        };
+    }
+
+    #[inline]
+    pub async fn back_up_blog(s3_client: &s3::Client, blog: &crate::models::blog::Blog) {
+        let blog_id = blog.get_id_string();
+        let blog_bucket = constants::BLOG_BACKUP_BUCKET;
+        let obj_name = get_blog_backup_obj_name!(blog_id);
+        let data = serde_json::to_string(blog)
+            .expect("Should be able to serialise blog")
+            .as_bytes()
+            .to_vec();
+        if !storage::upload_blob(s3_client, &blog_bucket, &obj_name, data).await {
+            log::error!("Failed to back up blog");
+        }
+    }
+
+    #[inline]
+    pub async fn delete_blog_backup(s3_client: &s3::Client, blog_id: &ObjectId) {
+        let blog_id = blog_id.to_hex();
+        let blog_bucket = constants::BLOG_BACKUP_BUCKET;
+        let obj_name = get_blog_backup_obj_name!(blog_id);
+        if !storage::delete_blob(s3_client, &blog_bucket, &obj_name).await {
+            log::error!("Failed to delete blog backup");
+        }
     }
 
     pub async fn process_file_logic(

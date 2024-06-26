@@ -28,18 +28,18 @@ async fn login_admin(req: HttpRequest) -> HttpResponse {
     }
 }
 
-#[get("/auth/login")]
-async fn login_auth(req: HttpRequest) -> HttpResponse {
+pub async fn login_auth(req: HttpRequest) -> HttpResponse {
     match req.cookie(constants::AUTH_COOKIE_NAME) {
         Some(_) => HttpResponse::TemporaryRedirect()
             .append_header((LOCATION, "/"))
             .finish(),
         None => {
+            let login_uri_path = constants::get_login_uri_path();
             let template = Login {
                 common: extract_for_template(&req),
                 index_page: false,
-                login_url: "api/auth/login",
-                client_login_url: "https://kjhjason.com/auth/login",
+                login_url: &format!("api{}", login_uri_path),
+                client_login_url: &format!("https://kjhjason.com{}", login_uri_path),
             };
             render_template(template, StatusCode::OK)
         }

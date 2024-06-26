@@ -18,11 +18,24 @@ macro_rules! get_client_routes {
             (Method::GET, "/blogs"),
             (Method::GET, "/admin"),
             (Method::GET, "/login"),
-            (Method::GET, "/auth/login"),
             (Method::GET, "/api"),
             (Method::GET, "/api/health"),
             (Method::GET, "/api/csrf-token"),
         ]
+    };
+}
+
+macro_rules! add_login_uri_path {
+    ($whitelist:ident) => {
+        let login_uri = constants::get_login_uri_path();
+        $whitelist.push((Method::GET, &login_uri));
+    };
+}
+
+macro_rules! add_login_api_uri_path {
+    ($whitelist:ident) => {
+        let login_api_uri = format!("/api{}", constants::get_login_uri_path());
+        $whitelist.push((Method::POST, &login_api_uri));
     };
 }
 
@@ -34,6 +47,8 @@ pub fn configure_auth_middleware() -> middleware::auth::AuthMiddleware {
         (Method::POST, "/api/auth/login"),
         (Method::POST, "/api/logout"),
     ]);
+    add_login_uri_path!(auth_whitelist);
+    add_login_api_uri_path!(auth_whitelist);
     let auth_whitelist_regex = vec![
         (Method::GET, regex::Regex::new(r"^/blogs/[\w-]+$").unwrap()),
         (Method::GET, regex::Regex::new(r"^/static/.*$").unwrap()),
@@ -48,7 +63,8 @@ pub fn configure_auth_middleware() -> middleware::auth::AuthMiddleware {
 }
 
 pub fn configure_csrf_middleware() -> middleware::csrf::CsrfMiddleware {
-    let csrf_whitelist = get_client_routes!();
+    let mut csrf_whitelist = get_client_routes!();
+    add_login_uri_path!(csrf_whitelist);
     let csrf_whitelist_regex = vec![];
     let csrf_middleware =
         middleware::csrf::CsrfMiddleware::new(None, csrf_whitelist, csrf_whitelist_regex);

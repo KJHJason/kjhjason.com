@@ -24,10 +24,6 @@
         if (savedContent) {
             updateContent(savedContent)
         }
-        const savedTags = localStorage.getItem(tagsKey);
-        if (savedTags) {
-            tags.value = savedTags;
-        }
         const savedTitle = localStorage.getItem(titleKey);
         if (savedTitle) {
             updateTitle(savedTitle);

@@ -24,10 +24,12 @@ pub const MAX_FILE_SIZE: usize = 1024 * 1024 * 100;
 pub const TEMP_DIR: &str = "uploads";
 
 pub const BUCKET: &str = "kjhjason";
+pub const BLOG_BACKUP_BUCKET: &str = "kjhjason-private";
 pub const BUCKET_FOR_TEMP: &str = "kjhjason-private";
 pub const PUBLIC_S3_URL: &str = "https://storage.kjhjason.com";
 pub const SIGNED_URL_MAX_AGE: time::Duration = time::Duration::from_secs(60 * 60 * 24 * 7);
 pub const TEMP_OBJ_PREFIX: &str = "temp";
+pub const BLOG_BACKUP_OBJ_PREFIX: &str = "blog-backup";
 
 pub const CF_TURNSTILE_SITE_KEY: &str = "0x4AAAAAAAcnZh9gukmZdThg";
 
@@ -39,6 +41,7 @@ pub const BLOG_ADMIN_PASSWORD: &str = "BLOG_ADMIN_PASSWORD";
 
 // env keys
 const __DEBUG_MODE: &str = "DEBUG_MODE";
+const __LOGIN_URI_PATH: &str = "LOGIN_URI_PATH";
 const __R2_ACCOUNT_ID: &str = "R2_ACCOUNT_ID";
 const __CF_TURNSTILE_SECRET_KEY: &str = "CF_TURNSTILE_SECRET_KEY";
 const __SECRET_KEY: &str = "SECRET_KEY";
@@ -96,6 +99,7 @@ generate_env_hex_to_bytes_getter!(get_db_encryption_key, __DB_ENCRYPTION_KEY);
 generate_env_hex_to_bytes_getter!(get_db_encryption_key_aad, __DB_ENCRYPTION_KEY_AAD);
 generate_env_getter!(get_r2_acc_id, __R2_ACCOUNT_ID);
 generate_env_getter!(get_cf_turnstile_secret_key, __CF_TURNSTILE_SECRET_KEY);
+generate_env_getter!(get_login_uri_path, __LOGIN_URI_PATH);
 
 macro_rules! generate_debug_dependent_val_getter {
     ($fn_name:ident, $debug_val:expr, $prod_val:expr) => {

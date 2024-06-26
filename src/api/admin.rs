@@ -6,7 +6,7 @@ use crate::models::{
     new_blog::NewBlog, update_blog::UpdateBlog, uploaded_files::UploadedFiles,
 };
 use crate::utils::blog::file_utils;
-use crate::utils::blog::file_utils::process_file_logic;
+use crate::utils::blog::file_utils::{back_up_blog, delete_blog_backup, process_file_logic};
 use crate::utils::blog::publish_utils;
 use crate::utils::datetime;
 use crate::utils::html::minify_html;
@@ -79,9 +79,10 @@ async fn new_blog(
     blog.files = blog_op.files;
     blog.content = blog_op.content;
 
-    match blog_col.insert_one(blog, None).await {
+    match blog_col.insert_one(&blog, None).await {
         Ok(result) => {
             let id = result.inserted_id.as_object_id().unwrap();
+            back_up_blog(&s3_client, &blog).await;
             Ok(HttpResponse::Ok().body(id.to_hex()))
         }
         Err(err) => {
@@ -152,6 +153,8 @@ async fn update_blog(
     let mut is_updating = false;
     let last_modified = bson::DateTime::parse_rfc3339_str(datetime::get_dtnow_str())
         .expect("DateTime be parsed in update_blog");
+
+    let mut blog_to_backup = Blog::get_for_backup(&blog_id, last_modified);
     let mut set_doc = doc! {
         blog::LAST_MODIFIED_KEY: last_modified,
     };
@@ -184,6 +187,7 @@ async fn update_blog(
 
         if update_file_flag {
             is_updating = true;
+            blog_to_backup.files = files_to_put_in_db.clone();
             set_doc.insert(blog::FILES_KEY, files_to_put_in_db);
         }
     }
@@ -194,12 +198,14 @@ async fn update_blog(
         && seo_desc != blog_in_db.seo_desc.unwrap_or_default()
     {
         is_updating = true;
+        blog_to_backup.seo_desc = seo_desc.clone();
         set_doc.insert(blog::SEO_DESC_KEY, seo_desc);
     }
 
     let old_blog_content = blog_in_db.content.unwrap_or_default();
     if updating_content && !blog_content.is_empty() && blog_content != old_blog_content {
         is_updating = true;
+        blog_to_backup.content = blog_content.clone();
         set_doc.insert(blog::CONTENT_KEY, &blog_content);
     }
 
@@ -212,12 +218,14 @@ async fn update_blog(
     let is_public = blog.is_public.unwrap_or_default();
     if updating_public && is_public != blog_in_db.is_public.unwrap_or(false) {
         is_updating = true;
+        blog_to_backup.is_public = is_public;
         set_doc.insert(blog::IS_PUBLIC_KEY, is_public);
     }
 
     let old_tags = blog_in_db.tags.unwrap_or(vec![]);
     if updating_tags && new_tags.len() != old_tags.len() || new_tags != old_tags {
         is_updating = true;
+        blog_to_backup.tags = new_tags.clone();
         set_doc.insert(blog::TAGS_KEY, new_tags);
     }
 
@@ -230,7 +238,10 @@ async fn update_blog(
     let update = doc! { "$set": set_doc };
     let blog_col = client.into_inner().get_blog_collection();
     match blog_col.update_one(query, update, None).await {
-        Ok(_) => Ok(HttpResponse::Ok().body(blog_content)),
+        Ok(_) => {
+            back_up_blog(&s3_client, &blog_to_backup).await;
+            Ok(HttpResponse::Ok().body(blog_content))
+        }
         Err(err) => {
             log::error!("Failed to update api in database: {:?}", err);
             Err(BlogError::UpdateBlogError)
@@ -260,7 +271,10 @@ async fn delete_blog(
 
     let blog_col = client.into_inner().get_blog_collection();
     match blog_col.delete_one(doc! { "_id": blog_id }, None).await {
-        Ok(_) => Ok(HttpResponse::Ok().body("Blog deleted successfully".to_string())),
+        Ok(_) => {
+            delete_blog_backup(&s3_client, &blog_id).await;
+            Ok(HttpResponse::Ok().body("Blog deleted successfully".to_string()))
+        }
         Err(err) => {
             log::error!("Failed to delete api from database: {:?}", err);
             Err(BlogError::InternalServerError)

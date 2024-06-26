@@ -7,6 +7,7 @@ use crate::client::general::{
 use crate::client::static_files::{
     favicon, robots_txt, sitemap_xml, sweetalert_css, sweetalert_js,
 };
+use crate::constants::constants;
 use actix_web::web;
 
 #[inline]
@@ -50,8 +51,8 @@ fn add_general_routes(cfg: &mut web::ServiceConfig) {
 #[inline]
 fn add_auth_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(login_redirect)
-        .service(login_admin)
-        .service(login_auth);
+        .route(&constants::get_login_uri_path(), web::get().to(login_auth))
+        .service(login_admin);
 }
 
 #[inline]

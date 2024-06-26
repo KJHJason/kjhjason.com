@@ -35,8 +35,7 @@ async fn admin_honeypot(
     Err(AuthError::InvalidCredentials)
 }
 
-#[post("/api/auth/login")]
-async fn login(
+pub async fn login(
     req: HttpRequest,
     client: Data<db::DbClient>,
     login_data: Form<LoginData>,
