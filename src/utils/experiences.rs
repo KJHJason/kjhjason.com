@@ -62,7 +62,7 @@ pub fn get_experiences<'a>() -> Vec<ExperienceInfo<'a>> {
             <br /><br />Nominated for distinction, this experience enhanced my skills in C#, ASP.NET Core, database design, frontend development, research, and security analysis.",
         },
         ExperienceInfo {
-            time: "TBD - 2026/2027",
+            time: "Oct 2024 - Oct 2026",
             finished: false,
             title: "National Service",
             sub_title: "",
