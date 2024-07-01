@@ -9,6 +9,6 @@
     "build": "tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css --minify"
   },
   "dependencies": {
-    "sweetalert2": "^11.12.0"
+    "sweetalert2": "^11.12.1"
   }
 }
