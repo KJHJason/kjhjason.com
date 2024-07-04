@@ -604,9 +604,9 @@ dependencies = [
 
 [[package]]
 name = "aws-sdk-s3"
-version = "1.38.0"
+version = "1.39.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ecec5514e9d9c76c5e9489ca65ab9055ae0b3c49da3a1afd452c57cb68734fb"
+checksum = "8bf0ff573cd2ca6c250526ce550dc6a98d4d8f91605cc8409650e7a3bb3b5045"
 dependencies = [
  "ahash 0.8.11",
  "aws-credential-types",
@@ -4019,9 +4019,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.118"
+version = "1.0.119"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d947f6b3163d8857ea16c4fa0dd4840d52f3041039a85decd46867eb1abef2e4"
+checksum = "e8eddb61f0697cc3989c5d64b452f5488e2b8a60fd7d5076a3045076ffef8cb0"
 dependencies = [
  "indexmap",
  "itoa",
