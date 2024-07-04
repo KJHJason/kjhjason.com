@@ -178,43 +178,46 @@ where
     // https://github.com/actix/actix-extras/issues/63
     // https://github.com/actix/actix-web/discussions/2597
     fn call(&self, req: ServiceRequest) -> Self::Future {
+        let auth_cookie = req.cookie(&self.inner.cookie_name);
+        let user_claim = if auth_cookie.is_none() {
+            None
+        } else {
+            let auth_cookie = auth_cookie.unwrap();
+            match self
+                .inner
+                .csrf_signer
+                .unsign::<UserClaim>(&auth_cookie.value())
+            {
+                Ok(user_claim) => Some(user_claim),
+                Err(e) => {
+                    return match e {
+                        hmac_serialiser::errors::Error::TokenExpired => Box::pin(async move {
+                            log::warn!("token expired");
+                            auth_failed!(req, StatusCode::UNAUTHORIZED);
+                        }),
+                        _ => Box::pin(async move {
+                            log::warn!("Failed to unsign payload: {:?}", e);
+                            auth_failed!(req, StatusCode::NOT_FOUND);
+                        }),
+                    }
+                }
+            }
+        };
+
         // Request method of OPTIONS is used for Cors preflight requests
         if req.method() == Method::OPTIONS || !self.inner.requires_auth(&req) {
+            if user_claim.is_some() {
+                // Since the route is not really sensitive, we can just pass the user_claim
+                // without checking whether the session has expired or the user_id matches the session's user_id.
+                req.extensions_mut().insert(user_claim.unwrap());
+            }
             let fut = self.service.call(req);
             return Box::pin(async move {
                 let res = fut.await?;
                 Ok(res.map_into_left_body())
             });
         }
-
-        let auth_cookie = match req.cookie(&self.inner.cookie_name) {
-            Some(auth_cookie) => auth_cookie,
-            None => {
-                return Box::pin(async {
-                    auth_failed!(req, StatusCode::NOT_FOUND);
-                });
-            }
-        };
-
-        let user_claim = match self
-            .inner
-            .csrf_signer
-            .unsign::<UserClaim>(&auth_cookie.value())
-        {
-            Ok(user_claim) => user_claim,
-            Err(e) => {
-                return match e {
-                    hmac_serialiser::errors::Error::TokenExpired => Box::pin(async move {
-                        log::warn!("token expired");
-                        auth_failed!(req, StatusCode::UNAUTHORIZED);
-                    }),
-                    _ => Box::pin(async move {
-                        log::warn!("Failed to unsign payload: {:?}", e);
-                        auth_failed!(req, StatusCode::NOT_FOUND);
-                    }),
-                }
-            }
-        };
+        let user_claim = user_claim.unwrap();
 
         // Since the mongodb client is using an Arc, it is very cheap to clone it.
         // Additionally, in the app_data, we are using a Data wrapper which uses an Arc internally.

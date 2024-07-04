@@ -8,13 +8,14 @@ use crate::security::chacha_crypto::decrypt_with_db_key;
 use crate::security::pw_hasher;
 use crate::security::totp;
 use crate::templates;
-use crate::utils::auth::cf_turnstile::verify_captcha;
+use crate::utils::auth::{cf_turnstile::verify_captcha, is_logged_in};
 use crate::utils::html::render_template;
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
 use actix_web::http::header::ContentType;
 use actix_web::http::StatusCode;
 use actix_web::{post, web, web::Data, web::Form, HttpRequest, HttpResponse};
 use askama::Template;
+use bson::doc;
 use rand::Rng;
 use tokio::time as tokio_time;
 
@@ -154,25 +155,35 @@ pub async fn login(
 }
 
 #[post("/api/logout")]
-async fn logout(req: HttpRequest) -> HttpResponse {
+async fn logout(req: HttpRequest, client: Data<db::DbClient>) -> HttpResponse {
     let html = templates::guest::GuestItems.render().unwrap();
-    match req.cookie(constants::AUTH_COOKIE_NAME) {
-        Some(_) => {
-            let mut auth_cookie = Cookie::build(constants::AUTH_COOKIE_NAME, "")
-                .domain(constants::get_domain())
-                .path("/")
-                .http_only(true)
-                .same_site(SameSite::Lax)
-                .secure(!constants::get_debug_mode())
-                .finish();
-            auth_cookie.make_removal();
-            HttpResponse::Ok()
-                .content_type(ContentType::html())
-                .cookie(auth_cookie)
-                .body(html)
-        }
-        None => HttpResponse::Ok()
+    if !is_logged_in(&req) {
+        return HttpResponse::Ok()
             .content_type(ContentType::html())
-            .body(html),
+            .body(html);
     }
+
+    let user_info = auth::get_user_claim(&req);
+    let session_id = user_info.session_id;
+    let session_col = client.get_session_collection();
+    match session_col.delete_one(doc! {"_id": session_id}).await {
+        Ok(_) => {}
+        Err(e) => {
+            log::error!("Failed to delete session from db: {:?}", e);
+        }
+    }
+
+    let mut auth_cookie = Cookie::build(constants::AUTH_COOKIE_NAME, "")
+        .domain(constants::get_domain())
+        .path("/")
+        .http_only(true)
+        .same_site(SameSite::Lax)
+        .secure(!constants::get_debug_mode())
+        .finish();
+    auth_cookie.make_removal();
+
+    HttpResponse::Ok()
+        .content_type(ContentType::html())
+        .cookie(auth_cookie)
+        .body(html)
 }

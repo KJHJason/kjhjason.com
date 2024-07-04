@@ -1,3 +1,6 @@
+use crate::middleware::auth::UserClaim;
+use actix_web::{HttpMessage, HttpRequest};
+
 pub mod cf_turnstile {
     /// Note: Remember to import the necessary modules for the macro to work
     ///
@@ -14,4 +17,12 @@ pub mod cf_turnstile {
     }
 
     pub(crate) use verify_captcha;
+}
+
+#[inline]
+pub fn is_logged_in(req: &HttpRequest) -> bool {
+    match req.extensions().get::<UserClaim>() {
+        Some(_) => true,
+        None => false,
+    }
 }

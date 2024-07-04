@@ -1,5 +1,6 @@
 use crate::constants::constants;
 use crate::middleware::csrf;
+use crate::utils::auth::is_logged_in;
 use actix_web::dev::ServiceRequest;
 use actix_web::http::Method;
 use actix_web::{HttpMessage, HttpRequest};
@@ -68,14 +69,6 @@ pub fn get_csrf_token(req: &HttpRequest) -> String {
             );
             "".to_string()
         })
-}
-
-#[inline]
-pub fn is_logged_in(req: &HttpRequest) -> bool {
-    match req.cookie(constants::AUTH_COOKIE_NAME) {
-        Some(_) => true,
-        None => false,
-    }
 }
 
 #[inline]
