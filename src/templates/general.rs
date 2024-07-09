@@ -76,6 +76,7 @@ pub struct Skills<'a> {
     pub languages: Vec<SkillInfo<'a>>,
     pub backend: Vec<SkillInfo<'a>>,
     pub frontend: Vec<SkillInfo<'a>>,
+    pub desktop_apps: Vec<SkillInfo<'a>>,
     pub database: Vec<SkillInfo<'a>>,
     pub deployment: Vec<SkillInfo<'a>>,
     pub general: Vec<SkillInfo<'a>>,

@@ -13,7 +13,8 @@ use crate::utils::html::render_template;
 use crate::utils::projects::get_projects;
 use crate::utils::security::extract_for_template;
 use crate::utils::skills::{
-    get_backend, get_database, get_deployment, get_frontend, get_general, get_languages,
+    get_backend, get_database, get_deployment, get_desktop_apps, get_frontend, get_general,
+    get_languages,
 };
 use crate::utils::testimonials::get_testimonials;
 use crate::utils::validations::get_id_from_path;
@@ -74,6 +75,7 @@ async fn skills(req: HttpRequest) -> HttpResponse {
         languages: get_languages(),
         backend: get_backend(),
         frontend: get_frontend(),
+        desktop_apps: get_desktop_apps(),
         database: get_database(),
         deployment: get_deployment(),
         general: get_general(),

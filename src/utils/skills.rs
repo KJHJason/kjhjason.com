@@ -163,6 +163,16 @@ pub fn get_frontend<'a>() -> Vec<SkillInfo<'a>> {
 }
 
 #[inline(always)]
+pub fn get_desktop_apps<'a>() -> Vec<SkillInfo<'a>> {
+    vec![SkillInfo {
+        link: "https://wails.io/",
+        img_src: "https://storage.kjhjason.com/images/skills/wails.webp",
+        img_alt: "Wails",
+        name: "Wails",
+    }]
+}
+
+#[inline(always)]
 pub fn get_database<'a>() -> Vec<SkillInfo<'a>> {
     vec![
         SkillInfo {
