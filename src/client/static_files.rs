@@ -43,7 +43,7 @@ async fn htmx_org_js() -> impl Responder {
         .expect("should be able to open htmx.min.js file")
 }
 
-#[get("/static/js/htmx-ext-response-targets.min.js")]
+#[get("/static/js/htmx-ext-response-targets.js")]
 async fn htmx_ext_response_targets_js() -> impl Responder {
     NamedFile::open_async("./node_modules/htmx-ext-response-targets/response-targets.js")
         .await
