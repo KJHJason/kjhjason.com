@@ -5,7 +5,8 @@ use crate::client::general::{
     testimonials,
 };
 use crate::client::static_files::{
-    favicon, robots_txt, sitemap_xml, sweetalert_css, sweetalert_js,
+    favicon, htmx_ext_response_targets_js, htmx_org_js, robots_txt, sitemap_xml, sweetalert_css,
+    sweetalert_js,
 };
 use crate::constants::constants;
 use actix_web::web;
@@ -25,6 +26,8 @@ fn add_static_routes(cfg: &mut web::ServiceConfig) {
         .service(sitemap_xml)
         .service(sweetalert_js)
         .service(sweetalert_css)
+        .service(htmx_org_js)
+        .service(htmx_ext_response_targets_js)
         .service(
             // Note: due to the error middleware, the 404 html page will
             // be rendered instead of the default actix error text response

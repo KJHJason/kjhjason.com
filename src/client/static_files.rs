@@ -35,3 +35,17 @@ async fn sweetalert_css() -> impl Responder {
         .await
         .expect("should be able to open sweetalert2.min.css file")
 }
+
+#[get("/static/js/htmx.org.min.js")]
+async fn htmx_org_js() -> impl Responder {
+    NamedFile::open_async("./node_modules/htmx.org/dist/htmx.min.js")
+        .await
+        .expect("should be able to open htmx.min.js file")
+}
+
+#[get("/static/js/htmx-ext-response-targets.min.js")]
+async fn htmx_ext_response_targets_js() -> impl Responder {
+    NamedFile::open_async("./node_modules/htmx-ext-response-targets/response-targets.js")
+        .await
+        .expect("should be able to open response-targets.js file")
+}

@@ -93,8 +93,6 @@ pub fn configure_csp_middleware() -> middleware::csp::CspMiddleware {
             "'self'",
             "'unsafe-eval'", // needed for htmx to work for responses like parsing the html content for the blog
             "https://challenges.cloudflare.com/turnstile/v0/api.js",
-            "https://unpkg.com/htmx.org@2.0.0",
-            "https://unpkg.com/htmx-ext-response-targets@latest/response-targets.js",
         ],
         style_src: vec![
             "'self'",
