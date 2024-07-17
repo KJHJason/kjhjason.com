@@ -10,7 +10,7 @@ actix-multipart = "0.7.2"
 tokio = { version = "1.38.0", features = ["full"] }
 futures = "0.3.30"
 futures-util = "0.3.30"
-mongodb = "3.0.0"
+mongodb = "3.0.1"
 bson = { version = "2.11.0", features = ["chrono-0_4"] }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
@@ -18,7 +18,7 @@ serde_bytes = "0.11.15"
 env_logger = "0.11.3"
 log = "0.4.22"
 derive_more = "0.99.18"
-thiserror = "1.0.61"
+thiserror = "1.0.62"
 chrono = { version = "0.4.38", features = ["serde"] }
 image = "0.25.1"
 mime = "0.3.16"
@@ -30,7 +30,7 @@ pulldown-cmark = "0.11.0"
 askama = "0.12.1"
 minify-html = "0.15.0"
 aws-config = { version = "1.5.4", features = ["behavior-version-latest"] }
-aws-sdk-s3 = "1.40.0"
+aws-sdk-s3 = "1.41.0"
 hex = "0.4.3"
 argon2 = "0.5.3"
 chacha20poly1305 = "0.10.1"
