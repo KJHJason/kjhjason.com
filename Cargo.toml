@@ -20,7 +20,7 @@ log = "0.4.22"
 derive_more = "0.99.18"
 thiserror = "1.0.62"
 chrono = { version = "0.4.38", features = ["serde"] }
-image = "0.25.1"
+image = "0.25.2"
 mime = "0.3.16"
 fastuuid = "0.3.0"
 dotenv = "0.15.0"
