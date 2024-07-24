@@ -11,6 +11,6 @@
   "dependencies": {
     "htmx-ext-response-targets": "^2.0.0",
     "htmx.org": "^2.0.1",
-    "sweetalert2": "^11.12.2"
+    "sweetalert2": "^11.12.3"
   }
 }
