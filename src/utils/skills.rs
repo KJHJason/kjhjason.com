@@ -283,5 +283,11 @@ pub fn get_general<'a>() -> Vec<SkillInfo<'a>> {
             img_alt: "Windows",
             name: "Windows",
         },
+        SkillInfo {
+            link: "https://en.wikipedia.org/wiki/Linux",
+            img_src: "https://storage.kjhjason.com/images/skills/linux.webp",
+            img_alt: "Linux",
+            name: "Linux",
+        },
     ]
 }
