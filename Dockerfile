@@ -46,5 +46,10 @@ COPY --from=rust_build $APP_DIR/target/release/kjhjason-blog .
 
 EXPOSE 8080
 
+# Install CA certificates
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates 
+RUN update-ca-certificates
+
 # Run the web service on container startup.
 CMD [ "./kjhjason-blog" ]
