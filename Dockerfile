@@ -1,4 +1,20 @@
-FROM node:latest as node
+ARG RUST_VERSION=1.80.0
+FROM rust:${RUST_VERSION}-slim-bookworm AS rust_build
+
+WORKDIR /app
+COPY . .
+
+# Enable async file io for better performance.
+# Note: io-uring is only available on linux.
+# Hence, it's disabled by default since I'm running on Windows
+RUN cargo add actix-files --features experimental-io-uring
+
+# Build the project
+RUN cargo build --release
+
+# ---------------------------------------------------------------------------
+
+FROM node:lts-bookworm-slim AS node_build
 
 WORKDIR /app
 COPY . .
@@ -15,25 +31,20 @@ RUN rm ./static/css/tailwind.css
 RUN npm install -g uglify-js
 RUN find ./static/js -name "*.js" -exec sh -c 'uglifyjs "${0}" -c -m -o "${0%.*}.js"' {} \;
 
-FROM rust:latest
+# ---------------------------------------------------------------------------
 
-# NOTE: env var must be the same as the workdir used in the node stage
+FROM debian:bookworm-slim
+
+# NOTE: env var must be the same as the workdir
+# used in the node_build and rust_build stage
 ENV APP_DIR /app
 
-# Copy local code to the container image.
+# Copy the compiled binary and node modules to the container image.
 WORKDIR $APP_DIR
-COPY --from=node $APP_DIR .
-
-# Enable async file io for better performance.
-# Note: io-uring is only available on linux.
-# Hence, it's disabled by default since I'm running on Windows
-RUN cargo add actix-files --features experimental-io-uring
-
-# Install production dependencies and build a release artifact.
-# Note: cargo install will automatically build the project with the --release flag
-RUN cargo install --path . 
+COPY --from=node_build $APP_DIR .
+COPY --from=rust_build $APP_DIR/target/release/kjhjason-blog .
 
 EXPOSE 8080
 
 # Run the web service on container startup.
-CMD ["kjhjason-blog"]
+CMD [ "./kjhjason-blog" ]
