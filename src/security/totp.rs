@@ -1,6 +1,7 @@
-use crate::constants::constants;
+use crate::constants;
 use crate::models::generated_totp::GeneratedTotp;
 use crate::utils::security::generate_random_bytes;
+
 use totp_rs::{Algorithm, Secret, TOTP};
 
 const TOTP_SECRET_LEN: usize = 34; // bytes (16 bytes minimum but >=20 bytes recommended by RFC-4226)

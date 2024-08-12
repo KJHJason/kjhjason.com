@@ -1,6 +1,7 @@
-use crate::constants::constants;
+use crate::constants;
 use crate::templates::auth::Login;
 use crate::utils::{html::render_template, security::extract_for_template};
+
 use actix_web::http::header::LOCATION;
 use actix_web::http::StatusCode;
 use actix_web::{get, web, HttpRequest, HttpResponse};

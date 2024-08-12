@@ -6,7 +6,8 @@ use crate::api::admin_profile::{change_password, generate_2fa, remove_2fa, setup
 use crate::api::auth::{admin_honeypot, login, logout};
 use crate::api::csrf::get_csrf_token;
 use crate::api::general::{api_health, api_index};
-use crate::constants::constants;
+use crate::constants;
+
 use actix_web::web;
 
 #[inline]

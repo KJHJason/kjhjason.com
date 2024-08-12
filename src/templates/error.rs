@@ -1,4 +1,5 @@
 use crate::utils::security::TemplateValues;
+
 use askama::Template;
 
 #[derive(Template)]

@@ -6,6 +6,7 @@ use crate::templates::error::ErrorTemplate;
 use crate::utils::{
     html::render_template, security::extract_for_template, validations::get_id_from_path,
 };
+
 use actix_web::http::StatusCode;
 use actix_web::web::{Data, Path};
 use actix_web::{get, HttpRequest, HttpResponse};

@@ -1,5 +1,6 @@
 use crate::errors::auth::AuthError;
 use crate::utils::security;
+
 use argon2::{
     password_hash::SaltString, Algorithm, Argon2, ParamsBuilder, PasswordHash, PasswordHasher,
     PasswordVerifier, Version,

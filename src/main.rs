@@ -39,7 +39,7 @@ async fn main() -> std::io::Result<()> {
     log::info!("Initialising Blog Web App...");
 
     dotenv().ok();
-    if constants::constants::get_debug_mode() {
+    if constants::get_debug_mode() {
         log::info!("Debug mode enabled");
     }
 
@@ -51,7 +51,7 @@ async fn main() -> std::io::Result<()> {
         db_client
     };
     let aws_future = async {
-        let r2_acc_id = constants::constants::get_r2_acc_id();
+        let r2_acc_id = constants::get_r2_acc_id();
         let config = aws_config::defaults(BehaviorVersion::latest())
             .endpoint_url(format!("https://{}.r2.cloudflarestorage.com/", r2_acc_id))
             .region(Region::new("auto"))
@@ -64,7 +64,7 @@ async fn main() -> std::io::Result<()> {
     };
     let (db_client, s3_client) = tokio::join!(db_future, aws_future);
 
-    let address = if constants::constants::get_debug_mode() {
+    let address = if constants::get_debug_mode() {
         ("127.0.0.1", 8080)
     } else {
         ("0.0.0.0", 8080)

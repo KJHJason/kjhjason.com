@@ -1,5 +1,5 @@
-pub mod admin;
-pub mod auth;
-pub mod configure;
-pub mod general;
-pub mod static_files;
+pub(crate) mod admin;
+pub(crate) mod auth;
+pub(crate) mod configure;
+pub(crate) mod general;
+pub(crate) mod static_files;

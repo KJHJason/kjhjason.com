@@ -13,6 +13,7 @@ use crate::templates::alerts::SuccessAlert;
 use crate::utils::auth::cf_turnstile::verify_captcha;
 use crate::utils::html::render_template;
 use crate::utils::security::get_csrf_header_json;
+
 use actix_web::http::StatusCode;
 use actix_web::web::{Data, Form};
 use actix_web::{get, patch, post, web, HttpRequest, HttpResponse};

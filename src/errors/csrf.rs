@@ -1,11 +1,11 @@
 use actix_web::{HttpResponse, ResponseError};
-use derive_more::{Display, Error};
+use derive_more::{Display, Error as DeriveError};
 
-#[derive(Debug, Display, Error)]
+#[derive(Debug, Display, DeriveError)]
 pub enum CsrfError {
-    #[display(fmt = "CSRF token is missing")]
+    #[display("CSRF token is missing")]
     MissingToken,
-    #[display(fmt = "CSRF token is invalid")]
+    #[display("CSRF token is invalid")]
     InvalidToken,
 }
 

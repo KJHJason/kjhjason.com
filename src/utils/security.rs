@@ -1,6 +1,7 @@
-use crate::constants::constants;
+use crate::constants;
 use crate::middleware::csrf;
 use crate::utils::auth::is_logged_in;
+
 use actix_web::dev::ServiceRequest;
 use actix_web::http::Method;
 use actix_web::{HttpMessage, HttpRequest};

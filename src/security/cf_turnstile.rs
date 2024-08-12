@@ -1,4 +1,5 @@
-use crate::constants::constants;
+use crate::constants;
+
 use actix_web::HttpRequest;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};

@@ -1,5 +1,6 @@
 use crate::templates::error::ErrorTemplate;
 use crate::utils::{html::render_template, security::extract_for_template};
+
 use actix_web::dev::ServiceResponse;
 use actix_web::http::header::{ContentType, CONTENT_TYPE};
 use actix_web::middleware::ErrorHandlerResponse;

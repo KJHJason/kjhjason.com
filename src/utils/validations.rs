@@ -3,6 +3,7 @@ use crate::models::blog_identifier::BlogIdentifier;
 use crate::templates::error::ErrorTemplate;
 use crate::utils::html::render_template;
 use crate::utils::security::extract_for_template;
+
 use actix_web::http::StatusCode;
 use actix_web::web::Path;
 use actix_web::{HttpRequest, HttpResponse};

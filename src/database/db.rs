@@ -1,9 +1,10 @@
-use crate::constants::constants;
+use crate::constants;
 use crate::errors::{auth::AuthError, blog::BlogError, session::SessionError};
 use crate::models::projected_user::ProjectedUser;
 use crate::models::{
     blog::Blog, projected_blog::ProjectedBlog, session::Session, user, user::User,
 };
+
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
 use mongodb::options::FindOneOptions;

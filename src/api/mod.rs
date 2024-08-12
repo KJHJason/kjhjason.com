@@ -1,6 +1,6 @@
-pub mod admin;
-pub mod admin_profile;
-pub mod auth;
-pub mod configure;
-pub mod csrf;
-pub mod general;
+pub(crate) mod admin;
+pub(crate) mod admin_profile;
+pub(crate) mod auth;
+pub(crate) mod configure;
+pub(crate) mod csrf;
+pub(crate) mod general;

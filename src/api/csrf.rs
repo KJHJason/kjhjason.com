@@ -1,7 +1,8 @@
-use crate::constants::constants;
+use crate::constants;
 use crate::errors::base::Error;
 use crate::middleware::csrf;
 use crate::utils::redirect;
+
 use actix_web::{get, web, HttpMessage, HttpRequest};
 
 #[get("/api/csrf-token")]

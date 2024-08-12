@@ -34,7 +34,7 @@
             <label for="two-fa-current-password" class="block my-2 text-sm font-medium text-neutral-900 dark:text-white">Current Password:</label>
             <input type="password" name="current-password" id="two-fa-current-password" class="input-theme mb-4" placeholder="AbcdEF@H1!" required minlength="8" maxlength="64" />
 
-            <div class="cf-turnstile" data-sitekey="{{ crate::constants::constants::CF_TURNSTILE_SITE_KEY }}"></div>
+            <div class="cf-turnstile" data-sitekey="{{ crate::constants::CF_TURNSTILE_SITE_KEY }}"></div>
             <div class="mt-4 w-full text-right">
                 <button type="submit" class="btn btn-success">Enable 2FA</button>
             </div>

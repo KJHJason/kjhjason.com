@@ -1,7 +1,7 @@
 use actix_web::ResponseError;
-use derive_more::{Display, Error};
+use derive_more::{Display, Error as DeriveError};
 
-#[derive(Debug, Display, Error)]
+#[derive(Debug, Display, DeriveError)]
 pub struct Error {
     error: String,
 }

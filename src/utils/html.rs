@@ -1,4 +1,5 @@
-use crate::constants::constants;
+use crate::constants;
+
 use actix_web::http::StatusCode;
 use actix_web::{http::header::ContentType, HttpResponse};
 use askama::Template;

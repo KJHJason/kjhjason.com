@@ -1,32 +1,33 @@
 use crate::templates::alerts::ErrAlert;
+
 use actix_web::http::header::ContentType;
 use actix_web::{HttpResponse, ResponseError};
 use askama::Template;
-use derive_more::{Display, Error};
+use derive_more::{Display, Error as DeriveError};
 
-#[derive(Debug, Display, Error)]
+#[derive(Debug, Display, DeriveError)]
 pub enum AuthError {
-    #[display(fmt = "User already logged in")]
+    #[display("User already logged in")]
     AlreadyLoggedIn,
-    #[display(fmt = "Invalid username or password")]
+    #[display("Invalid username or password")]
     UserNotFound, // same as InvalidCredentials to avoid enumeration attacks
-    #[display(fmt = "Invalid username or password")]
+    #[display("Invalid username or password")]
     InvalidCredentials,
-    #[display(fmt = "Incorrect password!")]
+    #[display("Incorrect password!")]
     IncorrectPassword, // Note: This should only be used when the user is logged in
-    #[display(fmt = "New password and confirm password do not match")]
+    #[display("New password and confirm password do not match")]
     PasswordMismatch,
-    #[display(fmt = "Missing Time-based One-Time Password (TOTP)")]
+    #[display("Missing Time-based One-Time Password (TOTP)")]
     MissingTotp,
-    #[display(fmt = "Invalid Time-based One-Time Password (TOTP)")]
+    #[display("Invalid Time-based One-Time Password (TOTP)")]
     InvalidTotp,
-    #[display(fmt = "Already enabled 2FA")]
+    #[display("Already enabled 2FA")]
     AlreadyEnabled2fa,
-    #[display(fmt = "Already disabled 2FA")]
+    #[display("Already disabled 2FA")]
     AlreadyDisabled2fa,
-    #[display(fmt = "Captcha verification failed")]
+    #[display("Captcha verification failed")]
     CaptchaFailed,
-    #[display(fmt = "Internal server error")]
+    #[display("Internal server error")]
     InternalServerError,
 }
 

@@ -39,7 +39,7 @@
                 <label for="confirm-password" class="block mb-2 text-sm font-medium text-neutral-900 dark:text-white">Confirm Password:</label>
                 <input type="password" name="confirm-password" id="confirm-password" class="input-theme mb-4" placeholder="aBcdEF@H2!" required minlength="8" maxlength="64" />
 
-                <div class="cf-turnstile" data-sitekey="{{ crate::constants::constants::CF_TURNSTILE_SITE_KEY }}"></div>
+                <div class="cf-turnstile" data-sitekey="{{ crate::constants::CF_TURNSTILE_SITE_KEY }}"></div>
                 <div class="mt-4 w-full text-right">
                     <button type="submit" class="btn btn-success">Submit</button>
                 </div>

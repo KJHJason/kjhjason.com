@@ -1,32 +1,33 @@
-use crate::constants::constants::{MAX_FILE_SIZE, MAX_TAGS, TITLE_MAX_LENGTH};
-use actix_web::{HttpResponse, ResponseError};
-use derive_more::{Display, Error};
+use crate::constants::{MAX_FILE_SIZE, MAX_TAGS, TITLE_MAX_LENGTH};
 
-#[derive(Debug, Display, Error)]
+use actix_web::{HttpResponse, ResponseError};
+use derive_more::{Display, Error as DeriveError};
+
+#[derive(Debug, Display, DeriveError)]
 pub enum BlogError {
-    #[display(fmt = "Invalid ID")]
+    #[display("Invalid ID")]
     InvalidObjectId,
-    #[display(fmt = "Blog not found")]
+    #[display("Blog not found")]
     BlogNotFound,
-    #[display(fmt = "Failed to publish blog post")]
+    #[display("Failed to publish blog post")]
     PublishBlogError,
-    #[display(fmt = "Title cannot be empty")]
+    #[display("Title cannot be empty")]
     EmptyTitle,
-    #[display(fmt = "Title cannot be longer than {} characters", TITLE_MAX_LENGTH)]
+    #[display("Title cannot be longer than {} characters", TITLE_MAX_LENGTH)]
     TitleTooLong,
-    #[display(fmt = "Content cannot be empty")]
+    #[display("Content cannot be empty")]
     EmptyContent,
-    #[display(fmt = "Failed to update blog post")]
+    #[display("Failed to update blog post")]
     UpdateBlogError,
-    #[display(fmt = "Too many tags, must be less than {} tags", MAX_TAGS)]
+    #[display("Too many tags, must be less than {} tags", MAX_TAGS)]
     TooManyTags,
-    #[display(fmt = "File cannot be empty")]
+    #[display("File cannot be empty")]
     FileIsEmpty,
-    #[display(fmt = "File size must be less than {} bytes", MAX_FILE_SIZE)]
+    #[display("File size must be less than {} bytes", MAX_FILE_SIZE)]
     FileTooLarge,
-    #[display(fmt = "Failed to upload file")]
+    #[display("Failed to upload file")]
     FileUploadError,
-    #[display(fmt = "Internal server error")]
+    #[display("Internal server error")]
     InternalServerError,
 }
 

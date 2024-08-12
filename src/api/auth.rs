@@ -1,4 +1,4 @@
-use crate::constants::constants;
+use crate::constants;
 use crate::database::db;
 use crate::errors::auth::AuthError;
 use crate::middleware::auth;
@@ -10,6 +10,7 @@ use crate::security::totp;
 use crate::templates;
 use crate::utils::auth::{cf_turnstile::verify_captcha, is_logged_in};
 use crate::utils::html::render_template;
+
 use actix_web::cookie::{time as cookie_time, Cookie, SameSite};
 use actix_web::http::header::ContentType;
 use actix_web::http::StatusCode;

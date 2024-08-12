@@ -8,7 +8,8 @@ use crate::client::static_files::{
     favicon, htmx_ext_response_targets_js, htmx_org_js, robots_txt, sitemap_xml, sweetalert_css,
     sweetalert_js,
 };
-use crate::constants::constants;
+use crate::constants;
+
 use actix_web::web;
 
 #[inline]
