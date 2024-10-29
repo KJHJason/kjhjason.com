@@ -38,5 +38,5 @@ hmac-serialiser = "0.3.1"
 totp-rs = { version = "5.6.0", features = ["qr"] }
 rand = "0.8.5"
 base64 = "0.22.1"
-reqwest = { version = "0.12.8", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12.9", default-features = false, features = ["json", "rustls-tls"] }
 uuid = { version = "1.11.0", features = ["v4"] }
