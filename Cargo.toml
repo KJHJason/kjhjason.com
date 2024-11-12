@@ -20,7 +20,7 @@ log = "0.4.22"
 derive_more = { version = "1.0.0", features = [ "display", "error" ] }
 thiserror = "1.0.65"
 chrono = { version = "0.4.38", features = ["serde"] }
-image = "0.25.4"
+image = "0.25.5"
 mime = "0.3.16"
 fastuuid = "0.3.0"
 dotenv = "0.15.0"
