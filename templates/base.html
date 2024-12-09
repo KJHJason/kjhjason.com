@@ -17,31 +17,6 @@
     <script src="/static/js/htmx-ext-response-targets.js" nonce="{{ common.nonce }}"></script>
     <script async src="/static/js/sweetalert2.min.js" nonce="{{ common.nonce }}"></script>
     <script nonce="{{ common.nonce }}" src="/static/js/base.js"></script>
-
-    <!-- https://developers.google.com/tag-platform/security/guides/consent?consentmode=advanced#implementation_example -->
-    <script nonce="{{ common.nonce }}">
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-
-        // deny all Google-related cookies by default
-        gtag("consent", "default", {
-            "ad_user_data": "denied",
-            "ad_personalization": "denied",
-            "ad_storage": "denied",
-            "analytics_storage": "denied",
-        });
-    </script>
-    <script nonce="{{ common.nonce }}" src="/static/js/gtag.js"></script>
-
-    <!-- Google tag (gtag.js) -->
-    <script nonce="{{ common.nonce }}" async src="https://www.googletagmanager.com/gtag/js?id=G-917Z2B5TJY"></script>
-    <script nonce="{{ common.nonce }}">
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag("js", new Date());
-
-        gtag("config", "G-917Z2B5TJY");
-    </script>
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -59,7 +34,6 @@
             </footer>
         </div>
     </div>
-    {% include "components/cookie_banner.html" %}
     {% block scripts %}{% endblock %}
 </body>
 </html>
