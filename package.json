@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "htmx-ext-response-targets": "^2.0.2",
-    "htmx.org": "^2.0.3",
+    "htmx.org": "^2.0.4",
     "sweetalert2": "^11.15.2"
   }
 }
