@@ -9,7 +9,7 @@
     "build": "tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css --minify"
   },
   "dependencies": {
-    "htmx-ext-response-targets": "^2.0.2",
+    "htmx-ext-response-targets": "^2.0.3",
     "htmx.org": "^2.0.4",
     "sweetalert2": "^11.15.10"
   }
