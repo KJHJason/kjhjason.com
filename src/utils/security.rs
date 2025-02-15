@@ -20,7 +20,7 @@ pub fn get_default_key_info(salt: Vec<u8>, info: Vec<u8>) -> hmac_serialiser::Ke
 #[inline]
 pub fn generate_random_bytes(length: usize) -> Vec<u8> {
     let mut random_bytes = vec![0u8; length];
-    rand::thread_rng().fill(&mut random_bytes[..]);
+    rand::rng().fill(&mut random_bytes[..]);
     random_bytes
 }
 

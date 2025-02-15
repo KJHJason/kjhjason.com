@@ -32,7 +32,7 @@ async fn admin_honeypot(
         login_data.password
     );
     verify_captcha!(&req, &login_data.cf_turnstile_res);
-    let sleep_time = rand::thread_rng().gen_range(2000..4000);
+    let sleep_time = rand::rng().random_range(2000..4000);
     tokio_time::sleep(tokio_time::Duration::from_millis(sleep_time)).await;
     Err(AuthError::InvalidCredentials)
 }
