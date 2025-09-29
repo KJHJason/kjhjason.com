@@ -18,7 +18,7 @@ serde_bytes = "0.11.15"
 env_logger = "0.11.6"
 log = "0.4.27"
 derive_more = { version = "2.0.1", features = [ "display", "error" ] }
-thiserror = "2.0.11"
+thiserror = "2.0.17"
 chrono = { version = "0.4.39", features = ["serde"] }
 image = "0.25.5"
 mime = "0.3.16"
